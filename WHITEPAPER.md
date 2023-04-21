@@ -85,7 +85,7 @@ DIDs incorporate other standard URI components such as path, query, and fragment
 
 DIDs simple syntax describes a method and identifier:
 
-**pic: A simple example of a DID, source: W3C Decentralized Identifiers v1.0**
+![image](https://user-images.githubusercontent.com/69667092/233659775-e34db2bf-7f3a-43ae-955e-50477ae8f388.png)
 
 This example DID above points to a _DID document_ (which is a [JSON-LD object](https://json-ld.org/spec/latest/json-ld/)). The _DID document_ describes _DID Subject_. Any resource might serve as a _DID subject_. This could be a person, group, organization, as well as thing, or concept. This means that the _subject_ can relate to all types of data, including texts, images, audio, and video.
 

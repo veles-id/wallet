@@ -124,6 +124,7 @@ Identity Overlay Network ([ION](https://identity.foundation/ion/)) on Bitcoin al
 ION is decentralized which means that no single entity controls the network, although corporations like Microsoft participate in its development:
 
 > “When we started crunching the numbers, we realized that Bitcoin was the only chain that would probably be too costly to attack.“ — [Daniel Buchner](https://bitcoinmagazine.com/culture/microsofts-ion-is-an-open-source-bet-on-bitcoin) , Microsoft, Principle Architect in Identity Foundation ION Working Group
+
 ION is a purely deterministic protocol, which does not require special tokens, trusted validators, or additional consensus mechanisms. The linear progression of Bitcoin's timechain is all that ION requires to function. Satoshi Nakamoto’s original label for the Bitcoin blockchain was a “[timechain](https://bitcoinmagazine.com/culture/bitcoins-blockchain-is-the-timechain)”.
 
 DID documents fit perfectly into a framework that solves the [chronological oracle problem](https://identity.foundation/sidetree/spec/#introduction). Bitcoin introduced the first-ever solution to this problem with its immutable timestamp and unlocked the ability to create a robust decentralized identifier network. 

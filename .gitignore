@@ -46,7 +46,7 @@ Thumbs.db
 
 # Database files
 *.db
-server/*.db
-server/webauth.db
+/server/*.db
+/server/webauthn.db
 
 .editorconfig

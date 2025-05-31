@@ -1,0 +1,54 @@
+<div class="login">
+  <div class="login__container">
+    <header class="login__header">
+      <h1 class="login__title">Open your</h1>
+      <h2 class="login__subtitle">Identity Wallet</h2>
+    </header>
+
+    <div class="login__icon">
+      <img
+        src="icons/fingerprint_wght100.svg"
+        alt="Fingerprint"
+        class="login__fingerprint"
+      />
+    </div>
+
+    <div class="login__actions">
+      <button
+        class="login__button primary-button"
+        mat-flat-button
+        (click)="handleAuthentication()"
+        [disabled]="isLoading()"
+      >
+        @if (isLoading()) {
+        <mat-spinner
+          class="login__spinner primary-spinner"
+          diameter="20"
+        ></mat-spinner>
+        } @else {
+        <span class="login__button-text">{{ buttonText() }}</span>
+        }
+      </button>
+
+      <button
+        class="login__toggle secondary-button"
+        mat-button
+        (click)="toggleMode()"
+        [disabled]="isLoading()"
+      >
+        <span class="login__toggle-text">
+          <span class="login__toggle-descriptive">{{
+            toggleDescriptiveText()
+          }}</span>
+          <span class="login__toggle-action">{{ toggleActionText() }}</span>
+        </span>
+      </button>
+    </div>
+
+    @if (showError()) {
+    <div class="login__error">
+      <span class="login__error-text">{{ error() }}</span>
+    </div>
+    }
+  </div>
+</div>

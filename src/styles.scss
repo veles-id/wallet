@@ -61,6 +61,21 @@
   font-style: normal;
 }
 
+:root {
+  --primary-color: #b8956a;
+  --primary-hover-color: #d4af70;
+  --primary-disabled-color: #d0d0d0;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-disabled: #999;
+  --text-on-primary: #ffffff;
+  --error-color: #c33;
+  --error-background: #fee;
+  --error-border: #fcc;
+  --shadow-primary: 0 4px 12px rgba(184, 149, 106, 0.3);
+  --shadow-primary-hover: 0 6px 16px rgba(184, 149, 106, 0.4);
+}
+
 html,
 body {
   margin: 0;

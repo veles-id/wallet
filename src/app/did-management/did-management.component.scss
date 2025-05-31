@@ -1,0 +1,122 @@
+.did-management-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.did-management-card {
+  max-width: 800px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+.no-dids {
+  text-align: center;
+  padding: 40px 20px;
+
+  h3 {
+    margin: 16px 0 8px 0;
+    color: #333;
+  }
+
+  p {
+    color: #666;
+    margin: 0;
+  }
+}
+
+.large-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+}
+
+.dids-list {
+  padding: 0;
+}
+
+.did-item {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+.did-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h4 {
+    margin: 0;
+    color: #333;
+  }
+}
+
+.did-date {
+  font-size: 12px;
+  color: #666;
+}
+
+.did-content {
+  margin-bottom: 16px;
+
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #495057;
+  }
+}
+
+.did-display-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.did-display {
+  flex: 1;
+  word-break: break-all;
+  font-size: 12px;
+  font-family: "Courier New", monospace;
+  color: #495057;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.did-actions {
+  display: flex;
+  gap: 8px;
+
+  button {
+    flex: 1;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+mat-card-actions {
+  padding: 16px 24px;
+  gap: 8px;
+
+  button {
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}

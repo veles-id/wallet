@@ -7,6 +7,7 @@ import {
 import { HttpClient } from "@angular/common/http";
 import { CommonModule } from "@angular/common";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
 
 interface VerificationResponse {
@@ -30,24 +31,23 @@ export class OnboardingComponent {
   isRegistering = false;
   private readonly API_URL = "http://localhost:4300/api";
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   async loginWithPasskey() {
     this.isLoading = true;
     this.error = null;
 
     try {
-      // Get authentication options from your backend
+      // Get authentication options from backend
       const authOptions = await firstValueFrom(
         this.http.get<{ optionsJSON: any }>(`${this.API_URL}/auth/options`, {
           withCredentials: true,
         })
       );
 
-      // Start the authentication process
       const authResult = await startAuthentication(authOptions.optionsJSON);
 
-      // Send the authentication result to your backend for verification
+      // Send the authentication result to backend for verification
       const verificationResult = await firstValueFrom(
         this.http.post<VerificationResponse>(
           `${this.API_URL}/auth/verify`,
@@ -126,5 +126,9 @@ export class OnboardingComponent {
   toggleMode() {
     this.isRegistering = !this.isRegistering;
     this.error = null;
+  }
+
+  navigateToDidCreation() {
+    this.router.navigate(["/did-creation"]);
   }
 }

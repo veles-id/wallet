@@ -1,0 +1,141 @@
+<div class="did-creation-container">
+  <mat-card class="did-creation-card">
+    <mat-card-header>
+      <mat-card-title>Generate a new identifier </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div *ngIf="!isCreating && !createdDID" class="creation-info">
+        <p>
+          A Decentralized Identifier (DID) is your unique, self-sovereign
+          identity that you fully control. No central authority can revoke or
+          modify it.
+        </p>
+        <div class="features-list">
+          <div class="feature-item">
+            <mat-icon color="primary">check_circle</mat-icon>
+            <span>Fully decentralized using DHT network</span>
+          </div>
+          <div class="feature-item">
+            <mat-icon color="primary">check_circle</mat-icon>
+            <span>No transaction fees</span>
+          </div>
+          <div class="feature-item">
+            <mat-icon color="primary">check_circle</mat-icon>
+            <span>Cryptographically secure</span>
+          </div>
+          <div class="feature-item">
+            <mat-icon color="primary">check_circle</mat-icon>
+            <span>Interoperable across platforms</span>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline" class="alias-field">
+          <mat-label>DID Alias (Optional)</mat-label>
+          <input
+            matInput
+            [(ngModel)]="didAlias"
+            placeholder="e.g., My Personal Identity"
+            maxlength="50"
+          />
+          <mat-hint
+            >Give your DID a friendly name for easy identification</mat-hint
+          >
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="isCreating" class="creating-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Creating your DID...</p>
+        <small>Generating cryptographic keys and DID document</small>
+      </div>
+
+      <div *ngIf="createdDID" class="success-state">
+        <div class="success-header">
+          <mat-icon color="primary" class="success-icon">celebration</mat-icon>
+          <h3>DID Created Successfully!</h3>
+        </div>
+
+        <div class="did-info">
+          <label>Your DID:</label>
+          <div class="did-display-container">
+            <code class="did-display">{{ createdDID.did }}</code>
+            <button
+              mat-icon-button
+              (click)="copyToClipboard(createdDID.did)"
+              matTooltip="Copy to clipboard"
+            >
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+
+          <div
+            class="publication-status"
+            [ngClass]="createdDID.isPublished ? 'published' : 'offline'"
+          >
+            <mat-icon>{{
+              createdDID.isPublished ? "cloud_done" : "cloud_off"
+            }}</mat-icon>
+            <span>{{
+              createdDID.isPublished
+                ? "Published to DHT network"
+                : "Created offline (not published)"
+            }}</span>
+          </div>
+        </div>
+
+        <div class="next-steps">
+          <h4>Next Steps:</h4>
+          <ul>
+            <li>Your DID has been securely stored locally</li>
+            <li *ngIf="!createdDID.isPublished">
+              DID created offline - no network connection required
+            </li>
+            <li *ngIf="createdDID.isPublished">
+              DID published to DHT network and globally resolvable
+            </li>
+            <li *ngIf="!createdDID.isPublished">
+              You can publish it to the DHT network later when needed
+            </li>
+            <li>You can now create Verifiable Credentials</li>
+            <li>Share your DID with others for verification</li>
+            <li>Use it to authenticate with Web5 applications</li>
+          </ul>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="createDID()"
+        [disabled]="isCreating"
+        *ngIf="!createdDID"
+      >
+        <mat-icon>add</mat-icon>
+        Create My DID
+      </button>
+
+      <button
+        mat-raised-button
+        color="accent"
+        (click)="createAnother()"
+        *ngIf="createdDID"
+      >
+        <mat-icon>add</mat-icon>
+        Create Another DID
+      </button>
+
+      <button mat-button (click)="viewStoredDIDs()" *ngIf="createdDID">
+        <mat-icon>list</mat-icon>
+        View All DIDs
+      </button>
+
+      <button mat-button (click)="goBack()" *ngIf="!isCreating">
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

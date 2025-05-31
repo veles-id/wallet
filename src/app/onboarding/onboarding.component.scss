@@ -14,7 +14,8 @@
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
-    background-color: #f5f5f5;
+    max-width: 400px;
+    width: 100%;
 
     .header__logo {
       margin-bottom: 40px;
@@ -23,6 +24,36 @@
 
     .fingerprint-icon {
       margin-bottom: 40px;
+    }
+
+    .onboarding-section {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .divider {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      margin: 30px 0;
+
+      &::before,
+      &::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #ddd;
+      }
+
+      span {
+        padding: 0 16px;
+        color: #999;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
     }
 
     .username-input {
@@ -57,6 +88,16 @@
       font-size: 16px;
       font-weight: 500;
       margin-bottom: 16px;
+
+      &.did-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+
+        &:hover {
+          background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+      }
     }
 
     .toggle-mode {

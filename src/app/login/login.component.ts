@@ -9,6 +9,7 @@ import {
   startRegistration,
 } from "@simplewebauthn/browser";
 import { firstValueFrom } from "rxjs";
+import { AuthService } from "../services/auth.service";
 
 interface VerificationResponse {
   verified: boolean;
@@ -36,7 +37,16 @@ export class LoginComponent {
     this.isRegistering() ? "Create passkey" : "Login with passkey"
   );
 
-  // Split toggle text into descriptive and action parts
+  titleText = computed(() =>
+    this.isRegistering() ? "Setup your new" : "Open your"
+  );
+
+  infoText = computed(() =>
+    this.isRegistering()
+      ? "Passkey provides biometric protection for your digital identity"
+      : null
+  );
+
   toggleDescriptiveText = computed(() =>
     this.isRegistering() ? "Already have a passkey? " : "New user? "
   );
@@ -47,7 +57,11 @@ export class LoginComponent {
 
   showError = computed(() => this.error() !== null);
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   async handleAuthentication(): Promise<void> {
     if (this.isRegistering()) {
@@ -81,10 +95,12 @@ export class LoginComponent {
         )
       );
 
-      if (verificationResult.verified) {
+      if (verificationResult.verified && verificationResult.user) {
         console.log("Authentication successful", verificationResult.user);
-        // Navigate to main dashboard/onboarding
-        this.router.navigate(["/onboarding"]);
+        // Update auth service with user info
+        this.authService.setAuthenticated(verificationResult.user);
+        // Navigate to boarding page
+        this.router.navigate(["/boarding"]);
       } else {
         this.error.set("Authentication failed");
       }
@@ -135,9 +151,12 @@ export class LoginComponent {
         )
       );
 
-      if (verificationResponse.verified) {
+      if (verificationResponse.verified && verificationResponse.user) {
         console.log("Registration successful:", verificationResponse.user);
-        this.router.navigate(["/onboarding"]);
+        // Update auth service with user info
+        this.authService.setAuthenticated(verificationResponse.user);
+        // Navigate to boarding page
+        this.router.navigate(["/boarding"]);
       } else {
         this.error.set("Registration failed");
       }

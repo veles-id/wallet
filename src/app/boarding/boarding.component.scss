@@ -1,0 +1,174 @@
+.boarding {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #b8956a;
+  padding: 20px;
+  position: relative;
+
+  // Subtle texture overlay
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%
+    );
+    pointer-events: none;
+  }
+
+  &__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__header {
+    margin-bottom: 80px;
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 500;
+    color: white;
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &__icon {
+    margin-bottom: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__logo {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__logo-svg {
+    width: 80px;
+    height: 80px;
+  }
+
+  &__content {
+    margin-bottom: 80px;
+    max-width: 320px;
+  }
+
+  &__description {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+    margin: 0;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  &__actions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__button {
+    width: 280px;
+    height: 56px;
+    transition: all 0.3s ease;
+
+    &.mat-mdc-button,
+    &.mat-mdc-unelevated-button {
+      background-color: white;
+      color: #b8956a;
+      border-radius: 28px;
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      border: none;
+
+      .mdc-button__label {
+        color: #b8956a;
+      }
+
+      &:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.95);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .boarding {
+    padding: 16px;
+
+    &__title {
+      font-size: 22px;
+    }
+
+    &__logo {
+      width: 100px;
+      height: 100px;
+    }
+
+    &__logo-svg {
+      width: 70px;
+      height: 70px;
+    }
+
+    &__description {
+      font-size: 15px;
+      max-width: 280px;
+    }
+
+    &__button {
+      width: 100%;
+      max-width: 280px;
+    }
+
+    &__container {
+      max-width: 320px;
+    }
+  }
+}
+
+// Smooth entrance animation
+.boarding__container {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

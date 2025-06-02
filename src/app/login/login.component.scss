@@ -47,6 +47,22 @@
     filter: opacity(0.9);
   }
 
+  &__info {
+    margin-bottom: 40px;
+    margin-top: -80px; // Reduce space between fingerprint and info
+    max-width: 280px;
+    text-align: center;
+  }
+
+  &__info-text {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-secondary, #666);
+    line-height: 1.5;
+    margin: 0;
+    letter-spacing: 0.3px;
+  }
+
   &__actions {
     display: flex;
     flex-direction: column;
@@ -206,6 +222,15 @@
     &__fingerprint {
       width: 100px;
       height: 100px;
+    }
+
+    &__info {
+      margin-top: -60px; // Adjust for smaller fingerprint
+      max-width: 260px;
+    }
+
+    &__info-text {
+      font-size: 13px;
     }
 
     &__button {

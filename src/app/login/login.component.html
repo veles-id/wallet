@@ -1,7 +1,7 @@
 <div class="login">
   <div class="login__container">
     <header class="login__header">
-      <h1 class="login__title">Open your</h1>
+      <h1 class="login__title">{{ titleText() }}</h1>
       <h2 class="login__subtitle">Identity Wallet</h2>
     </header>
 
@@ -12,6 +12,12 @@
         class="login__fingerprint"
       />
     </div>
+
+    @if (infoText()) {
+    <div class="login__info">
+      <p class="login__info-text">{{ infoText() }}</p>
+    </div>
+    }
 
     <div class="login__actions">
       <button

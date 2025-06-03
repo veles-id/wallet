@@ -14,7 +14,6 @@ export class BoardingComponent {
   constructor(private router: Router) {}
 
   continue(): void {
-    // Navigate to DID creation
-    this.router.navigate(["/did-creation"]);
+    this.router.navigate(["/create-did"]);
   }
 }

@@ -1,0 +1,55 @@
+<div class="create-did">
+  <div class="create-did__container">
+    <!-- Header with back button -->
+    <header class="create-did__header">
+      <button
+        class="create-did__back-button"
+        mat-icon-button
+        (click)="goBack()"
+        [disabled]="isCreating()"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1 class="create-did__title">New digital personality</h1>
+    </header>
+
+    <div class="create-did__icon">
+      <div class="create-did__logo">
+        <img src="assets/signet_bright.svg" alt="Veles Logo" />
+      </div>
+    </div>
+
+    <div class="create-did__content">
+      <p class="create-did__description">
+        Give your digital personality a name<br />
+        for easy identification
+      </p>
+    </div>
+
+    <div class="create-did__form">
+      <mat-form-field class="create-did__input-field" appearance="outline">
+        <input
+          matInput
+          placeholder="Name your new DID"
+          [(ngModel)]="didName"
+          [disabled]="isCreating()"
+          (keyup.enter)="createDID()"
+          autocomplete="off"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="create-did__actions">
+      <button
+        class="create-did__button"
+        mat-flat-button
+        (click)="createDID()"
+        [disabled]="isCreating() || !didName().trim()"
+      >
+        @if (isCreating()) {
+        <mat-spinner diameter="20" class="create-did__spinner"></mat-spinner>
+        } @else { Create DID }
+      </button>
+    </div>
+  </div>
+</div>

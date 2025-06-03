@@ -1,4 +1,4 @@
-import { Component, signal, computed } from "@angular/core";
+import { Component, signal, computed, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -27,44 +27,42 @@ interface VerificationResponse {
   styleUrl: "./login.component.scss",
 })
 export class LoginComponent {
-  private readonly API_URL = "http://localhost:4300/api";
+  private readonly _API_URL = "http://localhost:4300/api";
+  private _http = inject(HttpClient);
+  private _router = inject(Router);
+  private _authService = inject(AuthService);
+
+  private _isRegistering = signal(false);
 
   isLoading = signal(false);
   error = signal<string | null>(null);
-  isRegistering = signal(false);
 
   buttonText = computed(() =>
-    this.isRegistering() ? "Create passkey" : "Login with passkey"
+    this._isRegistering() ? "Create passkey" : "Login with passkey"
   );
 
   titleText = computed(() =>
-    this.isRegistering() ? "Setup your new" : "Open your"
+    this._isRegistering() ? "Setup your new" : "Open your"
   );
 
   infoText = computed(() =>
-    this.isRegistering()
+    this._isRegistering()
       ? "Passkey provides biometric protection for your digital identity"
       : null
   );
 
   toggleDescriptiveText = computed(() =>
-    this.isRegistering() ? "Already have a passkey? " : "New user? "
+    this._isRegistering() ? "Already have a passkey? " : "New user? "
   );
 
   toggleActionText = computed(() =>
-    this.isRegistering() ? "Login" : "Create passkey"
+    this._isRegistering() ? "Login" : "Create passkey"
   );
 
   showError = computed(() => this.error() !== null);
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private authService: AuthService
-  ) {}
-
   async handleAuthentication(): Promise<void> {
-    if (this.isRegistering()) {
+    if (this._isRegistering()) {
       await this.registerPasskey();
     } else {
       await this.loginWithPasskey();
@@ -78,7 +76,7 @@ export class LoginComponent {
     try {
       // Get authentication options from backend
       const authOptions = await firstValueFrom(
-        this.http.get<{ optionsJSON: any }>(`${this.API_URL}/auth/options`, {
+        this._http.get<{ optionsJSON: any }>(`${this._API_URL}/auth/options`, {
           withCredentials: true,
         })
       );
@@ -88,8 +86,8 @@ export class LoginComponent {
 
       // Send the authentication result to backend for verification
       const verificationResult = await firstValueFrom(
-        this.http.post<VerificationResponse>(
-          `${this.API_URL}/auth/verify`,
+        this._http.post<VerificationResponse>(
+          `${this._API_URL}/auth/verify`,
           { credential: authResult },
           { withCredentials: true }
         )
@@ -98,9 +96,9 @@ export class LoginComponent {
       if (verificationResult.verified && verificationResult.user) {
         console.log("Authentication successful", verificationResult.user);
         // Update auth service with user info
-        this.authService.setAuthenticated(verificationResult.user);
+        this._authService.setAuthenticated(verificationResult.user);
         // Navigate to boarding page
-        this.router.navigate(["/boarding"]);
+        this._router.navigate(["/boarding"]);
       } else {
         this.error.set("Authentication failed");
       }
@@ -121,8 +119,8 @@ export class LoginComponent {
     try {
       // Get registration options
       const optionsResponse = await firstValueFrom(
-        this.http.post<{ optionsJSON: any; userId: string }>(
-          `${this.API_URL}/register/options`,
+        this._http.post<{ optionsJSON: any; userId: string }>(
+          `${this._API_URL}/register/options`,
           {},
           { withCredentials: true }
         )
@@ -141,8 +139,8 @@ export class LoginComponent {
 
       // Verify the registration
       const verificationResponse = await firstValueFrom(
-        this.http.post<VerificationResponse>(
-          `${this.API_URL}/register/verify`,
+        this._http.post<VerificationResponse>(
+          `${this._API_URL}/register/verify`,
           {
             credential,
             userId,
@@ -154,9 +152,9 @@ export class LoginComponent {
       if (verificationResponse.verified && verificationResponse.user) {
         console.log("Registration successful:", verificationResponse.user);
         // Update auth service with user info
-        this.authService.setAuthenticated(verificationResponse.user);
+        this._authService.setAuthenticated(verificationResponse.user);
         // Navigate to boarding page
-        this.router.navigate(["/boarding"]);
+        this._router.navigate(["/boarding"]);
       } else {
         this.error.set("Registration failed");
       }
@@ -171,7 +169,7 @@ export class LoginComponent {
   }
 
   toggleMode(): void {
-    this.isRegistering.update((value) => !value);
+    this._isRegistering.update((value) => !value);
     this.error.set(null);
   }
 }

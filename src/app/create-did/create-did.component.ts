@@ -30,18 +30,10 @@ export class CreateDidComponent {
   isCreating = signal(false);
   didName = signal("");
 
-  constructor(
-    private didService: DidService,
-    private snackBar: MatSnackBar,
-    private router: Router
-  ) {}
+  constructor(private didService: DidService, private router: Router) {}
 
   async createDID(): Promise<void> {
     if (!this.didName().trim()) {
-      this.snackBar.open("Please enter a name for your DID", "Close", {
-        duration: 3000,
-        panelClass: ["error-snackbar"],
-      });
       return;
     }
 
@@ -54,19 +46,8 @@ export class CreateDidComponent {
       // Store it with the user-provided name
       await this.didService.storeDID(createdDID, this.didName().trim());
 
-      this.snackBar.open(
-        createdDID.isPublished
-          ? "DID created and published successfully!"
-          : "DID created successfully!",
-        "Close",
-        {
-          duration: 3000,
-          panelClass: ["success-snackbar"],
-        }
-      );
-
-      // Navigate to DID management or onboarding
-      this.router.navigate(["/did-management"]);
+      // Navigate to dashboard to show the created DID
+      this.router.navigate(["/dashboard"]);
     } catch (error) {
       console.log("DID creation failed, trying offline mode:", error);
 
@@ -76,18 +57,9 @@ export class CreateDidComponent {
           await this.didService.createOfflineDID();
         await this.didService.storeDID(offlineDID, this.didName().trim());
 
-        this.snackBar.open("DID created in offline mode!", "Close", {
-          duration: 4000,
-          panelClass: ["success-snackbar"],
-        });
-
-        this.router.navigate(["/did-management"]);
+        this.router.navigate(["/dashboard"]);
       } catch (offlineError) {
         console.error("Error creating DID:", offlineError);
-        this.snackBar.open("Failed to create DID. Please try again.", "Close", {
-          duration: 5000,
-          panelClass: ["error-snackbar"],
-        });
       }
     } finally {
       this.isCreating.set(false);

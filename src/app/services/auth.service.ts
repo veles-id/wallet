@@ -1,7 +1,6 @@
 import { Injectable, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { Observable, BehaviorSubject } from "rxjs";
 
 export interface User {
   id: string;

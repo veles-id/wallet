@@ -98,7 +98,6 @@
     }
 
     .mat-mdc-text-field-wrapper {
-      border-radius: 28px;
       background-color: white;
     }
 
@@ -124,6 +123,11 @@
       .mat-mdc-form-field-outline-thick {
         color: var(--primary-color, #b8956a);
       }
+    }
+
+    .mat-mdc-input-element {
+      color: #bbb;
+      padding-left: 12px;
     }
   }
 

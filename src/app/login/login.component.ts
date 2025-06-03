@@ -31,7 +31,6 @@ export class LoginComponent {
   private _http = inject(HttpClient);
   private _router = inject(Router);
   private _authService = inject(AuthService);
-
   private _isRegistering = signal(false);
 
   isLoading = signal(false);

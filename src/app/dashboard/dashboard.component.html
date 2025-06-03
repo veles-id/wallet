@@ -1,0 +1,115 @@
+<div class="dashboard">
+  <div class="dashboard__container">
+    <header class="dashboard__header">
+      <h1 class="dashboard__title">{{ userName() }}</h1>
+    </header>
+
+    <div class="dashboard__message">
+      <p class="dashboard__message-text">
+        Your new digital personality<br />
+        called {{ userName() }} was created
+      </p>
+    </div>
+
+    <div class="dashboard__qr-section">
+      @if (isLoading()) {
+      <div class="dashboard__loading">
+        <mat-spinner diameter="60"></mat-spinner>
+      </div>
+      } @else {
+      <div class="dashboard__qr-container">
+        <canvas
+          #qrCanvas
+          class="dashboard__qr-code"
+          [class.dashboard__qr-code--hidden]="!qrCodeGenerated()"
+        ></canvas>
+        @if (!qrCodeGenerated()) {
+        <div class="dashboard__qr-placeholder">
+          <mat-icon>qr_code</mat-icon>
+        </div>
+        } @if (qrCodeGenerated()) {
+        <div class="dashboard__veles-logo">
+          <img src="assets/veles-logo.svg" alt="Veles" />
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="dashboard__did-section">
+      <p class="dashboard__did-label">Your private decentralized identifier:</p>
+      <div class="dashboard__did-container" (click)="copyDID()">
+        <span class="dashboard__did-text">{{ shortDID() }}</span>
+        <mat-icon class="dashboard__copy-icon">content_copy</mat-icon>
+      </div>
+    </div>
+
+    <div class="dashboard__actions">
+      @if (canPublish()) {
+      <button
+        class="dashboard__publish-button"
+        mat-flat-button
+        (click)="publishDID()"
+        [disabled]="isPublishing()"
+      >
+        @if (isPublishing()) {
+        <mat-spinner diameter="20" class="dashboard__spinner"></mat-spinner>
+        } @else { Publish }
+      </button>
+      } @else {
+      <div class="dashboard__published-status">
+        <mat-icon class="dashboard__published-icon">check_circle</mat-icon>
+        <span>Published</span>
+      </div>
+      }
+    </div>
+
+    @if (error()) {
+    <div class="dashboard__error">
+      <span class="dashboard__error-text">{{ error() }}</span>
+    </div>
+    }
+  </div>
+
+  <nav class="dashboard__bottom-nav">
+    <button
+      class="dashboard__nav-item dashboard__nav-item--active"
+      mat-button
+      (click)="navigateToIdentity()"
+    >
+      <mat-icon>fingerprint</mat-icon>
+      <span>Identity</span>
+    </button>
+
+    <button
+      class="dashboard__nav-item"
+      mat-button
+      (click)="navigateToCredentials()"
+    >
+      <mat-icon>badge</mat-icon>
+      <span>Credentials</span>
+    </button>
+
+    <div class="dashboard__nav-center">
+      <img
+        src="assets/veles-logo.svg"
+        alt="Veles"
+        class="dashboard__nav-logo"
+      />
+    </div>
+
+    <button class="dashboard__nav-item" mat-button (click)="navigateToLinked()">
+      <mat-icon>link</mat-icon>
+      <span>Linked</span>
+    </button>
+
+    <button
+      class="dashboard__nav-item"
+      mat-button
+      (click)="navigateToSettings()"
+    >
+      <mat-icon>settings</mat-icon>
+      <span>Settings</span>
+    </button>
+  </nav>
+</div>

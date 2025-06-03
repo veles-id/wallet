@@ -6,6 +6,7 @@ import { DidManagementComponent } from "./did-management/did-management.componen
 import { LoginComponent } from "./login/login.component";
 import { BoardingComponent } from "./boarding/boarding.component";
 import { CreateDidComponent } from "./create-did/create-did.component";
+import { DashboardComponent } from "./dashboard/dashboard.component";
 import { AuthGuard } from "./guards/auth.guard";
 
 export const routes: Routes = [
@@ -15,6 +16,11 @@ export const routes: Routes = [
   {
     path: "create-did",
     component: CreateDidComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: "dashboard",
+    component: DashboardComponent,
     canActivate: [AuthGuard],
   },
   { path: "onboarding", component: OnboardingComponent },

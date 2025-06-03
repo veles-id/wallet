@@ -95,7 +95,7 @@ export class DidManagementComponent implements OnInit {
   }
 
   createNewDID(): void {
-    this.router.navigate(["/did-creation"]);
+    this.router.navigate(["/create-did"]);
   }
 
   goBack(): void {

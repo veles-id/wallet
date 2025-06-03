@@ -12,6 +12,6 @@ export class SplashComponent {
   constructor(private router: Router) {}
 
   onClick() {
-    this.router.navigate(["/onboarding"]);
+    this.router.navigate(["/login"]);
   }
 }

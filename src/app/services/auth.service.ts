@@ -1,4 +1,4 @@
-import { Injectable, signal } from "@angular/core";
+import { Injectable, signal, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
 
@@ -11,17 +11,16 @@ export interface User {
   providedIn: "root",
 })
 export class AuthService {
-  private readonly API_URL = "http://localhost:4300/api";
-
-  // Use signals for reactive state management
+  private readonly _API_URL = "http://localhost:4300/api";
+  private _http = inject(HttpClient);
+  private _router = inject(Router);
   private _isAuthenticated = signal(false);
   private _currentUser = signal<User | null>(null);
 
-  // Public readonly signals
   public readonly isAuthenticated = this._isAuthenticated.asReadonly();
   public readonly currentUser = this._currentUser.asReadonly();
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor() {
     this.checkAuthStatus();
   }
 
@@ -31,8 +30,8 @@ export class AuthService {
   private async checkAuthStatus(): Promise<void> {
     try {
       // Check with backend if user has valid session
-      const response = await this.http
-        .get<{ user?: User }>(`${this.API_URL}/auth/status`, {
+      const response = await this._http
+        .get<{ user?: User }>(`${this._API_URL}/auth/status`, {
           withCredentials: true,
         })
         .toPromise();
@@ -64,9 +63,9 @@ export class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      await this.http
+      await this._http
         .post(
-          `${this.API_URL}/auth/logout`,
+          `${this._API_URL}/auth/logout`,
           {},
           {
             withCredentials: true,
@@ -78,7 +77,7 @@ export class AuthService {
     } finally {
       this._isAuthenticated.set(false);
       this._currentUser.set(null);
-      this.router.navigate(["/login"]);
+      this._router.navigate(["/login"]);
     }
   }
 

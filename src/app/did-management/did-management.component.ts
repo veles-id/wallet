@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
@@ -21,20 +21,18 @@ import { DidService, StoredDID } from "../services/did.service";
   styleUrl: "./did-management.component.scss",
 })
 export class DidManagementComponent implements OnInit {
-  storedDIDs: StoredDID[] = [];
+  private _didService = inject(DidService);
+  private _snackBar = inject(MatSnackBar);
+  private _router = inject(Router);
 
-  constructor(
-    private didService: DidService,
-    private snackBar: MatSnackBar,
-    private router: Router
-  ) {}
+  storedDIDs: StoredDID[] = [];
 
   ngOnInit(): void {
     this.loadStoredDIDs();
   }
 
   loadStoredDIDs(): void {
-    this.storedDIDs = this.didService.getStoredDIDs();
+    this.storedDIDs = this._didService.getStoredDIDs();
   }
 
   formatDate(dateString: string): string {
@@ -46,19 +44,19 @@ export class DidManagementComponent implements OnInit {
     navigator.clipboard
       .writeText(text)
       .then(() => {
-        this.snackBar.open("DID copied to clipboard!", "Close", {
+        this._snackBar.open("DID copied to clipboard!", "Close", {
           duration: 2000,
         });
       })
       .catch(() => {
-        this.snackBar.open("Failed to copy to clipboard", "Close", {
+        this._snackBar.open("Failed to copy to clipboard", "Close", {
           duration: 2000,
         });
       });
   }
 
   exportDID(did: string): void {
-    const exportedData = this.didService.exportDID(did);
+    const exportedData = this._didService.exportDID(did);
     if (exportedData) {
       const blob = new Blob([exportedData], { type: "application/json" });
       const url = window.URL.createObjectURL(blob);
@@ -68,7 +66,7 @@ export class DidManagementComponent implements OnInit {
       link.click();
       window.URL.revokeObjectURL(url);
 
-      this.snackBar.open("DID exported successfully!", "Close", {
+      this._snackBar.open("DID exported successfully!", "Close", {
         duration: 2000,
       });
     }
@@ -80,14 +78,14 @@ export class DidManagementComponent implements OnInit {
         "Are you sure you want to delete this DID? This action cannot be undone."
       )
     ) {
-      const success = this.didService.deleteDID(did);
+      const success = this._didService.deleteDID(did);
       if (success) {
         this.loadStoredDIDs();
-        this.snackBar.open("DID deleted successfully!", "Close", {
+        this._snackBar.open("DID deleted successfully!", "Close", {
           duration: 2000,
         });
       } else {
-        this.snackBar.open("Failed to delete DID", "Close", {
+        this._snackBar.open("Failed to delete DID", "Close", {
           duration: 2000,
         });
       }
@@ -95,10 +93,10 @@ export class DidManagementComponent implements OnInit {
   }
 
   createNewDID(): void {
-    this.router.navigate(["/create-did"]);
+    this._router.navigate(["/create-did"]);
   }
 
   goBack(): void {
-    this.router.navigate(["/onboarding"]);
+    this._router.navigate(["/onboarding"]);
   }
 }

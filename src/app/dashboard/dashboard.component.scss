@@ -87,7 +87,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: white;
-    padding: 8px;
+    padding: 3px;
 
     img {
       width: 32px;
@@ -119,7 +119,7 @@
   &__did-section {
     margin-bottom: 40px;
     width: 100%;
-    max-width: 320px;
+    max-width: 350px;
   }
 
   &__did-label {
@@ -335,15 +335,14 @@
     height: 48px;
     background-color: var(--primary-color, #b8956a);
     border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(184, 149, 106, 0.3);
     margin: 0 6px;
     flex-shrink: 0;
   }
 
   &__nav-logo {
-    width: 24px;
-    height: 24px;
-    filter: brightness(0) invert(1);
+    width: 72px;
+    height: 72px;
+    // filter: brightness(0) invert(1);
   }
 }
 

@@ -63,12 +63,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Generate QR code after view is initialized if DID is already loaded
     if (this.currentDID() && this.pendingQRGeneration()) {
       this.generateQRCode(this.currentDID()!.did);
     }
 
-    // Additional safety: retry QR generation after a short delay if still pending
     setTimeout(() => {
       if (this.currentDID() && this.pendingQRGeneration()) {
         console.log("Retrying QR code generation after timeout");
@@ -83,12 +81,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       const storedDIDs = this._didService.getStoredDIDs();
 
       if (storedDIDs.length > 0) {
-        // Get the most recent DID
         const latestDID = storedDIDs[storedDIDs.length - 1];
         this.currentDID.set(latestDID);
         this.pendingQRGeneration.set(true);
       } else {
-        // No DID found, redirect to create DID
         this._router.navigate(["/create-did"]);
       }
     } catch (error) {

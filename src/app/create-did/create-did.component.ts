@@ -1,4 +1,4 @@
-import { Component, signal } from "@angular/core";
+import { Component, signal, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -27,10 +27,11 @@ import { DidService, CreateDIDResult } from "../services/did.service";
   styleUrl: "./create-did.component.scss",
 })
 export class CreateDidComponent {
+  private _didService = inject(DidService);
+  private _router = inject(Router);
+
   isCreating = signal(false);
   didName = signal("");
-
-  constructor(private didService: DidService, private router: Router) {}
 
   async createDID(): Promise<void> {
     if (!this.didName().trim()) {
@@ -40,24 +41,20 @@ export class CreateDidComponent {
     this.isCreating.set(true);
 
     try {
-      // Create the DID
-      const createdDID: CreateDIDResult = await this.didService.createDID();
+      const createdDID: CreateDIDResult = await this._didService.createDID();
 
-      // Store it with the user-provided name
-      await this.didService.storeDID(createdDID, this.didName().trim());
+      await this._didService.storeDID(createdDID, this.didName().trim());
 
-      // Navigate to dashboard to show the created DID
-      this.router.navigate(["/dashboard"]);
+      this._router.navigate(["/dashboard"]);
     } catch (error) {
       console.log("DID creation failed, trying offline mode:", error);
 
       try {
-        // Fallback to offline DID creation
         const offlineDID: CreateDIDResult =
-          await this.didService.createOfflineDID();
-        await this.didService.storeDID(offlineDID, this.didName().trim());
+          await this._didService.createOfflineDID();
+        await this._didService.storeDID(offlineDID, this.didName().trim());
 
-        this.router.navigate(["/dashboard"]);
+        this._router.navigate(["/dashboard"]);
       } catch (offlineError) {
         console.error("Error creating DID:", offlineError);
       }
@@ -67,6 +64,6 @@ export class CreateDidComponent {
   }
 
   goBack(): void {
-    this.router.navigate(["/boarding"]);
+    this._router.navigate(["/boarding"]);
   }
 }

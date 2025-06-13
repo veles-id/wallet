@@ -8,7 +8,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import { DidService, CreateDIDResult } from "../services/did.service";
+import { DidService, CreateDIDResult } from "../services/did-dht.service";
 
 @Component({
   selector: "app-create-did",

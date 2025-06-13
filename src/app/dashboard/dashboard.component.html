@@ -56,10 +56,39 @@
         <mat-spinner diameter="20" class="dashboard__spinner"></mat-spinner>
         } @else { Publish }
       </button>
-      } @else {
+      } @else if (isLegacyDID()) {
+      <div class="dashboard__legacy-did-section">
+        <div class="dashboard__legacy-warning">
+          <mat-icon class="dashboard__warning-icon">warning</mat-icon>
+          <span class="dashboard__warning-text"
+            >This DID cannot be published</span
+          >
+        </div>
+        <p class="dashboard__legacy-explanation">
+          {{ publishabilityReason() }}
+        </p>
+        <button
+          class="dashboard__create-new-button"
+          mat-flat-button
+          (click)="createNewPublishableDID()"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+          <mat-spinner diameter="20" class="dashboard__spinner"></mat-spinner>
+          } @else { Create New Publishable DID }
+        </button>
+      </div>
+      } @else if (currentDID()?.isPublished) {
       <div class="dashboard__published-status">
         <mat-icon class="dashboard__published-icon">check_circle</mat-icon>
         <span>Published</span>
+      </div>
+      } @else {
+      <div class="dashboard__cannot-publish">
+        <mat-icon class="dashboard__warning-icon">info</mat-icon>
+        <span class="dashboard__cannot-publish-text">{{
+          publishabilityReason()
+        }}</span>
       </div>
       }
     </div>

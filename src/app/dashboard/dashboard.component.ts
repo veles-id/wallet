@@ -15,7 +15,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { Router } from "@angular/router";
 import * as QRCode from "qrcode";
 import { AuthService, User } from "../services/auth.service";
-import { DidService, StoredDID } from "../services/did.service";
+import { DidService, StoredDID } from "../services/did-dht.service";
 
 @Component({
   selector: "app-dashboard",
@@ -54,9 +54,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
     return did;
   });
-  canPublish = computed(
-    () => this.currentDID() && !this.currentDID()?.isPublished
-  );
+  canPublish = computed(() => {
+    const did = this.currentDID();
+    if (!did) return false;
+
+    const publishability = this._didService.canPublishDID(did);
+    return publishability.canPublish;
+  });
+
+  isLegacyDID = computed(() => {
+    const did = this.currentDID();
+    if (!did) return false;
+
+    const publishability = this._didService.canPublishDID(did);
+    return publishability.isLegacyDID || false;
+  });
+
+  publishabilityReason = computed(() => {
+    const did = this.currentDID();
+    if (!did) return null;
+
+    const publishability = this._didService.canPublishDID(did);
+    return publishability.reason || null;
+  });
 
   ngOnInit(): void {
     this.loadUserDID();
@@ -82,7 +102,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       if (storedDIDs.length > 0) {
         const latestDID = storedDIDs[storedDIDs.length - 1];
-        this.currentDID.set(latestDID);
+
+        // Try to migrate the DID for publishing if needed
+        if (!latestDID.privateKeyJwk && !latestDID.isPublished) {
+          console.log("Attempting to migrate DID for publishing...");
+          await this._didService.migrateDIDForPublishing(latestDID.did);
+          // Reload the DID after migration attempt
+          const updatedDID = this._didService.getStoredDID(latestDID.did);
+          if (updatedDID) {
+            this.currentDID.set(updatedDID);
+          } else {
+            this.currentDID.set(latestDID);
+          }
+        } else {
+          this.currentDID.set(latestDID);
+        }
+
         this.pendingQRGeneration.set(true);
       } else {
         this._router.navigate(["/create-did"]);
@@ -157,9 +192,35 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       }
     } catch (error) {
       console.error("Error publishing DID:", error);
-      this.error.set(
-        "Failed to publish DID. Please check your internet connection."
-      );
+
+      let errorMessage =
+        "Failed to publish DID. Please check your internet connection.";
+
+      if (error instanceof Error) {
+        // Handle specific error types
+        if (error.message.includes("No private keys available")) {
+          errorMessage =
+            "Cannot publish this DID - it was created offline and has no private keys.";
+        } else if (
+          error.message.includes("KeySet is not a valid DidDht instance")
+        ) {
+          errorMessage =
+            "Cannot publish this DID - the cryptographic keys are no longer valid. Try creating a new DID.";
+        } else if (error.message.includes("Failed to reconstruct DID")) {
+          errorMessage =
+            "Cannot publish this DID - failed to reconstruct the cryptographic keys. Try creating a new DID.";
+        } else if (error.message.includes("Invalid DID document structure")) {
+          errorMessage =
+            "Cannot publish this DID - the document structure is invalid.";
+        } else if (
+          error.message.includes("Failed to publish to all available")
+        ) {
+          errorMessage =
+            "Publishing failed - all publishing methods (Mainline DHT + gateways) are unavailable. Please try again later.";
+        }
+      }
+
+      this.error.set(errorMessage);
       console.log("Failed to publish DID");
     } finally {
       this.isPublishing.set(false);
@@ -204,6 +265,32 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       await this._authService.logout();
     } catch (error) {
       console.error("Error logging out:", error);
+    }
+  }
+
+  async createNewPublishableDID(): Promise<void> {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    try {
+      console.log("Creating new publishable DID to replace legacy DID...");
+      const newDID = await this._didService.createPublishableDID();
+
+      // Update the current DID to the new one
+      const storedDID = this._didService.getStoredDID(newDID.did);
+      if (storedDID) {
+        this.currentDID.set(storedDID);
+        console.log("New publishable DID created successfully!");
+
+        // Generate QR code for the new DID
+        this.pendingQRGeneration.set(true);
+        this.generateQRCode(newDID.did);
+      }
+    } catch (error) {
+      console.error("Error creating new publishable DID:", error);
+      this.error.set("Failed to create new DID. Please try again.");
+    } finally {
+      this.isLoading.set(false);
     }
   }
 }

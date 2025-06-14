@@ -185,7 +185,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     try {
       // Check if this is a DID:Nostr
-      if (did.did.startsWith("did:nostr:")) {
+      if (did.didType === "nostr" || did.did.startsWith("did:nostr:")) {
         const success = await this._didNostrService.publishDID(did);
         if (success) {
           // Update the current DID state
@@ -194,107 +194,54 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           console.log("DID:Nostr published successfully!");
         }
       } else {
-        // This is a DID:DHT, create and switch to a new DID:Nostr
-        console.log("Creating new DID:Nostr to replace DID:DHT...");
-        const nostrDID = await this._didNostrService.createDID();
+        // This is a DID:DHT, publish to DHT
+        const success = await this._didService.publishDIDWithFallback(did);
+        if (success) {
+          // Update the current DID state
+          const updatedDID = { ...did, isPublished: true };
+          this.currentDID.set(updatedDID);
+          console.log("DID:DHT published successfully!");
+        }
+      }
+    } catch (error) {
+      console.error("Error publishing DID:", error);
 
-        // Store the new DID:Nostr
-        await this._didService.storeDID(nostrDID, did.alias);
+      let errorMessage = "Failed to publish DID. Please try again.";
 
-        // Publish it
-        const storedNostrDID = this._didService.getStoredDID(nostrDID.did);
-        if (storedNostrDID) {
-          // Add Nostr keys to the stored DID
-          (storedNostrDID as any).nostrPrivateKey = nostrDID.nostrPrivateKey;
-          (storedNostrDID as any).nostrPublicKey = nostrDID.nostrPublicKey;
-
-          const success = await this._didNostrService.publishDID(
-            storedNostrDID
-          );
-          if (success) {
-            // Update to show the new DID:Nostr
-            const updatedDID = { ...storedNostrDID, isPublished: true };
-            this.currentDID.set(updatedDID);
-
-            // Generate QR code for the new DID
-            this.pendingQRGeneration.set(true);
-            this.generateQRCode(nostrDID.did);
-
-            console.log("New DID:Nostr created and published successfully!");
+      if (error instanceof Error) {
+        if (did.didType === "nostr" || did.did.startsWith("did:nostr:")) {
+          // Nostr-specific error handling
+          if (error.message.includes("Could not extract Nostr keys")) {
+            errorMessage =
+              "Cannot publish this DID - failed to extract Nostr keys.";
+          }
+        } else {
+          // DHT-specific error handling
+          if (error.message.includes("No private keys available")) {
+            errorMessage =
+              "Cannot publish this DID - it was created offline and has no private keys.";
+          } else if (
+            error.message.includes("KeySet is not a valid DidDht instance")
+          ) {
+            errorMessage =
+              "Cannot publish this DID - the cryptographic keys are no longer valid. Try creating a new DID.";
+          } else if (error.message.includes("Failed to reconstruct DID")) {
+            errorMessage =
+              "Cannot publish this DID - failed to reconstruct the cryptographic keys. Try creating a new DID.";
+          } else if (error.message.includes("Invalid DID document structure")) {
+            errorMessage =
+              "Cannot publish this DID - the document structure is invalid.";
+          } else if (
+            error.message.includes("Failed to publish to all available")
+          ) {
+            errorMessage =
+              "Publishing failed - all publishing methods are unavailable. Please try again later.";
           }
         }
       }
-    } catch (error) {
-      console.error("Error publishing DID to Nostr:", error);
-
-      let errorMessage = "Failed to publish DID to Nostr. Please try again.";
-
-      if (error instanceof Error) {
-        if (error.message.includes("Could not extract Nostr keys")) {
-          errorMessage =
-            "Cannot publish this DID - failed to extract Nostr keys.";
-        } else if (error.message.includes("Failed to create DID:Nostr")) {
-          errorMessage = "Failed to create new DID:Nostr. Please try again.";
-        }
-      }
 
       this.error.set(errorMessage);
-      console.log("Failed to publish DID to Nostr");
-    } finally {
-      this.isPublishing.set(false);
-    }
-  }
-
-  async publishDIDToDHT(): Promise<void> {
-    const did = this.currentDID();
-    if (!did || did.isPublished) {
-      return;
-    }
-
-    this.isPublishing.set(true);
-    this.error.set(null);
-
-    try {
-      const success = await this._didService.publishDIDWithFallback(did);
-      if (success) {
-        // Update the current DID state
-        const updatedDID = { ...did, isPublished: true };
-        this.currentDID.set(updatedDID);
-
-        console.log("DID published to DHT successfully!");
-      }
-    } catch (error) {
-      console.error("Error publishing DID to DHT:", error);
-
-      let errorMessage =
-        "Failed to publish DID to DHT. Please check your internet connection.";
-
-      if (error instanceof Error) {
-        // Handle specific error types
-        if (error.message.includes("No private keys available")) {
-          errorMessage =
-            "Cannot publish this DID - it was created offline and has no private keys.";
-        } else if (
-          error.message.includes("KeySet is not a valid DidDht instance")
-        ) {
-          errorMessage =
-            "Cannot publish this DID - the cryptographic keys are no longer valid. Try creating a new DID.";
-        } else if (error.message.includes("Failed to reconstruct DID")) {
-          errorMessage =
-            "Cannot publish this DID - failed to reconstruct the cryptographic keys. Try creating a new DID.";
-        } else if (error.message.includes("Invalid DID document structure")) {
-          errorMessage =
-            "Cannot publish this DID - the document structure is invalid.";
-        } else if (
-          error.message.includes("Failed to publish to all available")
-        ) {
-          errorMessage =
-            "Publishing failed - all publishing methods (Mainline DHT + gateways) are unavailable. Please try again later.";
-        }
-      }
-
-      this.error.set(errorMessage);
-      console.log("Failed to publish DID to DHT");
+      console.log("Failed to publish DID");
     } finally {
       this.isPublishing.set(false);
     }

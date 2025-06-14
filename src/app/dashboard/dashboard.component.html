@@ -37,7 +37,19 @@
     </div>
 
     <div class="dashboard__did-section">
-      <p class="dashboard__did-label">Your private decentralized identifier:</p>
+      <div class="dashboard__did-header">
+        <p class="dashboard__did-label">
+          Your private decentralized identifier:
+        </p>
+        <div
+          class="dashboard__did-type-badge"
+          [class]="
+            'dashboard__did-type-badge--' + (currentDID()?.didType || 'dht')
+          "
+        >
+          {{ (currentDID()?.didType || "dht").toUpperCase() }}
+        </div>
+      </div>
       <div class="dashboard__did-container" (click)="copyDID()">
         <span class="dashboard__did-text">{{ shortDID() }}</span>
         <mat-icon class="dashboard__copy-icon">content_copy</mat-icon>
@@ -56,15 +68,6 @@
         <mat-spinner diameter="20" class="dashboard__spinner"></mat-spinner>
         } @else { Publish }
       </button>
-      <div class="dashboard__alternative-publish">
-        <a
-          class="dashboard__dht-link"
-          (click)="publishDIDToDHT()"
-          [class.disabled]="isPublishing()"
-        >
-          Publish to Mainline DHT
-        </a>
-      </div>
       } @else if (isLegacyDID()) {
       <div class="dashboard__legacy-did-section">
         <div class="dashboard__legacy-warning">

@@ -18,6 +18,7 @@ export interface StoredDID {
   createdAt: string;
   alias?: string;
   isPublished: boolean;
+  didType?: "dht" | "nostr"; // Track the type of DID
 }
 
 interface VerificationMethod {
@@ -1001,9 +1002,12 @@ export class DidService {
   }
 
   /**
-   * Stores DID securely (you'll want to integrate with your secure storage)
+   * Stores a DID in localStorage
    */
-  async storeDID(didResult: CreateDIDResult, alias?: string): Promise<void> {
+  async storeDID(
+    didResult: CreateDIDResult & { didType?: "dht" | "nostr" },
+    alias?: string
+  ): Promise<void> {
     // For now, store in localStorage (you should use secure storage in production)
     const storedDIDs = this.getStoredDIDs();
 
@@ -1035,6 +1039,12 @@ export class DidService {
       }
     }
 
+    // For Nostr DIDs, store the Nostr-specific keys
+    let nostrPrivateKey = null;
+    if (didResult.didType === "nostr" && (didResult as any).nostrPrivateKey) {
+      nostrPrivateKey = (didResult as any).nostrPrivateKey;
+    }
+
     const newDID: StoredDID = {
       did: didResult.did,
       document: didResult.document,
@@ -1043,6 +1053,10 @@ export class DidService {
       createdAt: new Date().toISOString(),
       alias: alias,
       isPublished: didResult.isPublished,
+      didType:
+        didResult.didType ||
+        (didResult.did.startsWith("did:nostr:") ? "nostr" : "dht"),
+      ...(nostrPrivateKey && { nostrPrivateKey }),
     };
 
     storedDIDs.push(newDID);
@@ -1125,6 +1139,22 @@ export class DidService {
       return { canPublish: false, reason: "Already published" };
     }
 
+    // Handle Nostr DIDs differently
+    if (
+      storedDID.didType === "nostr" ||
+      storedDID.did.startsWith("did:nostr:")
+    ) {
+      // For Nostr DIDs, check if we have the Nostr private key
+      if ((storedDID as any).nostrPrivateKey) {
+        return { canPublish: true };
+      }
+      return {
+        canPublish: false,
+        reason: "No Nostr private key available",
+      };
+    }
+
+    // Handle DHT DIDs (existing logic)
     // Check if we have any keys at all
     if (!storedDID.keySet && !storedDID.privateKeyJwk) {
       return {

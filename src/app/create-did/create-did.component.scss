@@ -90,45 +90,122 @@
     margin-bottom: 40px;
   }
 
-  &__input-field {
-    width: 100%;
+  &__input-container {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 28px;
+    padding: 16px 16px;
+    margin-bottom: 24px;
+    transition: all 0.2s ease;
 
-    .mat-mdc-form-field-subscript-wrapper {
-      display: none; // Hide the subscript area to save space
+    &:hover {
+      border-color: var(--primary-color, #b8956a);
+      background-color: #fafafa;
     }
 
-    .mat-mdc-text-field-wrapper {
-      background-color: white;
+    &:focus-within {
+      border-color: var(--primary-color, #b8956a);
+      background-color: #fafafa;
     }
+  }
 
-    .mat-mdc-form-field-outline {
-      color: #aaa;
-    }
+  &__input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    color: var(--text-primary, #333);
+    font-weight: 400;
 
-    .mat-mdc-form-field-focus-overlay {
-      background-color: transparent;
-    }
-
-    input {
-      font-size: 16px;
-      color: var(--text-primary, #333);
-      caret-color: var(--primary-color, #b8956a);
-    }
-
-    .mat-mdc-form-field-label {
+    &::placeholder {
       color: var(--text-secondary, #999);
     }
 
-    &.mat-focused {
-      .mat-mdc-form-field-outline-thick {
-        color: var(--primary-color, #b8956a);
+    &:disabled {
+      color: var(--text-disabled, #ccc);
+      cursor: not-allowed;
+
+      &::placeholder {
+        color: var(--text-disabled, #ccc);
       }
     }
+  }
 
-    .mat-mdc-input-element {
-      color: #bbb;
-      padding-left: 12px;
+  &__type-selection {
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+
+  &__type-label {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-primary, #666);
+    margin: 0 0 16px 0;
+    text-align: center;
+  }
+
+  &__radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__radio-option {
+    background-color: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 28px;
+    padding: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--primary-color, #b8956a);
+      background-color: #fafafa;
     }
+
+    &.mat-mdc-radio-checked {
+      border-color: var(--primary-color, #b8956a);
+      background-color: rgba(184, 149, 106, 0.05);
+    }
+
+    .mdc-radio {
+      padding: 0;
+      margin-right: 12px;
+    }
+
+    .mdc-radio__native-control:enabled:checked
+      + .mdc-radio__background
+      .mdc-radio__outer-circle {
+      border-color: var(--primary-color, #b8956a);
+    }
+
+    .mdc-radio__native-control:enabled:checked
+      + .mdc-radio__background
+      .mdc-radio__inner-circle {
+      border-color: var(--primary-color, #b8956a);
+    }
+  }
+
+  &__radio-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+
+    strong {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary, #333);
+    }
+  }
+
+  &__radio-description {
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+    line-height: 1.4;
   }
 
   &__actions {

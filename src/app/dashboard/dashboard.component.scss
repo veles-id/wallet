@@ -296,6 +296,29 @@
     }
   }
 
+  &__alternative-publish {
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  &__dht-link {
+    font-size: 14px;
+    color: var(--text-secondary, #666);
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover:not(.disabled) {
+      color: var(--primary-color, #b8956a);
+    }
+
+    &.disabled {
+      color: #ccc;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+  }
+
   &__published-status {
     display: flex;
     align-items: center;

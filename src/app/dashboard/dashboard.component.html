@@ -56,6 +56,15 @@
         <mat-spinner diameter="20" class="dashboard__spinner"></mat-spinner>
         } @else { Publish }
       </button>
+      <div class="dashboard__alternative-publish">
+        <a
+          class="dashboard__dht-link"
+          (click)="publishDIDToDHT()"
+          [class.disabled]="isPublishing()"
+        >
+          Publish to Mainline DHT
+        </a>
+      </div>
       } @else if (isLegacyDID()) {
       <div class="dashboard__legacy-did-section">
         <div class="dashboard__legacy-warning">

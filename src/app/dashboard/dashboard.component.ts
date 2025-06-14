@@ -16,6 +16,7 @@ import { Router } from "@angular/router";
 import * as QRCode from "qrcode";
 import { AuthService, User } from "../services/auth.service";
 import { DidService, StoredDID } from "../services/did-dht.service";
+import { DidNostrService } from "../services/did-nostr.service";
 
 @Component({
   selector: "app-dashboard",
@@ -35,6 +36,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   private _authService = inject(AuthService);
   private _didService = inject(DidService);
+  private _didNostrService = inject(DidNostrService);
   private _router = inject(Router);
 
   isLoading = signal(false);
@@ -182,19 +184,90 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.error.set(null);
 
     try {
+      // Check if this is a DID:Nostr
+      if (did.did.startsWith("did:nostr:")) {
+        const success = await this._didNostrService.publishDID(did);
+        if (success) {
+          // Update the current DID state
+          const updatedDID = { ...did, isPublished: true };
+          this.currentDID.set(updatedDID);
+          console.log("DID:Nostr published successfully!");
+        }
+      } else {
+        // This is a DID:DHT, create and switch to a new DID:Nostr
+        console.log("Creating new DID:Nostr to replace DID:DHT...");
+        const nostrDID = await this._didNostrService.createDID();
+
+        // Store the new DID:Nostr
+        await this._didService.storeDID(nostrDID, did.alias);
+
+        // Publish it
+        const storedNostrDID = this._didService.getStoredDID(nostrDID.did);
+        if (storedNostrDID) {
+          // Add Nostr keys to the stored DID
+          (storedNostrDID as any).nostrPrivateKey = nostrDID.nostrPrivateKey;
+          (storedNostrDID as any).nostrPublicKey = nostrDID.nostrPublicKey;
+
+          const success = await this._didNostrService.publishDID(
+            storedNostrDID
+          );
+          if (success) {
+            // Update to show the new DID:Nostr
+            const updatedDID = { ...storedNostrDID, isPublished: true };
+            this.currentDID.set(updatedDID);
+
+            // Generate QR code for the new DID
+            this.pendingQRGeneration.set(true);
+            this.generateQRCode(nostrDID.did);
+
+            console.log("New DID:Nostr created and published successfully!");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error publishing DID to Nostr:", error);
+
+      let errorMessage = "Failed to publish DID to Nostr. Please try again.";
+
+      if (error instanceof Error) {
+        if (error.message.includes("Could not extract Nostr keys")) {
+          errorMessage =
+            "Cannot publish this DID - failed to extract Nostr keys.";
+        } else if (error.message.includes("Failed to create DID:Nostr")) {
+          errorMessage = "Failed to create new DID:Nostr. Please try again.";
+        }
+      }
+
+      this.error.set(errorMessage);
+      console.log("Failed to publish DID to Nostr");
+    } finally {
+      this.isPublishing.set(false);
+    }
+  }
+
+  async publishDIDToDHT(): Promise<void> {
+    const did = this.currentDID();
+    if (!did || did.isPublished) {
+      return;
+    }
+
+    this.isPublishing.set(true);
+    this.error.set(null);
+
+    try {
       const success = await this._didService.publishDIDWithFallback(did);
       if (success) {
         // Update the current DID state
         const updatedDID = { ...did, isPublished: true };
         this.currentDID.set(updatedDID);
 
-        console.log("DID published successfully!");
+        console.log("DID published to DHT successfully!");
       }
     } catch (error) {
-      console.error("Error publishing DID:", error);
+      console.error("Error publishing DID to DHT:", error);
 
       let errorMessage =
-        "Failed to publish DID. Please check your internet connection.";
+        "Failed to publish DID to DHT. Please check your internet connection.";
 
       if (error instanceof Error) {
         // Handle specific error types
@@ -221,7 +294,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       }
 
       this.error.set(errorMessage);
-      console.log("Failed to publish DID");
+      console.log("Failed to publish DID to DHT");
     } finally {
       this.isPublishing.set(false);
     }

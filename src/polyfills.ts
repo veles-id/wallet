@@ -10,8 +10,8 @@ import { Buffer } from "buffer";
 try {
   if (typeof (globalThis as any).Buffer === "undefined") {
     (globalThis as any).Buffer = Buffer;
-    console.log("✅ Buffer polyfill loaded successfully");
+    console.log("Buffer polyfill loaded successfully");
   }
 } catch (error) {
-  console.warn("⚠️ Failed to assign Buffer globally:", error);
+  console.warn("Failed to assign Buffer globally:", error);
 }

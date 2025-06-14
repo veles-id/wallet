@@ -44,7 +44,10 @@
           class="create-did__radio-group"
           [disabled]="isCreating()"
         >
-          <mat-radio-button value="dht" class="create-did__radio-option">
+          <mat-radio-button
+            [value]="DIDType.DHT"
+            class="create-did__radio-option"
+          >
             <span class="create-did__radio-content">
               <strong>Bittorrent</strong>
               <span class="create-did__radio-description"
@@ -52,7 +55,10 @@
               >
             </span>
           </mat-radio-button>
-          <mat-radio-button value="nostr" class="create-did__radio-option">
+          <mat-radio-button
+            [value]="DIDType.NOSTR"
+            class="create-did__radio-option"
+          >
             <span class="create-did__radio-content">
               <strong>Nostr</strong>
               <span class="create-did__radio-description"

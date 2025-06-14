@@ -15,7 +15,8 @@ import { MatIconModule } from "@angular/material/icon";
 import { Router } from "@angular/router";
 import * as QRCode from "qrcode";
 import { AuthService, User } from "../services/auth.service";
-import { DidService, StoredDID } from "../services/did.service";
+import { DidService } from "../services/did.service";
+import { StoredDID, DIDType } from "../services/did.types";
 
 @Component({
   selector: "app-dashboard",
@@ -78,6 +79,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     return publishability.reason || null;
   });
 
+  didTypeBadgeText = computed(() => {
+    const did = this.currentDID();
+    if (!did) return "DHT";
+    return (did.didType || DIDType.DHT).toUpperCase();
+  });
+
+  didTypeBadgeClass = computed(() => {
+    const did = this.currentDID();
+    if (!did) return "dashboard__did-type-badge--dht";
+    return `dashboard__did-type-badge--${did.didType || DIDType.DHT}`;
+  });
+
   ngOnInit(): void {
     this.loadUserDID();
   }
@@ -107,7 +120,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         if (
           !latestDID.privateKeyJwk &&
           !latestDID.isPublished &&
-          latestDID.didType === "dht"
+          latestDID.didType === DIDType.DHT
         ) {
           console.log("Attempting to migrate DID for publishing...");
           await this._didService.migrateDIDForPublishing(latestDID.did);
@@ -187,7 +200,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     try {
       // Check if this is a DID:Nostr
-      if (did.didType === "nostr" || did.did.startsWith("did:nostr:")) {
+      if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
         const success = await this._didService.publishDID(did);
         if (success) {
           // Update the current DID state
@@ -211,7 +224,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       let errorMessage = "Failed to publish DID. Please try again.";
 
       if (error instanceof Error) {
-        if (did.didType === "nostr" || did.did.startsWith("did:nostr:")) {
+        if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
           // Nostr-specific error handling
           if (error.message.includes("Could not extract Nostr keys")) {
             errorMessage =

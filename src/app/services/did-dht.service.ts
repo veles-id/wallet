@@ -2,7 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { DidDht } from "@web5/dids";
 import { Pkarr, SignedPacket, generateKeyPair } from "pkarr";
 import { Buffer } from "buffer";
-import { CreateDIDResult, StoredDID } from "./did.service";
+import { CreateDIDResult, StoredDID } from "./did.types";
 
 interface VerificationMethod {
   id: string;
@@ -41,7 +41,7 @@ export class DidDhtService {
 
   constructor() {
     // Test Buffer polyfill on service initialization
-    console.log("🔧 Initializing DID DHT Service with Pkarr support...");
+    console.log("Initializing DID DHT Service with Pkarr support...");
     this.testBufferPolyfill();
     this.startRepublishing();
   }
@@ -318,7 +318,7 @@ export class DidDhtService {
       // COMPLETELY BYPASS PKARR LIBRARY - Create everything manually
       // The Pkarr library is doing internal scalar validation that we can't control
       console.log(
-        "🔧 Creating signed packet manually (bypassing Pkarr library)..."
+        "Creating signed packet manually (bypassing Pkarr library)..."
       );
 
       // Create raw DNS packet manually
@@ -344,7 +344,7 @@ export class DidDhtService {
           );
         }
       }
-      console.log("✅ Verified: Clean scalar has no high bits");
+      console.log("Verified: Clean scalar has no high bits");
 
       const signature = await this.signPacketWithCleanScalar(
         rawPacket,
@@ -399,16 +399,14 @@ export class DidDhtService {
           privateKey,
           packet
         );
-        console.log(
-          "✅ Web Crypto Ed25519 signature created with clean scalar"
-        );
+        console.log("Web Crypto Ed25519 signature created with clean scalar");
         return new Uint8Array(signature);
       } catch (webCryptoError) {
         console.warn("Web Crypto Ed25519 not supported, using fallback...");
 
         // Fallback: Create a deterministic signature using the clean scalar
         console.log(
-          "🔧 Using deterministic signature generation with clean scalar..."
+          "Using deterministic signature generation with clean scalar..."
         );
 
         // Create a signature that follows Ed25519 structure
@@ -436,7 +434,7 @@ export class DidDhtService {
         signature.set(rComponent);
         signature.set(sComponent, 32);
 
-        console.log("📝 Deterministic signature created with clean scalar");
+        console.log("Deterministic signature created with clean scalar");
         return signature;
       }
     } catch (error) {
@@ -459,7 +457,7 @@ export class DidDhtService {
     const txtRecordSize = 1 + dataLength; // length prefix + data
     const totalSize = headerSize + nameSize + recordHeaderSize + txtRecordSize;
 
-    console.log("📊 DNS packet size calculation:", {
+    console.log("DNS packet size calculation:", {
       headerSize,
       nameSize,
       recordHeaderSize,
@@ -510,7 +508,7 @@ export class DidDhtService {
 
     // Check bounds before setting data
     if (offset + dataLength > packet.length) {
-      console.error("❌ Packet size calculation error:", {
+      console.error("Packet size calculation error:", {
         offset,
         dataLength,
         packetLength: packet.length,
@@ -643,7 +641,7 @@ export class DidDhtService {
 
     for (const strategy of publishingStrategies) {
       try {
-        console.log(`   📡 Trying ${strategy.name} with ${formatName}...`);
+        console.log(`   Trying ${strategy.name} with ${formatName}...`);
 
         // Create minimal request body
         const requestBody = {
@@ -668,18 +666,18 @@ export class DidDhtService {
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.log(`   ❌ HTTP ${response.status}: ${errorText}`);
+          console.log(`   HTTP ${response.status}: ${errorText}`);
           continue;
         }
 
-        console.log(`   ✅ Success with ${strategy.name} using ${formatName}`);
+        console.log(`   Success with ${strategy.name} using ${formatName}`);
         return true;
       } catch (strategyError) {
         const errorMessage =
           strategyError instanceof Error
             ? strategyError.message
             : String(strategyError);
-        console.log(`   ❌ ${strategy.name} failed: ${errorMessage}`);
+        console.log(`   ${strategy.name} failed: ${errorMessage}`);
 
         if (
           errorMessage.includes("Failed to fetch") ||
@@ -730,7 +728,7 @@ export class DidDhtService {
    */
   private async jwkToPkarrKeyPair(privateKeyJwk: any): Promise<any> {
     try {
-      console.log("🔑 Converting JWK to Pkarr key pair...");
+      console.log("Converting JWK to Pkarr key pair...");
       console.log("JWK structure:", JSON.stringify(privateKeyJwk, null, 2));
 
       if (privateKeyJwk.kty === "OKP" && privateKeyJwk.crv === "Ed25519") {
@@ -781,13 +779,13 @@ export class DidDhtService {
         pkarrScalar[31] &= 0x7f; // Clear highest bit (already done above, but ensure)
         pkarrScalar[31] |= 0x40; // Set second highest bit
 
-        console.log("🔧 Pkarr-compatible scalar:", Array.from(pkarrScalar));
+        console.log("Pkarr-compatible scalar:", Array.from(pkarrScalar));
         console.log(
-          "🔧 Scalar first byte:",
+          "Scalar first byte:",
           pkarrScalar[0].toString(2).padStart(8, "0")
         );
         console.log(
-          "🔧 Scalar last byte:",
+          "Scalar last byte:",
           pkarrScalar[31].toString(2).padStart(8, "0")
         );
 
@@ -842,9 +840,9 @@ export class DidDhtService {
 
         // Verify the public key matches what we expect
         if (!this.arraysEqual(secretKey.slice(32, 64), publicKeyBytes)) {
-          console.warn("⚠️ Public key mismatch in secret key construction!");
+          console.warn("Public key mismatch in secret key construction!");
         } else {
-          console.log("✅ Public key matches in secret key construction");
+          console.log("Public key matches in secret key construction");
         }
 
         const keyPair = {
@@ -852,7 +850,7 @@ export class DidDhtService {
           secretKey: secretKey,
         };
 
-        console.log("🔑 Key pair created successfully");
+        console.log("Key pair created successfully");
         console.log("Public key:", Array.from(keyPair.publicKey));
         console.log("Secret key length:", keyPair.secretKey.length);
 
@@ -867,7 +865,7 @@ export class DidDhtService {
             );
           }
         }
-        console.log("✅ Final verification: No high bits detected in scalar");
+        console.log("Final verification: No high bits detected in scalar");
 
         return keyPair;
       }
@@ -1127,17 +1125,17 @@ export class DidDhtService {
     try {
       // Test that Buffer is available
       const testBuffer = Buffer.from("hello world");
-      console.log("✅ Buffer polyfill working:", testBuffer.toString());
+      console.log("Buffer polyfill working:", testBuffer.toString());
 
       // Test base64url decoding
       const testBase64Url = "SGVsbG8gd29ybGQ"; // "Hello world" in base64url
       const decoded = this.base64UrlDecode(testBase64Url);
       const decodedString = new TextDecoder().decode(decoded);
-      console.log("✅ Base64url decode working:", decodedString);
+      console.log("Base64url decode working:", decodedString);
 
       return true;
     } catch (error) {
-      console.error("❌ Buffer/base64url test failed:", error);
+      console.error("Buffer/base64url test failed:", error);
       return false;
     }
   }

@@ -41,13 +41,8 @@
         <p class="dashboard__did-label">
           Your private decentralized identifier:
         </p>
-        <div
-          class="dashboard__did-type-badge"
-          [class]="
-            'dashboard__did-type-badge--' + (currentDID()?.didType || 'dht')
-          "
-        >
-          {{ (currentDID()?.didType || "dht").toUpperCase() }}
+        <div class="dashboard__did-type-badge" [class]="didTypeBadgeClass()">
+          {{ didTypeBadgeText() }}
         </div>
       </div>
       <div class="dashboard__did-container" (click)="copyDID()">

@@ -7,7 +7,8 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatRadioModule } from "@angular/material/radio";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import { DidService, CreateDIDResult } from "../services/did.service";
+import { DidService } from "../services/did.service";
+import { CreateDIDResult, DIDType } from "../services/did.types";
 
 @Component({
   selector: "app-create-did",
@@ -28,9 +29,10 @@ export class CreateDidComponent {
   private _didService = inject(DidService);
   private _router = inject(Router);
 
+  DIDType = DIDType;
   isCreating = signal(false);
   didName = signal("");
-  selectedDIDType = signal("nostr"); // Default to Nostr
+  selectedDIDType = signal(DIDType.NOSTR);
 
   async createDID(): Promise<void> {
     if (!this.didName().trim()) {
@@ -40,7 +42,7 @@ export class CreateDidComponent {
     this.isCreating.set(true);
 
     try {
-      const didType = this.selectedDIDType() as "dht" | "nostr";
+      const didType = this.selectedDIDType() as DIDType;
 
       // Create DID using the gateway service
       const createdDID: CreateDIDResult = await this._didService.createDID(
@@ -54,7 +56,7 @@ export class CreateDidComponent {
       console.log(`DID:${didType} creation failed:`, error);
 
       // Only try DHT fallback if we were trying to create Nostr
-      if (this.selectedDIDType() === "nostr") {
+      if (this.selectedDIDType() === DIDType.NOSTR) {
         try {
           console.log("Trying DHT fallback...");
           const offlineDID: CreateDIDResult =

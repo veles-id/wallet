@@ -1,31 +1,17 @@
 import { Injectable } from "@angular/core";
-import { CreateDIDResult, StoredDID } from "./did.service";
+import {
+  CreateDIDResult,
+  NostrDIDResult,
+  NostrEvent,
+  NostrRelay,
+  StoredDID,
+} from "./did.types";
 import {
   generateSecretKey,
   getPublicKey,
   finalizeEvent,
   verifyEvent,
 } from "nostr-tools/pure";
-
-export interface NostrEvent {
-  id?: string;
-  pubkey: string;
-  created_at: number;
-  kind: number;
-  tags: string[][];
-  content: string;
-  sig?: string;
-}
-
-export interface NostrRelay {
-  url: string;
-  name: string;
-}
-
-export interface NostrDIDResult extends CreateDIDResult {
-  nostrPublicKey: string;
-  nostrPrivateKey: string;
-}
 
 @Injectable({
   providedIn: "root",
@@ -38,7 +24,7 @@ export class DidNostrService {
   ];
 
   constructor() {
-    console.log("🟣 DID Nostr Service initialized");
+    console.log("DID Nostr Service initialized");
   }
 
   /**
@@ -46,7 +32,7 @@ export class DidNostrService {
    */
   async createDID(): Promise<NostrDIDResult> {
     try {
-      console.log("🆕 Creating new DID:Nostr...");
+      console.log("Creating new DID:Nostr...");
 
       // Generate Nostr keypair
       const keyPair = await this.generateNostrKeyPair();
@@ -89,7 +75,7 @@ export class DidNostrService {
         nostrPrivateKey: keyPair.privateKey,
       };
     } catch (error) {
-      console.error("❌ Failed to create DID:Nostr:", error);
+      console.error("Failed to create DID:Nostr:", error);
       throw error;
     }
   }
@@ -99,8 +85,8 @@ export class DidNostrService {
    */
   async publishDID(storedDID: StoredDID): Promise<boolean> {
     try {
-      console.log("📡 Publishing DID:Nostr...");
-      console.log("🔍 DID to publish:", storedDID.did);
+      console.log("Publishing DID:Nostr...");
+      console.log("DID to publish:", storedDID.did);
 
       // Check if this is actually a DID:Nostr
       if (!storedDID.did.startsWith("did:nostr:")) {
@@ -113,13 +99,13 @@ export class DidNostrService {
         throw new Error("Could not extract Nostr keys from DID");
       }
       console.log(
-        "🔑 Extracted keys - Public:",
+        "Extracted keys - Public:",
         nostrKeys.publicKey.substring(0, 16) + "..."
       );
 
       // Create Nostr event for DID document
       const event = await this.createDIDEvent(storedDID, nostrKeys);
-      console.log("📝 Created event:", {
+      console.log("Created event:", {
         kind: event.kind,
         pubkey: event.pubkey.substring(0, 16) + "...",
         tags: event.tags,
@@ -129,7 +115,7 @@ export class DidNostrService {
       // Sign the event
       const signedEvent = await this.signEvent(event, nostrKeys.privateKey);
       console.log(
-        "✍️ Signed event - ID:",
+        "Signed event - ID:",
         signedEvent.id?.substring(0, 16) + "..."
       );
 
@@ -139,24 +125,22 @@ export class DidNostrService {
       // Log detailed results
       publishResults.forEach((result) => {
         if (result.success) {
-          console.log(`✅ ${result.relay}: SUCCESS`);
+          console.log(`${result.relay}: SUCCESS`);
         } else {
           console.log(
-            `❌ ${result.relay}: FAILED${
-              result.error ? ` - ${result.error}` : ""
-            }`
+            `${result.relay}: FAILED${result.error ? ` - ${result.error}` : ""}`
           );
         }
       });
 
       const successCount = publishResults.filter((r) => r.success).length;
       console.log(
-        `📊 Final result: ${successCount}/${publishResults.length} relays succeeded`
+        `Final result: ${successCount}/${publishResults.length} relays succeeded`
       );
 
       return successCount > 0;
     } catch (error) {
-      console.error("❌ Failed to publish DID:Nostr:", error);
+      console.error("Failed to publish DID:Nostr:", error);
       throw error;
     }
   }
@@ -169,7 +153,7 @@ export class DidNostrService {
     privateKey: string;
   } | null {
     try {
-      console.log("🔍 Extracting Nostr keys from DID:", storedDID.did);
+      console.log("Extracting Nostr keys from DID:", storedDID.did);
 
       // For DID:Nostr, the public key is in the DID identifier
       const didParts = storedDID.did.split(":");
@@ -178,15 +162,12 @@ export class DidNostrService {
         didParts[0] !== "did" ||
         didParts[1] !== "nostr"
       ) {
-        console.log("❌ Invalid DID format for Nostr");
+        console.log("Invalid DID format for Nostr");
         return null;
       }
 
       const publicKey = didParts[2];
-      console.log(
-        "📋 Public key from DID:",
-        publicKey.substring(0, 16) + "..."
-      );
+      console.log("Public key from DID:", publicKey.substring(0, 16) + "...");
 
       // Try to get private key from stored data
       let privateKey = null;
@@ -194,7 +175,7 @@ export class DidNostrService {
       // Check if we have Nostr-specific keys stored
       if ((storedDID as any).nostrPrivateKey) {
         privateKey = (storedDID as any).nostrPrivateKey;
-        console.log("🔑 Found Nostr private key in stored data");
+        console.log("Found Nostr private key in stored data");
       }
       // Fallback: try to derive from JWK if available
       else if (storedDID.privateKeyJwk?.d) {
@@ -204,7 +185,7 @@ export class DidNostrService {
         // Also derive the correct public key using nostr-tools
         const correctPublicKey = getPublicKey(privateKeyBytes);
         console.log(
-          "🔄 Derived keys from JWK - Public key:",
+          "Derived keys from JWK - Public key:",
           correctPublicKey.substring(0, 16) + "..."
         );
 
@@ -213,14 +194,14 @@ export class DidNostrService {
       }
 
       if (!privateKey) {
-        console.log("❌ No private key found");
+        console.log("No private key found");
         return null;
       }
 
-      console.log("✅ Successfully extracted both keys");
+      console.log("Successfully extracted both keys");
       return { publicKey, privateKey };
     } catch (error) {
-      console.error("❌ Failed to extract Nostr keys:", error);
+      console.error("Failed to extract Nostr keys:", error);
       return null;
     }
   }
@@ -255,7 +236,7 @@ export class DidNostrService {
     privateKeyHex: string
   ): Promise<NostrEvent> {
     try {
-      console.log("✍️ Signing Nostr event with proper tools...");
+      console.log("Signing Nostr event with proper tools...");
 
       const secretKey = this.hexToBytes(privateKeyHex);
 
@@ -268,7 +249,7 @@ export class DidNostrService {
         content: event.content,
       };
 
-      console.log("📝 Event to sign:", {
+      console.log("Event to sign:", {
         pubkey: event.pubkey.substring(0, 16) + "...",
         created_at: event.created_at,
         kind: event.kind,
@@ -279,7 +260,7 @@ export class DidNostrService {
       // Use nostr-tools to properly sign the event
       const signedEvent = finalizeEvent(unsignedEvent, secretKey);
 
-      console.log("✅ Event signed with nostr-tools:", {
+      console.log("Event signed with nostr-tools:", {
         id: signedEvent.id.substring(0, 16) + "...",
         sig: signedEvent.sig.substring(0, 16) + "...",
         sigLength: signedEvent.sig.length,
@@ -287,14 +268,11 @@ export class DidNostrService {
 
       // Verify the signature
       const isValid = verifyEvent(signedEvent);
-      console.log(
-        "🔍 Signature verification:",
-        isValid ? "✅ VALID" : "❌ INVALID"
-      );
+      console.log("Signature verification:", isValid ? "VALID" : "INVALID");
 
       return signedEvent as NostrEvent;
     } catch (error) {
-      console.error("❌ Failed to sign event:", error);
+      console.error("Failed to sign event:", error);
       throw error;
     }
   }
@@ -329,23 +307,23 @@ export class DidNostrService {
   ): Promise<boolean> {
     return new Promise((resolve) => {
       try {
-        console.log(`🔌 Connecting to ${relay.name} (${relay.url})...`);
+        console.log(`Connecting to ${relay.name} (${relay.url})...`);
         const ws = new WebSocket(relay.url);
         let resolved = false;
 
         const timeout = setTimeout(() => {
           if (!resolved) {
             resolved = true;
-            console.log(`⏰ ${relay.name}: Connection timeout`);
+            console.log(`${relay.name}: Connection timeout`);
             ws.close();
             resolve(false);
           }
         }, 10000); // 10 second timeout
 
         ws.onopen = () => {
-          console.log(`🟢 ${relay.name}: Connected, sending event...`);
+          console.log(`${relay.name}: Connected, sending event...`);
           const message = JSON.stringify(["EVENT", event]);
-          console.log(`📤 ${relay.name}: Sending message:`, {
+          console.log(`${relay.name}: Sending message:`, {
             type: "EVENT",
             eventId: event.id?.substring(0, 16) + "...",
             messageLength: message.length,
@@ -361,24 +339,24 @@ export class DidNostrService {
 
             try {
               const response = JSON.parse(msg.data);
-              console.log(`📥 ${relay.name}: Received response:`, response);
+              console.log(`${relay.name}: Received response:`, response);
 
               // Check if it's an OK response for our event
               if (response[0] === "OK" && response[1] === event.id) {
                 const success = response[2] === true;
                 console.log(
-                  `${success ? "✅" : "❌"} ${relay.name}: ${
-                    success ? "Accepted" : "Rejected"
-                  } - ${response[3] || "No message"}`
+                  `${relay.name}: ${success ? "Accepted" : "Rejected"} - ${
+                    response[3] || "No message"
+                  }`
                 );
                 resolve(success);
               } else {
-                console.log(`❓ ${relay.name}: Unexpected response format`);
+                console.log(`${relay.name}: Unexpected response format`);
                 resolve(false);
               }
             } catch (parseError) {
               console.log(
-                `❌ ${relay.name}: Failed to parse response:`,
+                `${relay.name}: Failed to parse response:`,
                 parseError
               );
               resolve(false);
@@ -390,7 +368,7 @@ export class DidNostrService {
           if (!resolved) {
             resolved = true;
             clearTimeout(timeout);
-            console.log(`❌ ${relay.name}: WebSocket error:`, error);
+            console.log(`${relay.name}: WebSocket error:`, error);
             resolve(false);
           }
         };
@@ -399,7 +377,7 @@ export class DidNostrService {
           if (!resolved) {
             resolved = true;
             clearTimeout(timeout);
-            console.log(`🔴 ${relay.name}: Connection closed:`, {
+            console.log(`${relay.name}: Connection closed:`, {
               code: event.code,
               reason: event.reason,
               wasClean: event.wasClean,
@@ -408,7 +386,7 @@ export class DidNostrService {
           }
         };
       } catch (error) {
-        console.log(`💥 ${relay.name}: Failed to create WebSocket:`, error);
+        console.log(`${relay.name}: Failed to create WebSocket:`, error);
         resolve(false);
       }
     });
@@ -421,11 +399,11 @@ export class DidNostrService {
     publicKey: string;
     privateKey: string;
   }> {
-    console.log("🔑 Generating proper Nostr keypair...");
+    console.log("Generating proper Nostr keypair...");
     const secretKey = generateSecretKey();
     const publicKey = getPublicKey(secretKey);
 
-    console.log("✅ Generated Nostr keys:", {
+    console.log("Generated Nostr keys:", {
       publicKeyLength: publicKey.length,
       secretKeyLength: this.bytesToHex(secretKey).length,
     });

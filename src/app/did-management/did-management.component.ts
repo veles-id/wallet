@@ -5,7 +5,8 @@ import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
-import { DidService, StoredDID } from "../services/did-dht.service";
+import { DidService } from "../services/did.service";
+import { StoredDID } from "../services/did.types";
 
 @Component({
   selector: "app-did-management",

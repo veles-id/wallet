@@ -1,25 +1,8 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { DidDht } from "@web5/dids";
 import { Pkarr, SignedPacket, generateKeyPair } from "pkarr";
 import { Buffer } from "buffer";
-
-export interface CreateDIDResult {
-  did: string;
-  document: any;
-  keySet: any;
-  isPublished: boolean;
-}
-
-export interface StoredDID {
-  did: string;
-  document: any;
-  keySet: any;
-  privateKeyJwk?: any; // Store the private key JWK separately for publishing
-  createdAt: string;
-  alias?: string;
-  isPublished: boolean;
-  didType?: "dht" | "nostr"; // Track the type of DID
-}
+import { CreateDIDResult, StoredDID } from "./did.service";
 
 interface VerificationMethod {
   id: string;
@@ -49,7 +32,7 @@ interface MinimalDidDocument {
 @Injectable({
   providedIn: "root",
 })
-export class DidService {
+export class DidDhtService {
   private republishInterval: any;
   private readonly REPUBLISH_INTERVAL_MS = 3600000; // 1 hour
   private resolutionCache: Map<string, { document: any; timestamp: number }> =
@@ -58,7 +41,7 @@ export class DidService {
 
   constructor() {
     // Test Buffer polyfill on service initialization
-    console.log("🔧 Initializing DID Service with Pkarr support...");
+    console.log("🔧 Initializing DID DHT Service with Pkarr support...");
     this.testBufferPolyfill();
     this.startRepublishing();
   }
@@ -74,16 +57,9 @@ export class DidService {
 
     // Set up periodic republishing
     this.republishInterval = setInterval(async () => {
-      const storedDIDs = this.getStoredDIDs();
-      for (const did of storedDIDs) {
-        if (did.isPublished) {
-          try {
-            await this.publishDIDWithFallback(did);
-          } catch (error) {
-            console.warn(`Failed to republish DID ${did.did}:`, error);
-          }
-        }
-      }
+      // We'll need to get the main DID service to access stored DIDs
+      // For now, disable republishing to avoid circular dependency
+      console.log("DHT republishing disabled - handled by main DID service");
     }, this.REPUBLISH_INTERVAL_MS);
   }
 
@@ -925,16 +901,11 @@ export class DidService {
   }
 
   /**
-   * Marks a DID as published in storage
+   * Marks a DID as published (now handled by main DID service)
    */
   private markDIDAsPublished(didUri: string): void {
-    const storedDIDs = this.getStoredDIDs();
-    const didToUpdate = storedDIDs.find((stored) => stored.did === didUri);
-
-    if (didToUpdate) {
-      didToUpdate.isPublished = true;
-      localStorage.setItem("veles_dids", JSON.stringify(storedDIDs));
-    }
+    // This method is no longer used since storage is handled by the main DID service
+    console.log(`DID ${didUri} published successfully`);
   }
 
   /**
@@ -1002,159 +973,13 @@ export class DidService {
   }
 
   /**
-   * Stores a DID in localStorage
-   */
-  async storeDID(
-    didResult: CreateDIDResult & { didType?: "dht" | "nostr" },
-    alias?: string
-  ): Promise<void> {
-    // For now, store in localStorage (you should use secure storage in production)
-    const storedDIDs = this.getStoredDIDs();
-
-    // Try to extract private key JWK for publishing later
-    let privateKeyJwk: any = null;
-    if (didResult.keySet && typeof didResult.keySet === "object") {
-      try {
-        // Try to export the private key if the keySet supports it
-        if (
-          "export" in didResult.keySet &&
-          typeof didResult.keySet.export === "function"
-        ) {
-          const exported = await didResult.keySet.export();
-          privateKeyJwk = exported.privateKeys?.[0] || null;
-        }
-        // Alternative: try to access the private key directly from the keySet structure
-        else if (
-          didResult.keySet.keyManager &&
-          "export" in didResult.keySet.keyManager
-        ) {
-          const exported = await didResult.keySet.keyManager.export();
-          privateKeyJwk = exported.privateKeys?.[0] || null;
-        }
-      } catch (error) {
-        console.warn(
-          "Could not extract private key for future publishing:",
-          error
-        );
-      }
-    }
-
-    // For Nostr DIDs, store the Nostr-specific keys
-    let nostrPrivateKey = null;
-    if (didResult.didType === "nostr" && (didResult as any).nostrPrivateKey) {
-      nostrPrivateKey = (didResult as any).nostrPrivateKey;
-    }
-
-    const newDID: StoredDID = {
-      did: didResult.did,
-      document: didResult.document,
-      keySet: didResult.keySet,
-      privateKeyJwk: privateKeyJwk,
-      createdAt: new Date().toISOString(),
-      alias: alias,
-      isPublished: didResult.isPublished,
-      didType:
-        didResult.didType ||
-        (didResult.did.startsWith("did:nostr:") ? "nostr" : "dht"),
-      ...(nostrPrivateKey && { nostrPrivateKey }),
-    };
-
-    storedDIDs.push(newDID);
-    localStorage.setItem("veles_dids", JSON.stringify(storedDIDs));
-  }
-
-  /**
-   * Gets all stored DIDs
-   */
-  getStoredDIDs(): StoredDID[] {
-    const stored = localStorage.getItem("veles_dids");
-    return stored ? JSON.parse(stored) : [];
-  }
-
-  /**
-   * Gets a specific DID by its identifier
-   */
-  getStoredDID(did: string): StoredDID | null {
-    const storedDIDs = this.getStoredDIDs();
-    return storedDIDs.find((stored) => stored.did === did) || null;
-  }
-
-  /**
-   * Deletes a stored DID
-   */
-  deleteDID(did: string): boolean {
-    const storedDIDs = this.getStoredDIDs();
-    const index = storedDIDs.findIndex((stored) => stored.did === did);
-
-    if (index !== -1) {
-      storedDIDs.splice(index, 1);
-      localStorage.setItem("veles_dids", JSON.stringify(storedDIDs));
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Updates the alias of a stored DID
-   */
-  updateDIDAlias(did: string, alias: string): boolean {
-    const storedDIDs = this.getStoredDIDs();
-    const didToUpdate = storedDIDs.find((stored) => stored.did === did);
-
-    if (didToUpdate) {
-      didToUpdate.alias = alias;
-      localStorage.setItem("veles_dids", JSON.stringify(storedDIDs));
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Exports a DID as JSON
-   */
-  exportDID(did: string): string | null {
-    const storedDID = this.getStoredDID(did);
-    return storedDID ? JSON.stringify(storedDID, null, 2) : null;
-  }
-
-  /**
-   * Gets the count of stored DIDs
-   */
-  getStoredDIDCount(): number {
-    return this.getStoredDIDs().length;
-  }
-
-  /**
-   * Checks if a stored DID can be published
+   * Checks if a stored DHT DID can be published
    */
   canPublishDID(storedDID: StoredDID): {
     canPublish: boolean;
     reason?: string;
     isLegacyDID?: boolean;
   } {
-    // Check if already published
-    if (storedDID.isPublished) {
-      return { canPublish: false, reason: "Already published" };
-    }
-
-    // Handle Nostr DIDs differently
-    if (
-      storedDID.didType === "nostr" ||
-      storedDID.did.startsWith("did:nostr:")
-    ) {
-      // For Nostr DIDs, check if we have the Nostr private key
-      if ((storedDID as any).nostrPrivateKey) {
-        return { canPublish: true };
-      }
-      return {
-        canPublish: false,
-        reason: "No Nostr private key available",
-      };
-    }
-
-    // Handle DHT DIDs (existing logic)
     // Check if we have any keys at all
     if (!storedDID.keySet && !storedDID.privateKeyJwk) {
       return {
@@ -1202,8 +1027,7 @@ export class DidService {
   /**
    * Attempts to migrate an existing stored DID by extracting its private key
    */
-  async migrateDIDForPublishing(didUri: string): Promise<boolean> {
-    const storedDID = this.getStoredDID(didUri);
+  async migrateDIDForPublishing(storedDID: StoredDID): Promise<boolean> {
     if (!storedDID) {
       return false;
     }
@@ -1233,45 +1057,19 @@ export class DidService {
         }
 
         if (extractedKey) {
-          // Update the stored DID with the extracted private key
-          const storedDIDs = this.getStoredDIDs();
-          const didToUpdate = storedDIDs.find(
-            (stored) => stored.did === didUri
+          // Return the extracted key so the main service can update storage
+          storedDID.privateKeyJwk = extractedKey;
+          console.log(
+            `Successfully migrated DID ${storedDID.did} for publishing`
           );
-
-          if (didToUpdate) {
-            didToUpdate.privateKeyJwk = extractedKey;
-            localStorage.setItem("veles_dids", JSON.stringify(storedDIDs));
-            console.log(`Successfully migrated DID ${didUri} for publishing`);
-            return true;
-          }
+          return true;
         }
       } catch (error) {
-        console.warn(`Failed to migrate DID ${didUri}:`, error);
+        console.warn(`Failed to migrate DID ${storedDID.did}:`, error);
       }
     }
 
     return false;
-  }
-
-  /**
-   * Migrates all stored DIDs that can be migrated
-   */
-  async migrateAllDIDsForPublishing(): Promise<{
-    migrated: number;
-    total: number;
-  }> {
-    const storedDIDs = this.getStoredDIDs();
-    let migrated = 0;
-
-    for (const storedDID of storedDIDs) {
-      const success = await this.migrateDIDForPublishing(storedDID.did);
-      if (success) {
-        migrated++;
-      }
-    }
-
-    return { migrated, total: storedDIDs.length };
   }
 
   /**
@@ -1307,22 +1105,10 @@ export class DidService {
         isPublished: false,
       };
 
-      // Store with extracted private key
+      // Add the extracted private key to the result
       if (privateKeyJwk) {
-        console.log("Storing DID with extracted private key");
-        const storedDIDs = this.getStoredDIDs();
-        const newDID: StoredDID = {
-          did: result.did,
-          document: result.document,
-          keySet: result.keySet,
-          privateKeyJwk: privateKeyJwk,
-          createdAt: new Date().toISOString(),
-          isPublished: result.isPublished,
-        };
-
-        // Don't use the regular storeDID method to avoid double processing
-        storedDIDs.push(newDID);
-        localStorage.setItem("veles_dids", JSON.stringify(storedDIDs));
+        console.log("DID created with extracted private key");
+        (result as any).privateKeyJwk = privateKeyJwk;
       }
 
       return result;

@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { CreateDIDResult, StoredDID } from "./did-dht.service";
+import { CreateDIDResult, StoredDID } from "./did.service";
 import {
   generateSecretKey,
   getPublicKey,

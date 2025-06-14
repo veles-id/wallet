@@ -7,8 +7,7 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatRadioModule } from "@angular/material/radio";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import { DidService, CreateDIDResult } from "../services/did-dht.service";
-import { DidNostrService, NostrDIDResult } from "../services/did-nostr.service";
+import { DidService, CreateDIDResult } from "../services/did.service";
 
 @Component({
   selector: "app-create-did",
@@ -27,7 +26,6 @@ import { DidNostrService, NostrDIDResult } from "../services/did-nostr.service";
 })
 export class CreateDidComponent {
   private _didService = inject(DidService);
-  private _didNostrService = inject(DidNostrService);
   private _router = inject(Router);
 
   isCreating = signal(false);
@@ -42,24 +40,13 @@ export class CreateDidComponent {
     this.isCreating.set(true);
 
     try {
-      const didType = this.selectedDIDType();
+      const didType = this.selectedDIDType() as "dht" | "nostr";
 
-      if (didType === "nostr") {
-        // Create DID:Nostr
-        const createdDID: NostrDIDResult =
-          await this._didNostrService.createDID();
-        await this._didService.storeDID(
-          { ...createdDID, didType: "nostr" },
-          this.didName().trim()
-        );
-      } else {
-        // Create DID:DHT
-        const createdDID: CreateDIDResult = await this._didService.createDID();
-        await this._didService.storeDID(
-          { ...createdDID, didType: "dht" },
-          this.didName().trim()
-        );
-      }
+      // Create DID using the gateway service
+      const createdDID: CreateDIDResult = await this._didService.createDID(
+        didType
+      );
+      await this._didService.storeDID(createdDID, this.didName().trim());
 
       this._router.navigate(["/dashboard"]);
     } catch (error) {
@@ -72,10 +59,7 @@ export class CreateDidComponent {
           console.log("Trying DHT fallback...");
           const offlineDID: CreateDIDResult =
             await this._didService.createOfflineDID();
-          await this._didService.storeDID(
-            { ...offlineDID, didType: "dht" },
-            this.didName().trim()
-          );
+          await this._didService.storeDID(offlineDID, this.didName().trim());
           this._router.navigate(["/dashboard"]);
         } catch (offlineError) {
           console.error("Error creating fallback DID:", offlineError);
@@ -85,10 +69,7 @@ export class CreateDidComponent {
         try {
           const offlineDID: CreateDIDResult =
             await this._didService.createOfflineDID();
-          await this._didService.storeDID(
-            { ...offlineDID, didType: "dht" },
-            this.didName().trim()
-          );
+          await this._didService.storeDID(offlineDID, this.didName().trim());
           this._router.navigate(["/dashboard"]);
         } catch (offlineError) {
           console.error("Error creating offline DID:", offlineError);

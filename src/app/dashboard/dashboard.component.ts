@@ -15,8 +15,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { Router } from "@angular/router";
 import * as QRCode from "qrcode";
 import { AuthService, User } from "../services/auth.service";
-import { DidService, StoredDID } from "../services/did-dht.service";
-import { DidNostrService } from "../services/did-nostr.service";
+import { DidService, StoredDID } from "../services/did.service";
 
 @Component({
   selector: "app-dashboard",
@@ -36,7 +35,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   private _authService = inject(AuthService);
   private _didService = inject(DidService);
-  private _didNostrService = inject(DidNostrService);
   private _router = inject(Router);
 
   isLoading = signal(false);
@@ -106,7 +104,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         const latestDID = storedDIDs[storedDIDs.length - 1];
 
         // Try to migrate the DID for publishing if needed
-        if (!latestDID.privateKeyJwk && !latestDID.isPublished) {
+        if (
+          !latestDID.privateKeyJwk &&
+          !latestDID.isPublished &&
+          latestDID.didType === "dht"
+        ) {
           console.log("Attempting to migrate DID for publishing...");
           await this._didService.migrateDIDForPublishing(latestDID.did);
           // Reload the DID after migration attempt
@@ -186,7 +188,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     try {
       // Check if this is a DID:Nostr
       if (did.didType === "nostr" || did.did.startsWith("did:nostr:")) {
-        const success = await this._didNostrService.publishDID(did);
+        const success = await this._didService.publishDID(did);
         if (success) {
           // Update the current DID state
           const updatedDID = { ...did, isPublished: true };
@@ -195,7 +197,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         }
       } else {
         // This is a DID:DHT, publish to DHT
-        const success = await this._didService.publishDIDWithFallback(did);
+        const success = await this._didService.publishDID(did);
         if (success) {
           // Update the current DID state
           const updatedDID = { ...did, isPublished: true };

@@ -83,6 +83,6 @@ export class CreateDidComponent {
   }
 
   goBack(): void {
-    this._router.navigate(["/boarding"]);
+    this._router.navigate(["/onboarding"]);
   }
 }

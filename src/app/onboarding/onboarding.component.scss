@@ -1,4 +1,4 @@
-.boarding {
+.onboarding {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -124,7 +124,7 @@
 
 // Responsive design
 @media (max-width: 480px) {
-  .boarding {
+  .onboarding {
     padding: 16px;
 
     &__title {
@@ -158,7 +158,7 @@
 }
 
 // Smooth entrance animation
-.boarding__container {
+.onboarding__container {
   animation: fadeInUp 0.8s ease-out;
 }
 

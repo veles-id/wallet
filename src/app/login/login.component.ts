@@ -10,14 +10,7 @@ import {
 } from "@simplewebauthn/browser";
 import { firstValueFrom } from "rxjs";
 import { AuthService } from "../services/auth.service";
-
-interface VerificationResponse {
-  verified: boolean;
-  user?: {
-    id: string;
-    name: string;
-  };
-}
+import { VerificationResponse } from "./login.types";
 
 @Component({
   selector: "app-login",
@@ -73,17 +66,13 @@ export class LoginComponent {
     this.error.set(null);
 
     try {
-      // Get authentication options from backend
       const authOptions = await firstValueFrom(
         this._http.get<{ optionsJSON: any }>(`${this._API_URL}/auth/options`, {
           withCredentials: true,
         })
       );
 
-      // Start the authentication process
       const authResult = await startAuthentication(authOptions.optionsJSON);
-
-      // Send the authentication result to backend for verification
       const verificationResult = await firstValueFrom(
         this._http.post<VerificationResponse>(
           `${this._API_URL}/auth/verify`,
@@ -94,10 +83,8 @@ export class LoginComponent {
 
       if (verificationResult.verified && verificationResult.user) {
         console.log("Authentication successful", verificationResult.user);
-        // Update auth service with user info
         this._authService.setAuthenticated(verificationResult.user);
-        // Navigate to boarding page
-        this._router.navigate(["/boarding"]);
+        this._router.navigate(["/onboarding"]);
       } else {
         this.error.set("Authentication failed");
       }
@@ -132,11 +119,9 @@ export class LoginComponent {
       const { optionsJSON, userId } = optionsResponse;
       console.log("Starting registration with userId:", userId);
 
-      // Create the credential
       const credential = await startRegistration(optionsJSON);
       console.log("Registration credential created:", credential.id);
 
-      // Verify the registration
       const verificationResponse = await firstValueFrom(
         this._http.post<VerificationResponse>(
           `${this._API_URL}/register/verify`,
@@ -150,10 +135,8 @@ export class LoginComponent {
 
       if (verificationResponse.verified && verificationResponse.user) {
         console.log("Registration successful:", verificationResponse.user);
-        // Update auth service with user info
         this._authService.setAuthenticated(verificationResponse.user);
-        // Navigate to boarding page
-        this._router.navigate(["/boarding"]);
+        this._router.navigate(["/onboarding"]);
       } else {
         this.error.set("Registration failed");
       }

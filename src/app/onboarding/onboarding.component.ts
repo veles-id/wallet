@@ -4,13 +4,13 @@ import { MatButtonModule } from "@angular/material/button";
 import { Router } from "@angular/router";
 
 @Component({
-  selector: "app-boarding",
+  selector: "app-onboarding",
   standalone: true,
   imports: [CommonModule, MatButtonModule],
-  templateUrl: "./boarding.component.html",
-  styleUrl: "./boarding.component.scss",
+  templateUrl: "./onboarding.component.html",
+  styleUrl: "./onboarding.component.scss",
 })
-export class BoardingComponent {
+export class OnboardingComponent {
   private _router = inject(Router);
 
   continue(): void {

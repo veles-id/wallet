@@ -10,6 +10,7 @@ import {
 } from "@simplewebauthn/browser";
 import { firstValueFrom } from "rxjs";
 import { AuthService } from "../services/auth.service";
+import { DidService } from "../services/did.service";
 import { VerificationResponse } from "./login.types";
 
 @Component({
@@ -24,6 +25,7 @@ export class LoginComponent {
   private _http = inject(HttpClient);
   private _router = inject(Router);
   private _authService = inject(AuthService);
+  private _didService = inject(DidService);
   private _isRegistering = signal(false);
 
   isLoading = signal(false);
@@ -84,7 +86,7 @@ export class LoginComponent {
       if (verificationResult.verified && verificationResult.user) {
         console.log("Authentication successful", verificationResult.user);
         this._authService.setAuthenticated(verificationResult.user);
-        this._router.navigate(["/onboarding"]);
+        this.routeAfterAuthentication();
       } else {
         this.error.set("Authentication failed");
       }
@@ -103,7 +105,6 @@ export class LoginComponent {
     this.error.set(null);
 
     try {
-      // Get registration options
       const optionsResponse = await firstValueFrom(
         this._http.post<{ optionsJSON: any; userId: string }>(
           `${this._API_URL}/register/options`,
@@ -136,7 +137,7 @@ export class LoginComponent {
       if (verificationResponse.verified && verificationResponse.user) {
         console.log("Registration successful:", verificationResponse.user);
         this._authService.setAuthenticated(verificationResponse.user);
-        this._router.navigate(["/onboarding"]);
+        this.routeAfterAuthentication();
       } else {
         this.error.set("Registration failed");
       }
@@ -147,6 +148,23 @@ export class LoginComponent {
       );
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  private routeAfterAuthentication(): void {
+    const storedDIDs = this._didService.getStoredDIDs();
+
+    const publishedDIDs = storedDIDs.filter((did) => did.isPublished);
+    console.log(
+      `Found ${storedDIDs.length} total DIDs, ${publishedDIDs.length} of which are published`
+    );
+
+    if (storedDIDs.length > 0) {
+      console.log(`Routing to dashboard`);
+      this._router.navigate(["/dashboard"]);
+    } else {
+      console.log("No existing DIDs found, routing to onboarding");
+      this._router.navigate(["/onboarding"]);
     }
   }
 

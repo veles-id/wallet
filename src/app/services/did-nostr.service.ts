@@ -146,6 +146,290 @@ export class DidNostrService {
   }
 
   /**
+   * Retrieves DID information from Nostr network
+   */
+  async retrieveDIDInfo(did: string): Promise<any> {
+    try {
+      console.log("Retrieving DID:Nostr information from network:", did);
+
+      if (!did.startsWith("did:nostr:")) {
+        throw new Error("Not a valid DID:Nostr identifier");
+      }
+
+      const publicKey = did.split(":")[2];
+      if (!publicKey || publicKey.length !== 64) {
+        throw new Error("Invalid public key in DID:Nostr");
+      }
+
+      console.log("Extracted public key:", publicKey.substring(0, 16) + "...");
+
+      const results = await Promise.allSettled([
+        this.retrieveDIDDocument(publicKey),
+        this.retrieveProfileMetadata(publicKey),
+        this.retrieveRelayList(publicKey),
+        this.retrieveContactList(publicKey),
+      ]);
+
+      const didDocument =
+        results[0].status === "fulfilled" ? results[0].value : null;
+      const profileMetadata =
+        results[1].status === "fulfilled" ? results[1].value : null;
+      const relayList =
+        results[2].status === "fulfilled" ? results[2].value : null;
+      const contactList =
+        results[3].status === "fulfilled" ? results[3].value : null;
+
+      return {
+        did,
+        publicKey,
+        didDocument,
+        profileMetadata,
+        relayList,
+        contactList,
+        retrievedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error("Failed to retrieve DID:Nostr information:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retrieves DID document from Nostr relays
+   */
+  private async retrieveDIDDocument(publicKey: string): Promise<any> {
+    const filter = {
+      kinds: [30000],
+      authors: [publicKey],
+      "#d": [`did:nostr:${publicKey}`],
+      limit: 1,
+    };
+
+    const events = await this.queryRelays(filter);
+
+    if (events.length > 0) {
+      const event = events[0];
+      try {
+        return {
+          event,
+          document: JSON.parse(event.content),
+          publishedAt: new Date(event.created_at * 1000).toISOString(),
+        };
+      } catch (error) {
+        console.warn("Failed to parse DID document:", error);
+        return {
+          event,
+          document: null,
+          parseError: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Retrieves profile metadata (kind 0) from Nostr relays
+   */
+  private async retrieveProfileMetadata(publicKey: string): Promise<any> {
+    const filter = {
+      kinds: [0],
+      authors: [publicKey],
+      limit: 1,
+    };
+
+    const events = await this.queryRelays(filter);
+
+    if (events.length > 0) {
+      const event = events[0];
+      try {
+        return {
+          event,
+          metadata: JSON.parse(event.content),
+          updatedAt: new Date(event.created_at * 1000).toISOString(),
+        };
+      } catch (error) {
+        console.warn("Failed to parse profile metadata:", error);
+        return {
+          event,
+          metadata: null,
+          parseError: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Retrieves relay list (kind 10002) from Nostr relays
+   */
+  private async retrieveRelayList(publicKey: string): Promise<any> {
+    const filter = {
+      kinds: [10002],
+      authors: [publicKey],
+      limit: 1,
+    };
+
+    const events = await this.queryRelays(filter);
+
+    if (events.length > 0) {
+      const event = events[0];
+      const relays = event.tags
+        .filter((tag: string[]) => tag[0] === "r")
+        .map((tag: string[]) => ({
+          url: tag[1],
+          type: tag[2] || "read+write",
+        }));
+
+      return {
+        event,
+        relays,
+        updatedAt: new Date(event.created_at * 1000).toISOString(),
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Retrieves contact list (kind 3) from Nostr relays
+   */
+  private async retrieveContactList(publicKey: string): Promise<any> {
+    const filter = {
+      kinds: [3],
+      authors: [publicKey],
+      limit: 1,
+    };
+
+    const events = await this.queryRelays(filter);
+
+    if (events.length > 0) {
+      const event = events[0];
+      const contacts = event.tags
+        .filter((tag: string[]) => tag[0] === "p")
+        .map((tag: string[]) => ({
+          pubkey: tag[1],
+          relay: tag[2],
+          petname: tag[3],
+        }));
+
+      return {
+        event,
+        contacts,
+        contactCount: contacts.length,
+        updatedAt: new Date(event.created_at * 1000).toISOString(),
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Queries multiple Nostr relays for events
+   */
+  private async queryRelays(filter: any): Promise<any[]> {
+    const allEvents: any[] = [];
+
+    const results = await Promise.allSettled(
+      this.DEFAULT_RELAYS.map((relay) => this.queryRelay(relay, filter))
+    );
+
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled" && result.value.length > 0) {
+        console.log(
+          `Retrieved ${result.value.length} events from ${this.DEFAULT_RELAYS[index].name}`
+        );
+        allEvents.push(...result.value);
+      } else if (result.status === "rejected") {
+        console.warn(
+          `Failed to query ${this.DEFAULT_RELAYS[index].name}:`,
+          result.reason
+        );
+      }
+    });
+
+    // Remove duplicates based on event id
+    const uniqueEvents = allEvents.filter(
+      (event, index, self) => index === self.findIndex((e) => e.id === event.id)
+    );
+
+    // Sort by created_at descending (newest first)
+    uniqueEvents.sort((a, b) => b.created_at - a.created_at);
+
+    console.log(`Retrieved ${uniqueEvents.length} unique events total`);
+    return uniqueEvents;
+  }
+
+  /**
+   * Queries a single Nostr relay for events
+   */
+  private async queryRelay(relay: NostrRelay, filter: any): Promise<any[]> {
+    return new Promise((resolve) => {
+      try {
+        const ws = new WebSocket(relay.url);
+        const events: any[] = [];
+        let resolved = false;
+        const subscriptionId = Math.random().toString(36).substring(7);
+
+        const timeout = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            ws.close();
+            resolve(events);
+          }
+        }, 5000);
+
+        ws.onopen = () => {
+          const request = ["REQ", subscriptionId, filter];
+          ws.send(JSON.stringify(request));
+        };
+
+        ws.onmessage = (msg) => {
+          try {
+            const response = JSON.parse(msg.data);
+
+            if (response[0] === "EVENT" && response[1] === subscriptionId) {
+              events.push(response[2]);
+            } else if (
+              response[0] === "EOSE" &&
+              response[1] === subscriptionId
+            ) {
+              if (!resolved) {
+                resolved = true;
+                clearTimeout(timeout);
+                ws.send(JSON.stringify(["CLOSE", subscriptionId]));
+                ws.close();
+                resolve(events);
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to parse message from ${relay.name}:`, error);
+          }
+        };
+
+        ws.onerror = () => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timeout);
+            resolve([]);
+          }
+        };
+
+        ws.onclose = () => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timeout);
+            resolve(events);
+          }
+        };
+      } catch (error) {
+        resolve([]);
+      }
+    });
+  }
+
+  /**
    * Extracts Nostr keys from a stored DID:Nostr
    */
   private extractNostrKeys(storedDID: StoredDID): {

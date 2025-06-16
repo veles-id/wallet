@@ -183,6 +183,19 @@ export class DidService {
     return false;
   }
 
+  updateDIDPublicationStatus(did: string, isPublished: boolean): boolean {
+    const storedDIDs = this.getStoredDIDs();
+    const didToUpdate = storedDIDs.find((stored) => stored.did === did);
+
+    if (didToUpdate) {
+      didToUpdate.isPublished = isPublished;
+      localStorage.setItem("veles_dids", JSON.stringify(storedDIDs));
+      return true;
+    }
+
+    return false;
+  }
+
   exportDID(did: string): string | null {
     const storedDID = this.getStoredDID(did);
     return storedDID ? JSON.stringify(storedDID, null, 2) : null;
@@ -196,7 +209,7 @@ export class DidService {
     if (did.startsWith("did:dht:")) {
       return await this._didDhtService.resolveDID(did);
     } else if (did.startsWith("did:nostr:")) {
-      throw new Error("Nostr DID resolution not yet implemented");
+      return await this._didNostrService.retrieveDIDInfo(did);
     } else {
       throw new Error(`Unsupported DID method: ${did}`);
     }

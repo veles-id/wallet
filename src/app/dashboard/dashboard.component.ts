@@ -136,6 +136,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         }
 
         this.pendingQRGeneration.set(true);
+
+        // If this is a published DID:Nostr, retrieve information from the network
+        if (
+          latestDID.isPublished &&
+          (latestDID.didType === DIDType.NOSTR ||
+            latestDID.did.startsWith("did:nostr:"))
+        ) {
+          console.log(
+            "Published DID:Nostr detected, retrieving network information..."
+          );
+          this.retrieveNostrDIDInfo(latestDID.did);
+        }
       } else {
         this._router.navigate(["/create-did"]);
       }
@@ -144,6 +156,107 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.error.set("Failed to load your digital identity");
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  private async retrieveNostrDIDInfo(did: string): Promise<void> {
+    try {
+      console.log("=== RETRIEVING DID:NOSTR INFORMATION ===");
+      const didInfo = await this._didService.resolveDID(did);
+
+      console.log("DID:Nostr Network Information:");
+      console.log("DID URI:", didInfo.did);
+      console.log("Public Key:", didInfo.publicKey);
+      console.log("Retrieved At:", didInfo.retrievedAt);
+
+      if (didInfo.didDocument) {
+        console.log("DID Document:");
+        console.log("  Published At:", didInfo.didDocument.publishedAt);
+        console.log("  Document:", didInfo.didDocument.document);
+        console.log("  Event ID:", didInfo.didDocument.event?.id);
+      } else {
+        console.log("DID Document: Not found on network");
+      }
+
+      if (didInfo.profileMetadata) {
+        console.log("Profile Metadata:");
+        console.log("  Updated At:", didInfo.profileMetadata.updatedAt);
+        console.log(
+          "  Name:",
+          didInfo.profileMetadata.metadata?.name || "Not set"
+        );
+        console.log(
+          "  Display Name:",
+          didInfo.profileMetadata.metadata?.display_name || "Not set"
+        );
+        console.log(
+          "  About:",
+          didInfo.profileMetadata.metadata?.about || "Not set"
+        );
+        console.log(
+          "  Picture:",
+          didInfo.profileMetadata.metadata?.picture || "Not set"
+        );
+        console.log(
+          "  NIP-05:",
+          didInfo.profileMetadata.metadata?.nip05 || "Not set"
+        );
+        console.log(
+          "  Lightning Address:",
+          didInfo.profileMetadata.metadata?.lud16 ||
+            didInfo.profileMetadata.metadata?.lud06 ||
+            "Not set"
+        );
+        console.log(
+          "  Website:",
+          didInfo.profileMetadata.metadata?.website || "Not set"
+        );
+        console.log(
+          "  Banner:",
+          didInfo.profileMetadata.metadata?.banner || "Not set"
+        );
+      } else {
+        console.log("Profile Metadata: Not found on network");
+      }
+
+      if (didInfo.relayList) {
+        console.log("Relay List:");
+        console.log("  Updated At:", didInfo.relayList.updatedAt);
+        console.log("  Relay Count:", didInfo.relayList.relays.length);
+        didInfo.relayList.relays.forEach((relay: any, index: number) => {
+          console.log(`  Relay ${index + 1}:`, relay.url, `(${relay.type})`);
+        });
+      } else {
+        console.log("Relay List: Not found on network");
+      }
+
+      if (didInfo.contactList) {
+        console.log("Contact List:");
+        console.log("  Updated At:", didInfo.contactList.updatedAt);
+        console.log("  Contact Count:", didInfo.contactList.contactCount);
+        if (didInfo.contactList.contacts.length > 0) {
+          console.log("  First 5 contacts:");
+          didInfo.contactList.contacts
+            .slice(0, 5)
+            .forEach((contact: any, index: number) => {
+              console.log(
+                `    Contact ${index + 1}:`,
+                contact.pubkey.substring(0, 16) + "...",
+                contact.petname || "No petname",
+                contact.relay || "No specific relay"
+              );
+            });
+        }
+      } else {
+        console.log("Contact List: Not found on network");
+      }
+
+      console.log("=== END DID:NOSTR INFORMATION ===");
+    } catch (error) {
+      console.error(
+        "Failed to retrieve DID:Nostr information from network:",
+        error
+      );
     }
   }
 
@@ -203,6 +316,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
         const success = await this._didService.publishDID(did);
         if (success) {
+          // Update the publication status in localStorage
+          this._didService.updateDIDPublicationStatus(did.did, true);
           // Update the current DID state
           const updatedDID = { ...did, isPublished: true };
           this.currentDID.set(updatedDID);
@@ -212,6 +327,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         // This is a DID:DHT, publish to DHT
         const success = await this._didService.publishDID(did);
         if (success) {
+          // Update the publication status in localStorage
+          this._didService.updateDIDPublicationStatus(did.did, true);
           // Update the current DID state
           const updatedDID = { ...did, isPublished: true };
           this.currentDID.set(updatedDID);

@@ -17,27 +17,30 @@ import {
   providedIn: "root",
 })
 export class DidNostrService {
+  /**
+   * Recommended 5-10 reliable, diverse relays
+   * In decentralized systems, redundancy is resilience, not waste.
+   */
   private readonly DEFAULT_RELAYS: NostrRelay[] = [
+    // Tier 1: Major stable
     { url: "wss://relay.damus.io", name: "Damus" },
     { url: "wss://nos.lol", name: "nos.lol" },
     { url: "wss://relay.nostr.band", name: "Nostr Band" },
+    // Tier 2: Regional
+    { url: "wss://nostr.wine", name: "Nostr.wine Europe" },
+    { url: "wss://relay.current.fyi", name: "Current Asia" },
+    // Tier 3: Specialized / Bitcoin-focused
+    { url: "wss://bitcoiner.guide", name: "Bitcoiner" },
+    { url: "wss://nostr.bitcoiner.guide", name: "Nostr.bitcoiner.guide" },
+    { url: "wss://nostr.zebedee.io", name: "Nostr.zebedee.io" },
   ];
 
-  constructor() {
-    console.log("DID Nostr Service initialized");
-  }
-
-  /**
-   * Creates a new DID:Nostr
-   */
   async createDID(): Promise<NostrDIDResult> {
     try {
       console.log("Creating new DID:Nostr...");
 
-      // Generate Nostr keypair
       const keyPair = await this.generateNostrKeyPair();
 
-      // Create DID identifier from public key
       const did = `did:nostr:${keyPair.publicKey}`;
 
       // Create DID document
@@ -80,20 +83,15 @@ export class DidNostrService {
     }
   }
 
-  /**
-   * Publishes a DID:Nostr document to Nostr relays
-   */
   async publishDID(storedDID: StoredDID): Promise<boolean> {
     try {
       console.log("Publishing DID:Nostr...");
       console.log("DID to publish:", storedDID.did);
 
-      // Check if this is actually a DID:Nostr
       if (!storedDID.did.startsWith("did:nostr:")) {
         throw new Error("Can only publish DID:Nostr documents to Nostr relays");
       }
 
-      // Extract Nostr keys from stored DID
       const nostrKeys = this.extractNostrKeys(storedDID);
       if (!nostrKeys) {
         throw new Error("Could not extract Nostr keys from DID");
@@ -103,7 +101,6 @@ export class DidNostrService {
         nostrKeys.publicKey.substring(0, 16) + "..."
       );
 
-      // Create Nostr event for DID document
       const event = await this.createDIDEvent(storedDID, nostrKeys);
       console.log("Created event:", {
         kind: event.kind,
@@ -112,17 +109,14 @@ export class DidNostrService {
         contentLength: event.content.length,
       });
 
-      // Sign the event
       const signedEvent = await this.signEvent(event, nostrKeys.privateKey);
       console.log(
         "Signed event - ID:",
         signedEvent.id?.substring(0, 16) + "..."
       );
 
-      // Publish to relays
       const publishResults = await this.publishToRelays(signedEvent);
 
-      // Log detailed results
       publishResults.forEach((result) => {
         if (result.success) {
           console.log(`${result.relay}: SUCCESS`);
@@ -145,9 +139,6 @@ export class DidNostrService {
     }
   }
 
-  /**
-   * Retrieves DID information from Nostr network
-   */
   async retrieveDIDInfo(did: string): Promise<any> {
     try {
       console.log("Retrieving DID:Nostr information from network:", did);
@@ -429,9 +420,6 @@ export class DidNostrService {
     });
   }
 
-  /**
-   * Extracts Nostr keys from a stored DID:Nostr
-   */
   private extractNostrKeys(storedDID: StoredDID): {
     publicKey: string;
     privateKey: string;
@@ -512,9 +500,6 @@ export class DidNostrService {
     };
   }
 
-  /**
-   * Signs a Nostr event
-   */
   private async signEvent(
     event: NostrEvent,
     privateKeyHex: string
@@ -541,7 +526,6 @@ export class DidNostrService {
         contentLength: event.content.length,
       });
 
-      // Use nostr-tools to properly sign the event
       const signedEvent = finalizeEvent(unsignedEvent, secretKey);
 
       console.log("Event signed with nostr-tools:", {
@@ -561,9 +545,6 @@ export class DidNostrService {
     }
   }
 
-  /**
-   * Publishes event to multiple Nostr relays
-   */
   private async publishToRelays(event: NostrEvent): Promise<
     Array<{
       relay: string;
@@ -582,9 +563,6 @@ export class DidNostrService {
     }));
   }
 
-  /**
-   * Publishes event to a single Nostr relay
-   */
   private async publishToRelay(
     event: NostrEvent,
     relay: NostrRelay
@@ -676,9 +654,6 @@ export class DidNostrService {
     });
   }
 
-  /**
-   * Generates a new Nostr keypair
-   */
   private async generateNostrKeyPair(): Promise<{
     publicKey: string;
     privateKey: string;

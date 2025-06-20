@@ -41,7 +41,6 @@ export class DidDhtService {
 
   constructor() {
     // Test Buffer polyfill on service initialization
-    console.log("Initializing DID DHT Service with Pkarr support...");
     this.testBufferPolyfill();
     this.startRepublishing();
   }

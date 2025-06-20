@@ -7,19 +7,19 @@ import { AuthService } from "../services/auth.service";
   providedIn: "root",
 })
 export class AuthGuard implements CanActivate {
-  private authService = inject(AuthService);
-  private router = inject(Router);
+  private _authService = inject(AuthService);
+  private _router = inject(Router);
 
   canActivate():
     | Observable<boolean | UrlTree>
     | Promise<boolean | UrlTree>
     | boolean
     | UrlTree {
-    if (this.authService.isAuthenticated()) {
+    if (this._authService.isAuthenticated()) {
       return true;
     } else {
       // Redirect to login page if not authenticated
-      return this.router.createUrlTree(["/login"]);
+      return this._router.createUrlTree(["/login"]);
     }
   }
 }

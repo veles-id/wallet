@@ -27,12 +27,12 @@ export class DidNostrService {
     { url: "wss://nos.lol", name: "nos.lol" },
     { url: "wss://relay.nostr.band", name: "Nostr Band" },
     // Tier 2: Regional
-    { url: "wss://nostr.wine", name: "Nostr.wine Europe" },
-    { url: "wss://relay.current.fyi", name: "Current Asia" },
+    // { url: "wss://nostr.wine", name: "Nostr.wine Europe" },
+    // { url: "wss://relay.current.fyi", name: "Current Asia" },
     // Tier 3: Specialized / Bitcoin-focused
-    { url: "wss://bitcoiner.guide", name: "Bitcoiner" },
-    { url: "wss://nostr.bitcoiner.guide", name: "Nostr.bitcoiner.guide" },
-    { url: "wss://nostr.zebedee.io", name: "Nostr.zebedee.io" },
+    // { url: "wss://bitcoiner.guide", name: "Bitcoiner" },
+    // { url: "wss://nostr.bitcoiner.guide", name: "Nostr.bitcoiner.guide" },
+    // { url: "wss://nostr.zebedee.io", name: "Nostr.zebedee.io" },
   ];
 
   async createDID(): Promise<NostrDIDResult> {

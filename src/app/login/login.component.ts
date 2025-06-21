@@ -160,8 +160,8 @@ export class LoginComponent {
     );
 
     if (storedDIDs.length > 0) {
-      console.log(`Routing to dashboard`);
-      this._router.navigate(["/dashboard"]);
+      console.log(`Routing to personas`);
+      this._router.navigate(["/personas"]);
     } else {
       console.log("No existing DIDs found, routing to onboarding");
       this._router.navigate(["/onboarding"]);

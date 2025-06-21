@@ -19,7 +19,7 @@ import { DidService } from "../services/did.service";
 import { StoredDID, DIDType } from "../services/did.types";
 
 @Component({
-  selector: "app-dashboard",
+  selector: "app-personas",
   standalone: true,
   imports: [
     CommonModule,
@@ -27,10 +27,10 @@ import { StoredDID, DIDType } from "../services/did.types";
     MatProgressSpinnerModule,
     MatIconModule,
   ],
-  templateUrl: "./dashboard.component.html",
-  styleUrl: "./dashboard.component.scss",
+  templateUrl: "./personas.component.html",
+  styleUrl: "./personas.component.scss",
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class PersonasComponent implements OnInit, AfterViewInit {
   @ViewChild("qrCanvas", { static: false })
   qrCanvas!: ElementRef<HTMLCanvasElement>;
 
@@ -108,8 +108,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   didTypeBadgeClass = computed(() => {
     const did = this.currentDID();
-    if (!did) return "dashboard__did-type-badge--dht";
-    return `dashboard__did-type-badge--${did.didType || DIDType.DHT}`;
+    if (!did) return "personas-type-badge--dht";
+    return `personas-type-badge--${did.didType || DIDType.DHT}`;
   });
 
   ngOnInit(): void {

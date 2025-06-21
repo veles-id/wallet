@@ -1,4 +1,4 @@
-.dashboard {
+.personas {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -450,19 +450,19 @@
     gap: 4px;
 
     &--published {
-      .dashboard__persona-status-icon {
+      .personas__persona-status-icon {
         color: #4caf50;
       }
-      .dashboard__persona-status-text {
+      .personas__persona-status-text {
         color: #4caf50;
       }
     }
 
     &:not(&--published) {
-      .dashboard__persona-status-icon {
+      .personas__persona-status-icon {
         color: #9e9e9e;
       }
-      .dashboard__persona-status-text {
+      .personas__persona-status-text {
         color: #9e9e9e;
       }
     }
@@ -479,14 +479,6 @@
     font-weight: 500;
     letter-spacing: 0.3px;
   }
-
-  // &__persona-arrow {
-  //   color: var(--text-secondary, #666);
-  //   font-size: 18px;
-  //   width: 18px;
-  //   height: 18px;
-  //   margin-left: 12px;
-  // }
 
   &__button {
     width: 100%;
@@ -628,7 +620,7 @@
   }
 
   &__published-field {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 
     &:last-child {
       margin-bottom: 0;
@@ -638,7 +630,7 @@
   &__published-field-label {
     display: block;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 400;
     color: #bbb;
     margin-bottom: 8px;
     text-transform: capitalize;
@@ -648,11 +640,8 @@
 
   &__published-field-container {
     background-color: white;
-    // border: 1px solid #e0e0e0;
-    // border-radius: 12px;
     padding: 8px 16px;
     display: flex;
-    // align-items: flex-start;
     text-align: left;
     justify-content: space-between;
     min-height: 24px;
@@ -700,7 +689,7 @@
     height: 56px;
     background: white;
     color: var(--text-primary, #333);
-    border: 2px solid #e0e0e0;
+    border: 1px solid #e0e0e0;
     border-radius: 28px;
     font-size: 16px;
     font-weight: 600;
@@ -710,7 +699,6 @@
     &:hover:not(:disabled) {
       border-color: var(--primary-color, #b8956a);
       color: var(--primary-color, #b8956a);
-      transform: translateY(-1px);
     }
 
     &:disabled {
@@ -814,7 +802,7 @@
 }
 
 @media (max-width: 480px) {
-  .dashboard {
+  .personas {
     &__container {
       padding: 32px 16px 120px 16px;
     }
@@ -1036,7 +1024,7 @@
   }
 }
 
-.dashboard__container {
+.personas__container {
   animation: fadeInUp 0.6s ease-out;
 }
 

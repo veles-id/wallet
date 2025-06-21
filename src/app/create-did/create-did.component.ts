@@ -50,7 +50,7 @@ export class CreateDidComponent {
       );
       await this._didService.storeDID(createdDID, this.didName().trim());
 
-      this._router.navigate(["/dashboard"]);
+      this._router.navigate(["/personas"]);
     } catch (error) {
       const didType = this.selectedDIDType();
       console.log(`DID:${didType} creation failed:`, error);
@@ -62,7 +62,7 @@ export class CreateDidComponent {
           const offlineDID: CreateDIDResult =
             await this._didService.createOfflineDID();
           await this._didService.storeDID(offlineDID, this.didName().trim());
-          this._router.navigate(["/dashboard"]);
+          this._router.navigate(["/personas"]);
         } catch (offlineError) {
           console.error("Error creating fallback DID:", offlineError);
         }
@@ -72,7 +72,7 @@ export class CreateDidComponent {
           const offlineDID: CreateDIDResult =
             await this._didService.createOfflineDID();
           await this._didService.storeDID(offlineDID, this.didName().trim());
-          this._router.navigate(["/dashboard"]);
+          this._router.navigate(["/personas"]);
         } catch (offlineError) {
           console.error("Error creating offline DID:", offlineError);
         }

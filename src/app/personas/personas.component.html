@@ -1,0 +1,345 @@
+<div class="personas">
+  <div class="personas__container">
+    @if (shouldShowListView()) {
+    <!-- List View for Multiple DIDs -->
+    <header class="personas__header">
+      <h1 class="personas__title">Personas</h1>
+    </header>
+
+    <div class="personas__personas-list">
+      @for (did of storedDIDs(); track did.did) {
+      <div class="personas__persona-item" (click)="selectDID(did)">
+        <div class="personas__persona-avatar">
+          <span class="personas__persona-initials">{{
+            getPersonaInitials(did)
+          }}</span>
+        </div>
+        <div class="personas__persona-info">
+          <h3 class="personas__persona-name">
+            {{ did.alias || "Unnamed Identity" }}
+          </h3>
+          <div class="personas__persona-details">
+            <span class="personas__persona-type">{{
+              (did.didType || "DHT").toUpperCase()
+            }}</span>
+            <div
+              class="personas__persona-status"
+              [class.personas__persona-status--published]="did.isPublished"
+            >
+              <mat-icon class="personas__persona-status-icon">
+                {{
+                  did.isPublished ? "check_circle" : "radio_button_unchecked"
+                }}
+              </mat-icon>
+              <span class="personas__persona-status-text">
+                {{ did.isPublished ? "Published" : "Not Published" }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <!-- <mat-icon class="personas__persona-arrow">arrow_forward_ios</mat-icon> -->
+      </div>
+      }
+    </div>
+
+    <div class="personas__actions">
+      <button
+        class="personas__button primary-button"
+        mat-flat-button
+        (click)="navigateToCreateDID()"
+      >
+        <span class="personas__button-text">Create new persona</span>
+      </button>
+    </div>
+    } @else if (shouldShowPublishedView()) { @if (storedDIDs().length > 1) {
+    <div class="personas__back-button">
+      <button mat-icon-button (click)="backToList()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    </div>
+    }
+
+    <header class="personas__published-header">
+      <div class="personas__published-avatar">
+        <span class="personas__published-initials">{{
+          getPersonaInitials(selectedDID()!)
+        }}</span>
+      </div>
+      <div class="personas__published-info">
+        <h1 class="personas__published-name">{{ getPublicName() }}</h1>
+        <span class="personas__published-type">{{
+          (selectedDID()?.didType || "DHT").toUpperCase()
+        }}</span>
+      </div>
+    </header>
+
+    <div class="personas__published-description">
+      <p class="personas__published-description-text">
+        Here you can view all publicly available<br />
+        information related to your persona
+      </p>
+    </div>
+
+    <div class="personas__qr-section">
+      @if (isLoading()) {
+      <div class="personas__loading">
+        <mat-spinner diameter="60"></mat-spinner>
+      </div>
+      } @else {
+      <div class="personas__qr-container">
+        <canvas
+          #qrCanvas
+          class="personas__qr-code"
+          [class.personas__qr-code--hidden]="!qrCodeGenerated()"
+        ></canvas>
+        @if (!qrCodeGenerated()) {
+        <div class="personas__qr-placeholder">
+          <mat-icon>qr_code</mat-icon>
+        </div>
+        } @if (qrCodeGenerated()) {
+        <div class="personas__veles-logo">
+          <img src="assets/signet-qr.svg" alt="Veles" />
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="personas__published-fields">
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Decentralized ID</label>
+        <div class="personas__published-field-container" (click)="copyDID()">
+          <span class="personas__published-field-value">{{ shortDID() }}</span>
+          <mat-icon class="personas__published-field-copy"
+            >content_copy</mat-icon
+          >
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Name</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicName()
+          }}</span>
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Nick</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicNick()
+          }}</span>
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Website</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicWebsite()
+          }}</span>
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">About</label>
+        <div class="personas__published-field-container">
+          <span
+            class="personas__published-field-value personas__published-field-value--multiline"
+            >{{ getPublicAbout() }}</span
+          >
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Lightning wallet</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicLightningWallet()
+          }}</span>
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Location</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicLocation()
+          }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="personas__published-actions">
+      <button
+        class="personas__back-to-list-button"
+        mat-flat-button
+        (click)="backToList()"
+      >
+        Back
+      </button>
+    </div>
+
+    @if (error()) {
+    <div class="personas__error">
+      <span class="personas__error-text">{{ error() }}</span>
+    </div>
+    } } @else if (shouldShowDetailedView()) { @if (storedDIDs().length > 1) {
+    <div class="personas__back-button">
+      <button mat-icon-button (click)="backToList()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    </div>
+    }
+
+    <header class="personas__header">
+      <h1 class="personas__title">{{ userName() }}</h1>
+    </header>
+
+    <div class="personas__message">
+      <p class="personas__message-text">
+        Your new digital personality<br />
+        called {{ userName() }} was created
+      </p>
+    </div>
+
+    <div class="personas__qr-section">
+      @if (isLoading()) {
+      <div class="personas__loading">
+        <mat-spinner diameter="60"></mat-spinner>
+      </div>
+      } @else {
+      <div class="personas__qr-container">
+        <canvas
+          #qrCanvas
+          class="personas__qr-code"
+          [class.personas__qr-code--hidden]="!qrCodeGenerated()"
+        ></canvas>
+        @if (!qrCodeGenerated()) {
+        <div class="personas__qr-placeholder">
+          <mat-icon>qr_code</mat-icon>
+        </div>
+        } @if (qrCodeGenerated()) {
+        <div class="personas__veles-logo">
+          <img src="assets/signet-qr.svg" alt="Veles" />
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="personas__did-section">
+      <div class="personas__did-header">
+        <p class="personas__did-label">
+          Your private decentralized identifier:
+        </p>
+        <div class="personas__did-type-badge" [class]="didTypeBadgeClass()">
+          {{ didTypeBadgeText() }}
+        </div>
+      </div>
+      <div class="personas__did-container" (click)="copyDID()">
+        <span class="personas__did-text">{{ shortDID() }}</span>
+        <mat-icon class="personas__copy-icon">content_copy</mat-icon>
+      </div>
+    </div>
+
+    <div class="personas__actions">
+      @if (canPublish()) {
+      <button
+        class="personas__publish-button"
+        mat-flat-button
+        (click)="publishDID()"
+        [disabled]="isPublishing()"
+      >
+        @if (isPublishing()) {
+        <mat-spinner diameter="20" class="personas__spinner"></mat-spinner>
+        } @else { Publish }
+      </button>
+      } @else if (isLegacyDID()) {
+      <div class="personas__legacy-did-section">
+        <div class="personas__legacy-warning">
+          <mat-icon class="personas__warning-icon">warning</mat-icon>
+          <span class="personas__warning-text"
+            >This DID cannot be published</span
+          >
+        </div>
+        <p class="personas__legacy-explanation">
+          {{ publishabilityReason() }}
+        </p>
+        <button
+          class="personas__create-new-button"
+          mat-flat-button
+          (click)="createNewPublishableDID()"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+          <mat-spinner diameter="20" class="personas__spinner"></mat-spinner>
+          } @else { Create New Publishable DID }
+        </button>
+      </div>
+      } @else if (currentDID()?.isPublished) {
+      <div class="personas__published-status">
+        <mat-icon class="personas__published-icon">check_circle</mat-icon>
+        <span>Published</span>
+      </div>
+      } @else {
+      <div class="personas__cannot-publish">
+        <mat-icon class="personas__warning-icon">info</mat-icon>
+        <span class="personas__cannot-publish-text">{{
+          publishabilityReason()
+        }}</span>
+      </div>
+      }
+    </div>
+
+    @if (error()) {
+    <div class="personas__error">
+      <span class="personas__error-text">{{ error() }}</span>
+    </div>
+    } }
+  </div>
+
+  <nav class="personas__bottom-nav">
+    <button
+      class="personas__nav-item personas__nav-item--active"
+      mat-button
+      (click)="navigateToIdentity()"
+    >
+      <mat-icon>fingerprint</mat-icon>
+      <span>Identity</span>
+    </button>
+
+    <button
+      class="personas__nav-item"
+      mat-button
+      (click)="navigateToCredentials()"
+    >
+      <mat-icon>badge</mat-icon>
+      <span>Credentials</span>
+    </button>
+
+    <div class="personas__nav-center">
+      <img
+        src="assets/signet-menu.svg"
+        alt="Veles"
+        class="personas__nav-logo"
+      />
+    </div>
+
+    <button class="personas__nav-item" mat-button (click)="navigateToLinked()">
+      <mat-icon>link</mat-icon>
+      <span>Linked</span>
+    </button>
+
+    <button
+      class="personas__nav-item"
+      mat-button
+      (click)="navigateToSettings()"
+    >
+      <mat-icon>settings</mat-icon>
+      <span>Settings</span>
+    </button>
+  </nav>
+</div>

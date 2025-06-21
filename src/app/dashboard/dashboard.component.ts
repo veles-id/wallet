@@ -44,6 +44,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   qrCodeGenerated = signal(false);
   currentDID = signal<StoredDID | null>(null);
   pendingQRGeneration = signal(false);
+  storedDIDs = signal<StoredDID[]>([]);
+  showListView = signal(false);
+  selectedDID = signal<StoredDID | null>(null);
+  showPublishedView = signal(false);
 
   currentUser = computed(() => this._authService.currentUser());
   userName = computed(() => this.currentDID()?.alias || "Digital Identity");
@@ -55,6 +59,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
     return did;
   });
+
+  shouldShowListView = computed(() => {
+    return (
+      this.storedDIDs().length > 1 &&
+      !this.selectedDID() &&
+      !this.showPublishedView()
+    );
+  });
+
+  shouldShowPublishedView = computed(() => {
+    return this.showPublishedView() && this.selectedDID()?.isPublished;
+  });
+
+  shouldShowDetailedView = computed(() => {
+    return this.selectedDID() && !this.showPublishedView();
+  });
+
   canPublish = computed(() => {
     const did = this.currentDID();
     if (!did) return false;
@@ -112,41 +133,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     try {
       this.isLoading.set(true);
       const storedDIDs = this._didService.getStoredDIDs();
+      this.storedDIDs.set(storedDIDs);
 
       if (storedDIDs.length > 0) {
-        const latestDID = storedDIDs[storedDIDs.length - 1];
-
-        // Try to migrate the DID for publishing if needed
-        if (
-          !latestDID.privateKeyJwk &&
-          !latestDID.isPublished &&
-          latestDID.didType === DIDType.DHT
-        ) {
-          console.log("Attempting to migrate DID for publishing...");
-          await this._didService.migrateDIDForPublishing(latestDID.did);
-          // Reload the DID after migration attempt
-          const updatedDID = this._didService.getStoredDID(latestDID.did);
-          if (updatedDID) {
-            this.currentDID.set(updatedDID);
-          } else {
-            this.currentDID.set(latestDID);
-          }
+        // If only one DID, show it directly
+        // If multiple DIDs, show list view initially
+        if (storedDIDs.length === 1) {
+          const singleDID = storedDIDs[0];
+          await this.selectDID(singleDID);
         } else {
-          this.currentDID.set(latestDID);
-        }
-
-        this.pendingQRGeneration.set(true);
-
-        // If this is a published DID:Nostr, retrieve information from the network
-        if (
-          latestDID.isPublished &&
-          (latestDID.didType === DIDType.NOSTR ||
-            latestDID.did.startsWith("did:nostr:"))
-        ) {
-          console.log(
-            "Published DID:Nostr detected, retrieving network information..."
-          );
-          this.retrieveNostrDIDInfo(latestDID.did);
+          this.showListView.set(true);
         }
       } else {
         this._router.navigate(["/create-did"]);
@@ -302,6 +298,37 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private async generateQRCodeIfReady(didUri: string): Promise<void> {
+    if (!this.pendingQRGeneration()) {
+      return;
+    }
+
+    console.log("Attempting to generate QR code for:", didUri);
+
+    // Check if canvas is available, retry if not
+    let retryCount = 0;
+    const maxRetries = 10;
+    const retryDelay = 100;
+
+    const tryGenerate = async (): Promise<void> => {
+      if (this.qrCanvas?.nativeElement) {
+        await this.generateQRCode(didUri);
+        return;
+      }
+
+      retryCount++;
+      if (retryCount < maxRetries) {
+        console.log(`Canvas not ready, retry ${retryCount}/${maxRetries}`);
+        setTimeout(tryGenerate, retryDelay);
+      } else {
+        console.error("Canvas element not available after multiple retries");
+        this.error.set("Failed to generate QR code - canvas not available");
+      }
+    };
+
+    await tryGenerate();
+  }
+
   async publishDID(): Promise<void> {
     const did = this.currentDID();
     if (!did || did.isPublished) {
@@ -312,24 +339,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.error.set(null);
 
     try {
-      // Check if this is a DID:Nostr
       if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
         const success = await this._didService.publishDID(did);
         if (success) {
-          // Update the publication status in localStorage
           this._didService.updateDIDPublicationStatus(did.did, true);
-          // Update the current DID state
           const updatedDID = { ...did, isPublished: true };
           this.currentDID.set(updatedDID);
           console.log("DID:Nostr published successfully!");
         }
       } else {
-        // This is a DID:DHT, publish to DHT
         const success = await this._didService.publishDID(did);
         if (success) {
-          // Update the publication status in localStorage
           this._didService.updateDIDPublicationStatus(did.did, true);
-          // Update the current DID state
           const updatedDID = { ...did, isPublished: true };
           this.currentDID.set(updatedDID);
           console.log("DID:DHT published successfully!");
@@ -342,13 +363,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       if (error instanceof Error) {
         if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
-          // Nostr-specific error handling
           if (error.message.includes("Could not extract Nostr keys")) {
             errorMessage =
               "Cannot publish this DID - failed to extract Nostr keys.";
           }
         } else {
-          // DHT-specific error handling
           if (error.message.includes("No private keys available")) {
             errorMessage =
               "Cannot publish this DID - it was created offline and has no private keys.";
@@ -444,5 +463,111 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  async selectDID(did: StoredDID): Promise<void> {
+    try {
+      this.selectedDID.set(did);
+      this.currentDID.set(did);
+
+      if (did.isPublished) {
+        this.showPublishedView.set(true);
+        this.pendingQRGeneration.set(true);
+
+        setTimeout(() => this.generateQRCodeIfReady(did.did), 100);
+
+        // If this is a published DID:Nostr, retrieve information from the network
+        if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
+          console.log(
+            "Published DID:Nostr detected, retrieving network information..."
+          );
+          this.retrieveNostrDIDInfo(did.did);
+        }
+      } else {
+        this.showPublishedView.set(false);
+
+        if (
+          !did.privateKeyJwk &&
+          !did.isPublished &&
+          did.didType === DIDType.DHT
+        ) {
+          console.log("Attempting to migrate DID for publishing...");
+          await this._didService.migrateDIDForPublishing(did.did);
+          const updatedDID = this._didService.getStoredDID(did.did);
+          if (updatedDID) {
+            this.currentDID.set(updatedDID);
+            this.selectedDID.set(updatedDID);
+            setTimeout(() => this.generateQRCodeIfReady(updatedDID.did), 100);
+          } else {
+            setTimeout(() => this.generateQRCodeIfReady(did.did), 100);
+          }
+        } else {
+          setTimeout(() => this.generateQRCodeIfReady(did.did), 100);
+        }
+
+        this.pendingQRGeneration.set(true);
+      }
+    } catch (error) {
+      console.error("Error selecting DID:", error);
+      this.error.set("Failed to load selected identity");
+    }
+  }
+
+  backToList(): void {
+    this.selectedDID.set(null);
+    this.currentDID.set(null);
+    this.showPublishedView.set(false);
+    this.qrCodeGenerated.set(false);
+    this.pendingQRGeneration.set(false);
+    this.error.set(null); // Clear any QR generation errors
+  }
+
+  getPersonaInitials(did: StoredDID): string {
+    if (did.alias) {
+      return did.alias
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase())
+        .join("")
+        .substring(0, 2);
+    }
+    return did.didType?.charAt(0).toUpperCase() || "D";
+  }
+
+  navigateToCreateDID(): void {
+    this._router.navigate(["/create-did"]);
+  }
+
+  // Helper methods for published view data
+  getPublicName(): string {
+    return this.selectedDID()?.alias || "Unknown";
+  }
+
+  getPublicNick(): string {
+    // For now, return a simplified version of the alias or generate from DID
+    const alias = this.selectedDID()?.alias;
+    if (alias) {
+      return alias.toLowerCase().replace(/\s+/g, "");
+    }
+    return "user" + this.selectedDID()?.did.slice(-6);
+  }
+
+  getPublicWebsite(): string {
+    // This would come from DID metadata when available
+    return "https://example.com";
+  }
+
+  getPublicAbout(): string {
+    // This would come from DID metadata when available
+    return "This is my digital identity on the decentralized web. Connect with me through this DID.";
+  }
+
+  getPublicLightningWallet(): string {
+    // This would come from DID metadata when available
+    return "user@wallet.com";
+  }
+
+  getPublicLocation(): string {
+    // This would come from DID metadata when available
+    return "Digital World";
   }
 }

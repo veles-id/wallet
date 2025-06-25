@@ -46,7 +46,6 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
   currentDID = signal<StoredDID | null>(null);
   pendingQRGeneration = signal(false);
   storedDIDs = signal<StoredDID[]>([]);
-
   currentUser = computed(() => this._authService.currentUser());
   userName = computed(() => this.currentDID()?.alias || "Digital Identity");
   didUri = computed(() => this.currentDID()?.did || "");
@@ -95,23 +94,23 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
   });
 
   ngOnInit(): void {
-    this.loadDIDFromRoute();
+    this._loadDIDFromRoute();
   }
 
   ngAfterViewInit(): void {
     if (this.currentDID() && this.pendingQRGeneration()) {
-      this.generateQRCode(this.currentDID()!.did);
+      this._generateQRCode(this.currentDID()!.did);
     }
 
     setTimeout(() => {
       if (this.currentDID() && this.pendingQRGeneration()) {
         console.log("Retrying QR code generation after timeout");
-        this.generateQRCode(this.currentDID()!.did);
+        this._generateQRCode(this.currentDID()!.did);
       }
     }, 100);
   }
 
-  private async loadDIDFromRoute(): Promise<void> {
+  private async _loadDIDFromRoute(): Promise<void> {
     try {
       this.isLoading.set(true);
       const didId = this._route.snapshot.paramMap.get("id");
@@ -160,7 +159,7 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private async generateQRCode(didUri: string): Promise<void> {
+  private async _generateQRCode(didUri: string): Promise<void> {
     try {
       console.log("Generating QR code for DID:", didUri);
 
@@ -170,7 +169,7 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
       if (!this.qrCanvas?.nativeElement) {
         console.error("Canvas element not available, retrying...");
         // Retry after a longer delay
-        setTimeout(() => this.generateQRCode(didUri), 200);
+        setTimeout(() => this._generateQRCode(didUri), 200);
         return;
       }
 
@@ -196,7 +195,7 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
       if (!currentError || !currentError.includes("retry")) {
         setTimeout(() => {
           this.error.set("Failed to generate QR code (retry)");
-          this.generateQRCode(didUri);
+          this._generateQRCode(didUri);
         }, 1000);
       }
     }

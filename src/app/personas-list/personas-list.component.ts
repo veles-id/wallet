@@ -28,14 +28,13 @@ export class PersonasListComponent implements OnInit {
   isLoading = signal(false);
   error = signal<string | null>(null);
   storedDIDs = signal<StoredDID[]>([]);
-
   currentUser = computed(() => this._authService.currentUser());
 
   ngOnInit(): void {
-    this.loadUserDIDs();
+    this._loadUserDIDs();
   }
 
-  private async loadUserDIDs(): Promise<void> {
+  private async _loadUserDIDs(): Promise<void> {
     try {
       this.isLoading.set(true);
       const storedDIDs = this._didService.getStoredDIDs();
@@ -83,7 +82,7 @@ export class PersonasListComponent implements OnInit {
   }
 
   navigateToIdentity(): void {
-    this.loadUserDIDs();
+    this._loadUserDIDs();
   }
 
   navigateToCredentials(): void {

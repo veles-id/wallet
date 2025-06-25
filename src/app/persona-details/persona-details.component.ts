@@ -46,7 +46,6 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
   pendingQRGeneration = signal(false);
   storedDIDs = signal<StoredDID[]>([]);
   nostrData = signal<any>(null);
-
   currentUser = computed(() => this._authService.currentUser());
   userName = computed(() => this.currentDID()?.alias || "Digital Identity");
   didUri = computed(() => this.currentDID()?.did || "");
@@ -59,23 +58,23 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
   });
 
   ngOnInit(): void {
-    this.loadDIDFromRoute();
+    this._loadDIDFromRoute();
   }
 
   ngAfterViewInit(): void {
     if (this.currentDID() && this.pendingQRGeneration()) {
-      this.generateQRCode(this.currentDID()!.did);
+      this._generateQRCode(this.currentDID()!.did);
     }
 
     setTimeout(() => {
       if (this.currentDID() && this.pendingQRGeneration()) {
         console.log("Retrying QR code generation after timeout");
-        this.generateQRCode(this.currentDID()!.did);
+        this._generateQRCode(this.currentDID()!.did);
       }
     }, 100);
   }
 
-  private async loadDIDFromRoute(): Promise<void> {
+  private async _loadDIDFromRoute(): Promise<void> {
     try {
       this.isLoading.set(true);
       const didId = this._route.snapshot.paramMap.get("id");
@@ -107,7 +106,7 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
         console.log(
           "Published DID:Nostr detected, retrieving network information..."
         );
-        this.retrieveNostrDIDInfo(did.did);
+        this._retrieveNostrDIDInfo(did.did);
       }
     } catch (error) {
       console.error("Error loading DID from route:", error);
@@ -117,7 +116,7 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private async retrieveNostrDIDInfo(did: string): Promise<void> {
+  private async _retrieveNostrDIDInfo(did: string): Promise<void> {
     try {
       console.log("=== RETRIEVING DID:NOSTR INFORMATION ===");
       const didInfo = await this._didService.resolveDID(did);
@@ -222,7 +221,7 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private async generateQRCode(didUri: string): Promise<void> {
+  private async _generateQRCode(didUri: string): Promise<void> {
     try {
       console.log("Generating QR code for DID:", didUri);
 
@@ -232,7 +231,7 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
       if (!this.qrCanvas?.nativeElement) {
         console.error("Canvas element not available, retrying...");
         // Retry after a longer delay
-        setTimeout(() => this.generateQRCode(didUri), 200);
+        setTimeout(() => this._generateQRCode(didUri), 200);
         return;
       }
 
@@ -258,7 +257,7 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
       if (!currentError || !currentError.includes("retry")) {
         setTimeout(() => {
           this.error.set("Failed to generate QR code (retry)");
-          this.generateQRCode(didUri);
+          this._generateQRCode(didUri);
         }, 1000);
       }
     }

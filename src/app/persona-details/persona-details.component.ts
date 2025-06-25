@@ -45,6 +45,7 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
   currentDID = signal<StoredDID | null>(null);
   pendingQRGeneration = signal(false);
   storedDIDs = signal<StoredDID[]>([]);
+  nostrData = signal<any>(null);
 
   currentUser = computed(() => this._authService.currentUser());
   userName = computed(() => this.currentDID()?.alias || "Digital Identity");
@@ -120,6 +121,9 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
     try {
       console.log("=== RETRIEVING DID:NOSTR INFORMATION ===");
       const didInfo = await this._didService.resolveDID(did);
+
+      // Store the retrieved data in the signal
+      this.nostrData.set(didInfo);
 
       console.log("DID:Nostr Network Information:");
       console.log("DID URI:", didInfo.did);
@@ -214,6 +218,7 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
         "Failed to retrieve DID:Nostr information from network:",
         error
       );
+      this.error.set("Failed to retrieve network information");
     }
   }
 
@@ -289,36 +294,61 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
 
   // Helper methods for published view data
   getPublicName(): string {
-    return this.currentDID()?.alias || "Unknown";
+    const nostrData = this.nostrData();
+    if (nostrData?.profileMetadata?.metadata?.display_name) {
+      return nostrData.profileMetadata.metadata.display_name;
+    }
+    if (nostrData?.profileMetadata?.metadata?.name) {
+      return nostrData.profileMetadata.metadata.name;
+    }
+    return this.currentDID()?.alias || "No data";
   }
 
   getPublicNick(): string {
-    // For now, return a simplified version of the alias or generate from DID
+    const nostrData = this.nostrData();
+    if (nostrData?.profileMetadata?.metadata?.name) {
+      return nostrData.profileMetadata.metadata.name;
+    }
     const alias = this.currentDID()?.alias;
     if (alias) {
       return alias.toLowerCase().replace(/\s+/g, "");
     }
-    return "user" + this.currentDID()?.did.slice(-6);
+    return "No data";
   }
 
   getPublicWebsite(): string {
-    // This would come from DID metadata when available
-    return "https://example.com";
+    const nostrData = this.nostrData();
+    if (nostrData?.profileMetadata?.metadata?.website) {
+      return nostrData.profileMetadata.metadata.website;
+    }
+    return "No data";
   }
 
   getPublicAbout(): string {
-    // This would come from DID metadata when available
-    return "This is my digital identity on the decentralized web. Connect with me through this DID.";
+    const nostrData = this.nostrData();
+    if (nostrData?.profileMetadata?.metadata?.about) {
+      return nostrData.profileMetadata.metadata.about;
+    }
+    return "No data";
   }
 
   getPublicLightningWallet(): string {
-    // This would come from DID metadata when available
-    return "user@wallet.com";
+    const nostrData = this.nostrData();
+    if (nostrData?.profileMetadata?.metadata?.lud16) {
+      return nostrData.profileMetadata.metadata.lud16;
+    }
+    if (nostrData?.profileMetadata?.metadata?.lud06) {
+      return nostrData.profileMetadata.metadata.lud06;
+    }
+    return "No data";
   }
 
   getPublicLocation(): string {
-    // This would come from DID metadata when available
-    return "Digital World";
+    const nostrData = this.nostrData();
+    if (nostrData?.profileMetadata?.metadata?.location) {
+      return nostrData.profileMetadata.metadata.location;
+    }
+    return "No data";
   }
 
   shouldShowBackButton(): boolean {

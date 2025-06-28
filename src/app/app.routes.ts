@@ -6,6 +6,7 @@ import { OnboardingComponent } from "./onboarding/onboarding.component";
 import { CreateDidComponent } from "./create-did/create-did.component";
 import { PersonasListComponent } from "./personas-list/personas-list.component";
 import { PersonaDetailsComponent } from "./persona-details/persona-details.component";
+import { PersonaEditComponent } from "./persona-edit/persona-edit.component";
 import { PersonaUnpublishedComponent } from "./persona-unpublished/persona-unpublished.component";
 import { AuthGuard } from "./guards/auth.guard";
 
@@ -30,6 +31,11 @@ export const routes: Routes = [
   {
     path: "personas/:id/unpublished",
     component: PersonaUnpublishedComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: "personas/:id/edit",
+    component: PersonaEditComponent,
     canActivate: [AuthGuard],
   },
   {

@@ -21,12 +21,17 @@ Every problem has many solutions, here are the preferable ones:
 - For asynchronous communication use RxJS
 - Files not longer than 400 lines of code
 - Use TypeScript and do your best to don’t use `any`
-- Type definitions in separate files
+- Put TS type definitions in separate files
 - Use locally scoped styles over global style class names for better performance (reduces view re-renders)
 - For unified styling use BEM
 - Don’t use comments, but write self-explanatory code
 - Write unit tests for pipes, helpers, and front-end business logic
 - Use `protected` only in the scope of inheritance
 - Names of class memebers that are private prepend with `_`
-- Follow Single Responsibility Principle
+- Follow **Single Responsibility Principle**
+- Follow **Composition over Inheritance Principle**
 - Don't use emoticons
+- When subscribing to Observable, remember to unsubscribe with
+  `.pipe(takeUntilDestroyed(this._destroyRef))`,
+  as there are 4 ways to unsubscribe, so keep the code consistent
+- Reactive forms over template-driven forms

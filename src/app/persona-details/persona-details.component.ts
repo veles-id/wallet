@@ -380,4 +380,11 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
       console.error("Error logging out:", error);
     }
   }
+
+  navigateToEdit(): void {
+    const currentDID = this.currentDID();
+    if (currentDID) {
+      this._router.navigate(["/personas", currentDID.did, "edit"]);
+    }
+  }
 }

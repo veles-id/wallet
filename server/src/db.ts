@@ -7,20 +7,14 @@ export async function initializeDatabase(): Promise<Database> {
     driver: sqlite3.Database,
   });
 
-  // Drop existing tables to ensure clean schema
   await db.exec(`
-    DROP TABLE IF EXISTS devices;
-    DROP TABLE IF EXISTS users;
-  `);
-
-  await db.exec(`
-    CREATE TABLE users (
+    CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
       current_challenge TEXT
     );
 
-    CREATE TABLE devices (
+    CREATE TABLE IF NOT EXISTS devices (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id TEXT NOT NULL,
       credential_id BLOB NOT NULL,

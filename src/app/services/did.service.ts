@@ -149,7 +149,11 @@ export class DidService {
 
   getStoredDIDs(): StoredDID[] {
     const stored = localStorage.getItem("veles_dids");
-    return stored ? JSON.parse(stored) : [];
+    const dids = stored ? JSON.parse(stored) : [];
+    return dids.sort(
+      (a: StoredDID, b: StoredDID) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }
 
   getStoredDID(did: string): StoredDID | null {

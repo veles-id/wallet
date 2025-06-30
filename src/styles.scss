@@ -74,6 +74,32 @@
   --error-border: #fcc;
   --shadow-primary: 0 4px 12px rgba(184, 149, 106, 0.3);
   --shadow-primary-hover: 0 6px 16px rgba(184, 149, 106, 0.4);
+
+  --mdc-theme-primary: var(--primary-color);
+  --mdc-theme-secondary: var(--text-secondary);
+  --mdc-theme-error: var(--error-color);
+  --mdc-theme-on-primary: var(--text-on-primary);
+  --mdc-theme-on-secondary: white;
+  --mdc-theme-on-error: white;
+  --mdc-theme-surface: white;
+  --mdc-theme-on-surface: var(--text-primary);
+
+  --mdc-filled-button-container-color: var(--primary-color);
+  --mdc-filled-button-label-text-color: var(--text-on-primary);
+  --mdc-filled-button-hover-container-color: var(--primary-hover-color);
+  --mdc-filled-button-disabled-container-color: var(--primary-disabled-color);
+  --mdc-filled-button-disabled-label-text-color: var(--text-disabled);
+  --mdc-filled-button-container-shape: 28px;
+
+  --mdc-filled-text-field-active-indicator-color: var(--primary-color);
+  --mdc-filled-text-field-focus-active-indicator-color: var(--primary-color);
+  --mdc-filled-text-field-focus-label-text-color: var(--primary-color);
+  --mdc-filled-text-field-hover-active-indicator-color: var(--primary-color);
+  --mdc-filled-text-field-label-text-color: var(--text-secondary);
+  --mdc-filled-text-field-input-text-color: var(--text-primary);
+
+  --mdc-circular-progress-active-indicator-color: var(--primary-color);
+  --mdc-linear-progress-active-indicator-color: var(--primary-color);
 }
 
 html,
@@ -97,4 +123,132 @@ body {
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+}
+
+.mat-mdc-button {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+
+  &.mat-primary {
+    box-shadow: var(--shadow-primary);
+
+    &:hover:not(:disabled) {
+      box-shadow: var(--shadow-primary-hover);
+    }
+  }
+}
+
+.mat-mdc-form-field {
+  font-family: "Montserrat", sans-serif !important;
+
+  .mat-mdc-input-element {
+    font-family: "Montserrat", sans-serif !important;
+    font-size: 16px;
+    color: var(--text-primary);
+  }
+
+  .mat-mdc-floating-label {
+    font-family: "Montserrat", sans-serif !important;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  &.mat-focused {
+    .mat-mdc-floating-label {
+      color: var(--primary-color) !important;
+    }
+  }
+}
+
+.mat-mdc-progress-spinner {
+  circle {
+    stroke: var(--primary-color);
+  }
+}
+
+.mat-icon {
+  font-family: "Material Icons", "Material Icons Outlined",
+    "Material Symbols Outlined";
+
+  &.mat-primary {
+    color: var(--primary-color);
+  }
+}
+
+.mat-headline-1,
+.mat-h1 {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 300;
+  letter-spacing: -1.5px;
+}
+
+.mat-headline-2,
+.mat-h2 {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 300;
+  letter-spacing: -0.5px;
+}
+
+.mat-headline-3,
+.mat-h3 {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 400;
+}
+
+.mat-headline-4,
+.mat-h4 {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+}
+
+.mat-headline-5,
+.mat-h5 {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.mat-headline-6,
+.mat-h6 {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.mat-body-1,
+.mat-body {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+.mat-body-2 {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+}
+
+.mat-caption {
+  font-family: "Montserrat", sans-serif !important;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.mat-primary {
+  color: var(--primary-color) !important;
+}
+
+.mat-accent {
+  color: var(--text-secondary) !important;
+}
+
+.mat-warn {
+  color: var(--error-color) !important;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

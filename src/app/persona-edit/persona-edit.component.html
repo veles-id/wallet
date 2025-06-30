@@ -39,7 +39,11 @@
       <div class="persona-edit__fields">
         <mat-form-field class="persona-edit__field" appearance="fill">
           <mat-label>Alias</mat-label>
-          <input matInput formControlName="alias" />
+          <input
+            matInput
+            formControlName="alias"
+            placeholder="Easy to remember alias"
+          />
           @if (personaForm.get('alias')?.errors &&
           personaForm.get('alias')?.touched) {
           <mat-error>

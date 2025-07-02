@@ -14,7 +14,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
 import { Router, ActivatedRoute } from "@angular/router";
 import * as QRCode from "qrcode";
-import { AuthService, User } from "../services/auth.service";
+import { AuthService } from "../services/auth.service";
 import { DidService } from "../services/did.service";
 import { StoredDID, DIDType } from "../services/did.types";
 import { NavFooterComponent } from "../nav-footer/nav-footer.component";

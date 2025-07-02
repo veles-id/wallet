@@ -172,13 +172,11 @@ export class PersonaEditComponent implements OnInit {
         this._didService.updateDIDAlias(currentDID.did, formValues.alias);
       }
 
-      // For NOSTR DIDs, we would need to publish profile metadata
-      // This is a placeholder for future implementation
       if (
         currentDID.didType === DIDType.NOSTR ||
         currentDID.did.startsWith("did:nostr:")
       ) {
-        console.log("NOSTR profile update would be implemented here:", {
+        const success = await this._didService.updateNostrProfile(currentDID, {
           name: formValues.name,
           display_name: formValues.nick,
           website: formValues.website,
@@ -186,6 +184,10 @@ export class PersonaEditComponent implements OnInit {
           lud16: formValues.lightningWallet,
           location: formValues.location,
         });
+
+        if (!success) {
+          throw new Error("Failed to update profile on Nostr relays");
+        }
       }
 
       this._router.navigate(["/personas", currentDID.did]);

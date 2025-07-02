@@ -139,6 +139,76 @@ export class DidNostrService {
     }
   }
 
+  async updateProfileMetadata(
+    storedDID: StoredDID,
+    metadata: {
+      name?: string;
+      display_name?: string;
+      website?: string;
+      about?: string;
+      lud16?: string;
+      location?: string;
+    }
+  ): Promise<boolean> {
+    try {
+      console.log("Updating Nostr profile metadata...");
+
+      if (!storedDID.did.startsWith("did:nostr:")) {
+        throw new Error("Can only update profile metadata for DID:Nostr");
+      }
+
+      const nostrKeys = this.extractNostrKeys(storedDID);
+      if (!nostrKeys) {
+        throw new Error("Could not extract Nostr keys from DID");
+      }
+
+      const filteredMetadata = Object.fromEntries(
+        Object.entries(metadata).filter(
+          ([_, value]) => value !== undefined && value !== null && value !== ""
+        )
+      );
+
+      const event: NostrEvent = {
+        pubkey: nostrKeys.publicKey,
+        created_at: Math.floor(Date.now() / 1000),
+        kind: 0,
+        tags: [],
+        content: JSON.stringify(filteredMetadata),
+      };
+
+      console.log("Created profile metadata event:", {
+        kind: event.kind,
+        pubkey: event.pubkey.substring(0, 16) + "...",
+        metadata: filteredMetadata,
+      });
+
+      const signedEvent = await this.signEvent(event, nostrKeys.privateKey);
+      const publishResults = await this.publishToRelays(signedEvent);
+
+      publishResults.forEach((result) => {
+        if (result.success) {
+          console.log(`Profile update to ${result.relay}: SUCCESS`);
+        } else {
+          console.log(
+            `Profile update to ${result.relay}: FAILED${
+              result.error ? ` - ${result.error}` : ""
+            }`
+          );
+        }
+      });
+
+      const successCount = publishResults.filter((r) => r.success).length;
+      console.log(
+        `Profile metadata update result: ${successCount}/${publishResults.length} relays succeeded`
+      );
+
+      return successCount > 0;
+    } catch (error) {
+      console.error("Failed to update profile metadata:", error);
+      throw error;
+    }
+  }
+
   async retrieveDIDInfo(did: string): Promise<any> {
     try {
       console.log("Retrieving DID:Nostr information from network:", did);

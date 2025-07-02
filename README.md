@@ -28,7 +28,8 @@ Every problem has many solutions, here are the preferable ones:
 - Write unit tests for pipes, helpers, and front-end business logic
 - Use `protected` only in the scope of inheritance
 - Names of class memebers that are private prepend with `_`
-- Follow **Single Responsibility Principle**
+- Follow **Clean Code Principles**
+- Follow **SOLID Principles**
 - Follow **Composition over Inheritance Principle**
 - Don't use emoticons
 - When subscribing to Observable, remember to unsubscribe with

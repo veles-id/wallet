@@ -200,6 +200,29 @@ export class DidService {
     return false;
   }
 
+  async updateNostrProfile(
+    storedDID: StoredDID,
+    metadata: {
+      name?: string;
+      display_name?: string;
+      website?: string;
+      about?: string;
+      lud16?: string;
+      location?: string;
+    }
+  ): Promise<boolean> {
+    const didType = this.getDIDType(storedDID);
+
+    if (didType !== DIDType.NOSTR) {
+      throw new Error("Profile updates are only supported for Nostr DIDs");
+    }
+
+    return await this._didNostrService.updateProfileMetadata(
+      storedDID,
+      metadata
+    );
+  }
+
   exportDID(did: string): string | null {
     const storedDID = this.getStoredDID(did);
     return storedDID ? JSON.stringify(storedDID, null, 2) : null;

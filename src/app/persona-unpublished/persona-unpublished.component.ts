@@ -17,6 +17,7 @@ import * as QRCode from "qrcode";
 import { AuthService, User } from "../services/auth.service";
 import { DidService } from "../services/did.service";
 import { StoredDID, DIDType } from "../services/did.types";
+import { NavFooterComponent } from "../nav-footer/nav-footer.component";
 
 @Component({
   selector: "app-persona-unpublished",
@@ -26,6 +27,7 @@ import { StoredDID, DIDType } from "../services/did.types";
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    NavFooterComponent,
   ],
   templateUrl: "./persona-unpublished.component.html",
   styleUrl: "./persona-unpublished.component.scss",
@@ -138,7 +140,6 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
       this.currentDID.set(did);
       this.pendingQRGeneration.set(true);
 
-      // Try to migrate DID for publishing if needed
       if (
         !did.privateKeyJwk &&
         !did.isPublished &&
@@ -216,7 +217,6 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
         if (success) {
           this._didService.updateDIDPublicationStatus(did.did, true);
           console.log("DID:Nostr published successfully!");
-          // Navigate to published view
           this._router.navigate(["/personas", did.did]);
         }
       } else {
@@ -224,7 +224,6 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
         if (success) {
           this._didService.updateDIDPublicationStatus(did.did, true);
           console.log("DID:DHT published successfully!");
-          // Navigate to published view
           this._router.navigate(["/personas", did.did]);
         }
       }
@@ -295,7 +294,6 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
       console.log("Creating new publishable DID to replace legacy DID...");
       const newDID = await this._didService.createPublishableDID();
 
-      // Navigate to the new DID's unpublished view
       this._router.navigate(["/personas", newDID.did, "unpublished"]);
     } catch (error) {
       console.error("Error creating new publishable DID:", error);
@@ -307,32 +305,5 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
   shouldShowBackButton(): boolean {
     return this.storedDIDs().length > 1;
-  }
-
-  navigateToIdentity(): void {
-    this._router.navigate(["/personas"]);
-  }
-
-  navigateToCredentials(): void {
-    // TODO: Implement credentials page
-    console.log("Credentials feature coming soon!");
-  }
-
-  navigateToLinked(): void {
-    // TODO: Implement linked accounts page
-    console.log("Linked accounts feature coming soon!");
-  }
-
-  navigateToSettings(): void {
-    // TODO: Implement settings page
-    console.log("Settings feature coming soon!");
-  }
-
-  async logout(): Promise<void> {
-    try {
-      await this._authService.logout();
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
   }
 }

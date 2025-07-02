@@ -17,6 +17,7 @@ import * as QRCode from "qrcode";
 import { AuthService, User } from "../services/auth.service";
 import { DidService } from "../services/did.service";
 import { StoredDID, DIDType } from "../services/did.types";
+import { NavFooterComponent } from "../nav-footer/nav-footer.component";
 
 @Component({
   selector: "app-persona-details",
@@ -26,6 +27,7 @@ import { StoredDID, DIDType } from "../services/did.types";
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    NavFooterComponent,
   ],
   templateUrl: "./persona-details.component.html",
   styleUrl: "./persona-details.component.scss",
@@ -352,33 +354,6 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
 
   shouldShowBackButton(): boolean {
     return this.storedDIDs().length > 1;
-  }
-
-  navigateToIdentity(): void {
-    this._router.navigate(["/personas"]);
-  }
-
-  navigateToCredentials(): void {
-    // TODO: Implement credentials page
-    console.log("Credentials feature coming soon!");
-  }
-
-  navigateToLinked(): void {
-    // TODO: Implement linked accounts page
-    console.log("Linked accounts feature coming soon!");
-  }
-
-  navigateToSettings(): void {
-    // TODO: Implement settings page
-    console.log("Settings feature coming soon!");
-  }
-
-  async logout(): Promise<void> {
-    try {
-      await this._authService.logout();
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
   }
 
   navigateToEdit(): void {

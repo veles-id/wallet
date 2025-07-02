@@ -169,49 +169,5 @@
     }
   </div>
 
-  <nav class="persona-edit__bottom-nav">
-    <button
-      class="persona-edit__nav-item persona-edit__nav-item--active"
-      mat-button
-      (click)="navigateToIdentity()"
-    >
-      <mat-icon>fingerprint</mat-icon>
-      <span>Identity</span>
-    </button>
-
-    <button
-      class="persona-edit__nav-item"
-      mat-button
-      (click)="navigateToCredentials()"
-    >
-      <mat-icon>badge</mat-icon>
-      <span>Credentials</span>
-    </button>
-
-    <div class="persona-edit__nav-center">
-      <img
-        src="assets/signet-menu.svg"
-        alt="Veles"
-        class="persona-edit__nav-logo"
-      />
-    </div>
-
-    <button
-      class="persona-edit__nav-item"
-      mat-button
-      (click)="navigateToLinked()"
-    >
-      <mat-icon>link</mat-icon>
-      <span>Linked</span>
-    </button>
-
-    <button
-      class="persona-edit__nav-item"
-      mat-button
-      (click)="navigateToSettings()"
-    >
-      <mat-icon>settings</mat-icon>
-      <span>Settings</span>
-    </button>
-  </nav>
+  <app-nav-footer></app-nav-footer>
 </div>

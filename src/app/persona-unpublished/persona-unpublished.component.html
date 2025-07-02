@@ -115,45 +115,5 @@
     }
   </div>
 
-  <nav class="personas__bottom-nav">
-    <button
-      class="personas__nav-item personas__nav-item--active"
-      mat-button
-      (click)="navigateToIdentity()"
-    >
-      <mat-icon>fingerprint</mat-icon>
-      <span>Identity</span>
-    </button>
-
-    <button
-      class="personas__nav-item"
-      mat-button
-      (click)="navigateToCredentials()"
-    >
-      <mat-icon>badge</mat-icon>
-      <span>Credentials</span>
-    </button>
-
-    <div class="personas__nav-center">
-      <img
-        src="assets/signet-menu.svg"
-        alt="Veles"
-        class="personas__nav-logo"
-      />
-    </div>
-
-    <button class="personas__nav-item" mat-button (click)="navigateToLinked()">
-      <mat-icon>link</mat-icon>
-      <span>Linked</span>
-    </button>
-
-    <button
-      class="personas__nav-item"
-      mat-button
-      (click)="navigateToSettings()"
-    >
-      <mat-icon>settings</mat-icon>
-      <span>Settings</span>
-    </button>
-  </nav>
+  <app-nav-footer></app-nav-footer>
 </div>

@@ -1,0 +1,131 @@
+.nav-footer {
+  &__bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px 10px 16px;
+    z-index: 1000;
+    min-height: 65px;
+  }
+
+  &__nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    max-width: 70px;
+    padding: 6px 2px;
+    transition: all 0.2s ease;
+
+    &.mat-mdc-button {
+      background: none !important;
+      color: #999999;
+      box-shadow: none !important;
+      text-transform: none;
+      font-size: 10px;
+      font-weight: 400;
+      border-radius: 8px;
+      min-width: auto;
+      line-height: 1;
+      min-height: 60px;
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        margin: 0 0 3px;
+        color: #999999;
+      }
+
+      span {
+        font-size: 10px;
+        line-height: 1.2;
+        color: #999999;
+      }
+
+      &:hover {
+        background-color: rgba(184, 149, 106, 0.08) !important;
+
+        mat-icon {
+          color: var(--primary-color, #b8956a);
+        }
+
+        span {
+          color: var(--primary-color, #b8956a);
+        }
+      }
+    }
+
+    &--active {
+      &.mat-mdc-button {
+        mat-icon {
+          color: var(--primary-color, #b8956a) !important;
+        }
+
+        span {
+          color: var(--primary-color, #b8956a) !important;
+        }
+      }
+    }
+  }
+
+  &__nav-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background-color: var(--primary-color, #b8956a);
+    border-radius: 50%;
+    margin: 0 6px;
+    flex-shrink: 0;
+  }
+
+  &__nav-logo {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-footer {
+    &__bottom-nav {
+      padding: 6px 16px 10px 16px;
+      min-height: 65px;
+    }
+
+    &__nav-item {
+      max-width: 70px;
+      padding: 6px 2px;
+
+      &.mat-mdc-button {
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+          margin-bottom: 3px;
+        }
+
+        span {
+          font-size: 10px;
+        }
+      }
+    }
+
+    &__nav-center {
+      width: 48px;
+      height: 48px;
+      margin: 0 6px;
+    }
+
+    &__nav-logo {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}

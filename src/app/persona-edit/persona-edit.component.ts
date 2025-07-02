@@ -15,6 +15,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { AuthService } from "../services/auth.service";
 import { DidService } from "../services/did.service";
 import { StoredDID, DIDType } from "../services/did.types";
+import { NavFooterComponent } from "../nav-footer/nav-footer.component";
 
 interface PersonaFormData {
   alias: string;
@@ -37,6 +38,7 @@ interface PersonaFormData {
     MatInputModule,
     MatFormFieldModule,
     ReactiveFormsModule,
+    NavFooterComponent,
   ],
   templateUrl: "./persona-edit.component.html",
   styleUrl: "./persona-edit.component.scss",
@@ -213,29 +215,5 @@ export class PersonaEditComponent implements OnInit {
         .substring(0, 2);
     }
     return did.didType?.charAt(0).toUpperCase() || "D";
-  }
-
-  navigateToIdentity(): void {
-    this._router.navigate(["/personas"]);
-  }
-
-  navigateToCredentials(): void {
-    console.log("Credentials feature coming soon!");
-  }
-
-  navigateToLinked(): void {
-    console.log("Linked accounts feature coming soon!");
-  }
-
-  navigateToSettings(): void {
-    console.log("Settings feature coming soon!");
-  }
-
-  async logout(): Promise<void> {
-    try {
-      await this._authService.logout();
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
   }
 }

@@ -1,6 +1,9 @@
 <nav class="nav-footer__bottom-nav">
   <button
-    class="nav-footer__nav-item nav-footer__nav-item--active"
+    [class]="
+      'nav-footer__nav-item' +
+      (isRouteActive('/personas') ? ' nav-footer__nav-item--active' : '')
+    "
     mat-button
     (click)="navigateToIdentity()"
   >
@@ -9,7 +12,10 @@
   </button>
 
   <button
-    class="nav-footer__nav-item"
+    [class]="
+      'nav-footer__nav-item' +
+      (isRouteActive('/credentials') ? ' nav-footer__nav-item--active' : '')
+    "
     mat-button
     (click)="navigateToCredentials()"
   >

@@ -1,0 +1,42 @@
+module.exports = {
+  preset: "jest-preset-angular",
+  setupFilesAfterEnv: ["<rootDir>/src/setup-jest.ts"],
+  testEnvironment: "jsdom",
+  transform: {
+    "^.+\\.(ts|js|html)$": [
+      "jest-preset-angular",
+      {
+        tsconfig: "tsconfig.spec.json",
+        stringifyContentPathRegex: "\\.html$",
+      },
+    ],
+  },
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@app/(.*)$": "<rootDir>/src/app/$1",
+    "^@services/(.*)$": "<rootDir>/src/app/services/$1",
+  },
+  moduleFileExtensions: ["ts", "html", "js", "json", "mjs"],
+  collectCoverage: true,
+  coverageDirectory: "coverage",
+  coverageReporters: ["html", "text-summary", "lcov"],
+  collectCoverageFrom: [
+    "src/app/**/*.ts",
+    "!src/app/**/*.spec.ts",
+    "!src/app/**/*.d.ts",
+    "!src/app/**/*.module.ts",
+    "!src/app/**/index.ts",
+  ],
+  testMatch: ["<rootDir>/src/app/**/*.spec.ts"],
+  restoreMocks: true,
+  clearMocks: true,
+  resetMocks: true,
+  testTimeout: 10000,
+  globalSetup: undefined,
+  globalTeardown: undefined,
+  verbose: true,
+  roots: ["<rootDir>/src"],
+  modulePaths: ["<rootDir>/src"],
+  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/dist/"],
+  transformIgnorePatterns: ["node_modules/(?!(.*\\.mjs$|@angular|@noble))"],
+};

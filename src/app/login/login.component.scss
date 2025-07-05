@@ -186,7 +186,7 @@
       stroke: var(--text-on-primary, white);
     }
 
-    circle {
+    ::ng-deep circle {
       stroke: var(--text-on-primary, white);
     }
   }

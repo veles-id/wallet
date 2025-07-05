@@ -1,9 +1,11 @@
-import { Component, signal, computed, inject } from "@angular/core";
+import { Component, signal, computed, inject, DestroyRef } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
-import { Router } from "@angular/router";
+import { Router, NavigationEnd } from "@angular/router";
+import { filter } from "rxjs/operators";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AuthService } from "../services/auth.service";
 import { DidService } from "../services/did.service";
 import { StoredDID } from "../services/did.types";
@@ -24,10 +26,33 @@ export class NavFooterComponent {
   private _authService = inject(AuthService);
   private _didService = inject(DidService);
   private _router = inject(Router);
+  private _destroyRef = inject(DestroyRef);
 
   isLoading = signal(false);
   error = signal<string | null>(null);
   storedDIDs = signal<StoredDID[]>([]);
+  currentRoute = signal<string>("");
+
+  constructor() {
+    this._router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this._destroyRef)
+      )
+      .subscribe((event: NavigationEnd) => {
+        this.currentRoute.set(event.url);
+      });
+
+    this.currentRoute.set(this._router.url);
+  }
+
+  isRouteActive(route: string): boolean {
+    const currentUrl = this.currentRoute();
+    if (route === "/personas") {
+      return currentUrl.startsWith("/personas") || currentUrl === "/create-did";
+    }
+    return currentUrl.startsWith(route);
+  }
 
   private async _loadUserDIDs(): Promise<void> {
     try {
@@ -62,8 +87,7 @@ export class NavFooterComponent {
   }
 
   navigateToCredentials(): void {
-    // TODO: Implement credentials page
-    console.log("Credentials feature coming soon!");
+    this._router.navigate(["/credentials"]);
   }
 
   navigateToLinked(): void {

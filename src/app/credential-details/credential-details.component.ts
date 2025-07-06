@@ -3,23 +3,15 @@ import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
-import { MatCardModule } from "@angular/material/card";
-import { MatChipsModule } from "@angular/material/chips";
-import { MatExpansionModule } from "@angular/material/expansion";
-import { MatDividerModule } from "@angular/material/divider";
-import { MatTooltipModule } from "@angular/material/tooltip";
 import { Router, ActivatedRoute } from "@angular/router";
 import { CredentialService } from "../services/credential.service";
 import {
   StoredCredential,
   VerifiableCredential,
-  VerificationStatus,
-  CredentialCategory,
-  CredentialColorClass,
-  CredentialIconType,
 } from "../services/credential.types";
 import { VerificationResult } from "../services/credential-verification.service";
 import { NavFooterComponent } from "../nav-footer/nav-footer.component";
+import { CredentialCardComponent } from "../credential-card/credential-card.component";
 
 @Component({
   selector: "app-credential-details",
@@ -29,12 +21,8 @@ import { NavFooterComponent } from "../nav-footer/nav-footer.component";
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    MatCardModule,
-    MatChipsModule,
-    MatExpansionModule,
-    MatDividerModule,
-    MatTooltipModule,
     NavFooterComponent,
+    CredentialCardComponent,
   ],
   templateUrl: "./credential-details.component.html",
   styleUrl: "./credential-details.component.scss",
@@ -98,124 +86,10 @@ export class CredentialDetailsComponent implements OnInit {
     return metadata?.category || "Credential";
   }
 
-  getIssuerName(): string {
-    const credentialData = this.credentialData();
-    if (!credentialData) return "";
-
-    const { issuer } = credentialData;
-    if (typeof issuer === "string") {
-      return this._shortenDID(issuer);
-    }
-    const { name, id } = issuer || {};
-    return name || this._shortenDID(id);
-  }
-
   getCredentialDisplayTitle(): string {
     const credential = this.credential();
     if (!credential) return "Credential Details";
     const { alias } = credential;
-    return alias || this.getCredentialType();
-  }
-
-  private _getCategoryFromString(input: string): CredentialCategory | null {
-    const lowerInput = input.toLowerCase();
-
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } =
-      CredentialCategory;
-
-    if (lowerInput.includes("email")) return EMAIL;
-    if (lowerInput.includes("education") || lowerInput.includes("alumni"))
-      return EDUCATION;
-    if (lowerInput.includes("device") || lowerInput.includes("phone"))
-      return DEVICE;
-    if (lowerInput.includes("identity")) return IDENTITY;
-    if (lowerInput.includes("professional")) return PROFESSIONAL;
-
-    return null;
-  }
-
-  getCredentialIcon(): string {
-    const credential = this.credential();
-    if (!credential) return CredentialIconType.BADGE_OUTLINED;
-
-    const { metadata } = credential;
-    const category = metadata?.category?.toLowerCase();
-    const type = this.getCredentialType().toLowerCase();
-
-    const detectedCategory =
-      this._getCategoryFromString(category || "") ||
-      this._getCategoryFromString(type || "");
-
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } =
-      CredentialCategory;
-
-    const {
-      EMAIL_OUTLINED,
-      SCHOOL_OUTLINED,
-      PHONE_IPHONE_OUTLINED,
-      BADGE_OUTLINED,
-      WORK_OUTLINE,
-    } = CredentialIconType;
-
-    switch (detectedCategory) {
-      case EMAIL:
-        return EMAIL_OUTLINED;
-      case EDUCATION:
-        return SCHOOL_OUTLINED;
-      case DEVICE:
-        return PHONE_IPHONE_OUTLINED;
-      case IDENTITY:
-        return BADGE_OUTLINED;
-      case PROFESSIONAL:
-        return WORK_OUTLINE;
-      default:
-        return BADGE_OUTLINED;
-    }
-  }
-
-  getCredentialColorClass(): string {
-    const credential = this.credential();
-    if (!credential) return CredentialColorClass.BROWN;
-
-    const { metadata } = credential;
-    const category = metadata?.category?.toLowerCase();
-    const type = this.getCredentialType().toLowerCase();
-
-    const detectedCategory =
-      this._getCategoryFromString(category || "") ||
-      this._getCategoryFromString(type || "");
-
-    const { BROWN, DARK, BLACK, BLUE, GREEN } = CredentialColorClass;
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } =
-      CredentialCategory;
-
-    switch (detectedCategory) {
-      case EMAIL:
-        return BROWN;
-      case EDUCATION:
-        return DARK;
-      case DEVICE:
-        return BLACK;
-      case IDENTITY:
-        return BLUE;
-      case PROFESSIONAL:
-        return GREEN;
-      default:
-        const colors = [BROWN, DARK, BLACK, BLUE, GREEN];
-        const credentialData = this.credentialData();
-        const { id } = credentialData || {};
-        const index = id ? Math.abs(id.length) % colors.length : 0;
-        return colors[index];
-    }
-  }
-
-  getCredentialCategory(): string {
-    const { metadata } = this.credential() || {};
-    return metadata?.category || this.getCredentialType();
-  }
-
-  getCredentialDisplayName(): string {
-    const { alias } = this.credential() || {};
     return alias || this.getCredentialType();
   }
 
@@ -235,14 +109,10 @@ export class CredentialDetailsComponent implements OnInit {
     const { metadata } = this.credential() || {};
     const category = metadata?.category?.toLowerCase();
 
-    const detectedCategory = this._getCategoryFromString(category || "");
-
-    switch (detectedCategory) {
-      case CredentialCategory.EDUCATION:
-        return "Alumni Of";
-      default:
-        return "Issued By";
+    if (category?.includes("education") || category?.includes("alumni")) {
+      return "Alumni Of";
     }
+    return "Issued By";
   }
 
   getIssuerType(): string {
@@ -300,12 +170,6 @@ export class CredentialDetailsComponent implements OnInit {
     return "Nostr";
   }
 
-  getSubjectDID(): string {
-    const { credentialSubject } = this.credentialData() || {};
-    const { id } = credentialSubject || {};
-    return id || "Unknown";
-  }
-
   getCredentialSubjectData(): Record<string, any> {
     const cred = this.credentialData();
     if (!cred?.credentialSubject) return {};
@@ -335,58 +199,6 @@ export class CredentialDetailsComponent implements OnInit {
     if (!expirationDate) return false;
 
     return new Date(expirationDate) < new Date();
-  }
-
-  getVerificationStatus(): VerificationStatus {
-    if (this.isVerifying()) return VerificationStatus.VERIFYING;
-
-    if (this.isExpired()) return VerificationStatus.EXPIRED;
-
-    const verification = this.verificationResult();
-    if (!verification) return VerificationStatus.UNKNOWN;
-
-    const { isValid } = verification;
-    return isValid ? VerificationStatus.VALID : VerificationStatus.INVALID;
-  }
-
-  getVerificationIcon(): string {
-    const { VALID, INVALID, EXPIRED, VERIFYING } = VerificationStatus;
-    switch (this.getVerificationStatus()) {
-      case VALID:
-        return "verified";
-      case INVALID:
-        return "error";
-      case EXPIRED:
-        return "schedule";
-      case VERIFYING:
-        return "hourglass_empty";
-      default:
-        return "help";
-    }
-  }
-
-  getVerificationLabel(): string {
-    const { VALID, INVALID, EXPIRED, VERIFYING } = VerificationStatus;
-    switch (this.getVerificationStatus()) {
-      case VALID:
-        return "Verified";
-      case INVALID:
-        return "Invalid Signature";
-      case EXPIRED:
-        return "Expired";
-      case VERIFYING:
-        return "Verifying...";
-      default:
-        return "Unknown";
-    }
-  }
-
-  getVerificationDetails(): string {
-    const verification = this.verificationResult();
-    if (!verification) return "";
-
-    const { details } = verification;
-    return details;
   }
 
   getDaysUntilExpiry(): number | null {
@@ -428,32 +240,6 @@ export class CredentialDetailsComponent implements OnInit {
       .replace(/([A-Z])/g, " $1")
       .replace(/^./, (str) => str.toUpperCase())
       .trim();
-  }
-
-  async copyCredential(): Promise<void> {
-    const credentialData = this.credentialData();
-    if (!credentialData) return;
-
-    try {
-      const credentialJson = JSON.stringify(credentialData, null, 2);
-      await navigator.clipboard.writeText(credentialJson);
-      console.log("Credential copied to clipboard");
-    } catch (error) {
-      console.error("Failed to copy credential:", error);
-    }
-  }
-
-  async copyCredentialId(): Promise<void> {
-    const credentialData = this.credentialData();
-    const { id } = credentialData || {};
-    if (!id) return;
-
-    try {
-      await navigator.clipboard.writeText(id);
-      console.log("Credential ID copied to clipboard");
-    } catch (error) {
-      console.error("Failed to copy credential ID:", error);
-    }
   }
 
   exportCredential(): void {
@@ -509,13 +295,6 @@ export class CredentialDetailsComponent implements OnInit {
 
   goBack(): void {
     this._router.navigate(["/credentials"]);
-  }
-
-  private _shortenDID(did: string): string {
-    if (did.length > 30) {
-      return `${did.substring(0, 20)}...${did.substring(did.length - 10)}`;
-    }
-    return did;
   }
 
   private async _verifyCredential(

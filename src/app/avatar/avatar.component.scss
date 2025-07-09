@@ -1,0 +1,42 @@
+.avatar {
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color, #b8956a), #d4c2a0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &--small {
+    width: 41px;
+    height: 41px;
+
+    .avatar__initials {
+      font-size: 16px;
+    }
+  }
+
+  &--medium {
+    width: 48px;
+    height: 48px;
+
+    .avatar__initials {
+      font-size: 18px;
+    }
+  }
+
+  &--large {
+    width: 60px;
+    height: 60px;
+
+    .avatar__initials {
+      font-size: 24px;
+    }
+  }
+
+  &__initials {
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    user-select: none;
+  }
+}

@@ -8,6 +8,7 @@ import { AuthService, User } from "../services/auth.service";
 import { DidService } from "../services/did.service";
 import { StoredDID, DIDType } from "../services/did.types";
 import { NavFooterComponent } from "../nav-footer/nav-footer.component";
+import { AvatarComponent } from "../avatar/avatar.component";
 
 @Component({
   selector: "app-personas-list",
@@ -18,6 +19,7 @@ import { NavFooterComponent } from "../nav-footer/nav-footer.component";
     MatProgressSpinnerModule,
     MatIconModule,
     NavFooterComponent,
+    AvatarComponent,
   ],
   templateUrl: "./personas-list.component.html",
   styleUrl: "./personas-list.component.scss",

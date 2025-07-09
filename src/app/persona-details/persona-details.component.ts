@@ -18,6 +18,7 @@ import { AuthService } from "../services/auth.service";
 import { DidService } from "../services/did.service";
 import { StoredDID, DIDType } from "../services/did.types";
 import { NavFooterComponent } from "../nav-footer/nav-footer.component";
+import { AvatarComponent } from "../avatar/avatar.component";
 
 @Component({
   selector: "app-persona-details",
@@ -28,6 +29,7 @@ import { NavFooterComponent } from "../nav-footer/nav-footer.component";
     MatProgressSpinnerModule,
     MatIconModule,
     NavFooterComponent,
+    AvatarComponent,
   ],
   templateUrl: "./persona-details.component.html",
   styleUrl: "./persona-details.component.scss",

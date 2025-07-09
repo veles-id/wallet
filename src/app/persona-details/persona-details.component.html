@@ -9,11 +9,10 @@
     }
 
     <header class="personas__published-header">
-      <div class="personas__published-avatar">
-        <span class="personas__published-initials">{{
-          getPersonaInitials(currentDID()!)
-        }}</span>
-      </div>
+      <app-avatar
+        [initials]="getPersonaInitials(currentDID()!)"
+        size="large"
+      ></app-avatar>
       <div class="personas__published-info">
         <h1 class="personas__published-name">{{ getPublicName() }}</h1>
         <span class="personas__published-type">{{

@@ -4,11 +4,10 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
 import { Router } from "@angular/router";
-import { AuthService, User } from "../services/auth.service";
+import { AuthService } from "../services/auth.service";
 import { DidService } from "../services/did.service";
-import { StoredDID, DIDType } from "../services/did.types";
+import { StoredDID } from "../services/did.types";
 import { NavFooterComponent } from "../nav-footer/nav-footer.component";
-import { AvatarComponent } from "../avatar/avatar.component";
 
 @Component({
   selector: "app-personas-list",
@@ -19,7 +18,6 @@ import { AvatarComponent } from "../avatar/avatar.component";
     MatProgressSpinnerModule,
     MatIconModule,
     NavFooterComponent,
-    AvatarComponent,
   ],
   templateUrl: "./personas-list.component.html",
   styleUrl: "./personas-list.component.scss",

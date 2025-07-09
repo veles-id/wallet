@@ -31,13 +31,23 @@
     />
   </div>
 
-  <button class="nav-footer__nav-item" mat-button (click)="navigateToLinked()">
+  <button
+    [class]="
+      'nav-footer__nav-item' +
+      (isRouteActive('/linked') ? ' nav-footer__nav-item--active' : '')
+    "
+    mat-button
+    (click)="navigateToLinked()"
+  >
     <mat-icon>link</mat-icon>
     <span>Linked</span>
   </button>
 
   <button
-    class="nav-footer__nav-item"
+    [class]="
+      'nav-footer__nav-item' +
+      (isRouteActive('/settings') ? ' nav-footer__nav-item--active' : '')
+    "
     mat-button
     (click)="navigateToSettings()"
   >

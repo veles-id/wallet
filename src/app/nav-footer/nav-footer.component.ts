@@ -54,7 +54,7 @@ export class NavFooterComponent {
     return currentUrl.startsWith(route);
   }
 
-  private async _loadUserDIDs(): Promise<void> {
+  private async _navigateToIdentity(): Promise<void> {
     try {
       this.isLoading.set(true);
       const storedDIDs = this._didService.getStoredDIDs();
@@ -62,12 +62,14 @@ export class NavFooterComponent {
 
       if (storedDIDs.length === 0) {
         this._router.navigate(["/create-did"]);
-      } else if (storedDIDs.length === 1) {
-        const singleDID = storedDIDs[0];
-        if (singleDID.isPublished) {
-          this._router.navigate(["/personas", singleDID.did]);
+      } else {
+        const somePublishedDID = storedDIDs.some((did) => did.isPublished);
+
+        if (somePublishedDID) {
+          this._router.navigate(["/personas"]);
         } else {
-          this._router.navigate(["/personas", singleDID.did, "unpublished"]);
+          const firstDID = storedDIDs[0];
+          this._router.navigate(["/personas", firstDID.did, "unpublished"]);
         }
       }
     } catch (error) {
@@ -78,12 +80,8 @@ export class NavFooterComponent {
     }
   }
 
-  navigateToCreateDID(): void {
-    this._router.navigate(["/create-did"]);
-  }
-
   navigateToIdentity(): void {
-    this._loadUserDIDs();
+    this._navigateToIdentity();
   }
 
   navigateToCredentials(): void {
@@ -98,13 +96,5 @@ export class NavFooterComponent {
   navigateToSettings(): void {
     // TODO: Implement settings page
     console.log("Settings feature coming soon!");
-  }
-
-  async logout(): Promise<void> {
-    try {
-      await this._authService.logout();
-    } catch (error) {
-      console.error("Error logging out:", error);
-    }
   }
 }

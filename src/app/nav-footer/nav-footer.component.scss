@@ -11,6 +11,7 @@
     padding: 6px 16px 10px;
     z-index: 1000;
     min-height: 65px;
+    box-sizing: border-box;
   }
 
   &__nav-item {
@@ -21,6 +22,7 @@
     max-width: 70px;
     padding: 6px 2px;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 
     &.mat-mdc-button {
       background: none !important;
@@ -40,17 +42,17 @@
         height: 24px;
         margin: 0 0 3px;
         color: #999999;
+        transition: color 0.2s ease;
       }
 
       span {
         font-size: 10px;
         line-height: 1.2;
         color: #999999;
+        transition: color 0.2s ease;
       }
 
       &:hover {
-        background-color: rgba(184, 149, 106, 0.08) !important;
-
         mat-icon {
           color: var(--primary-color, #b8956a);
         }
@@ -89,38 +91,5 @@
   &__nav-logo {
     width: 72px;
     height: 72px;
-  }
-}
-
-@media (max-width: 480px) {
-  .nav-footer {
-    &__bottom-nav {
-      padding: 6px 16px 10px;
-      min-height: 65px;
-    }
-
-    &__nav-item {
-      max-width: 70px;
-      padding: 6px 2px;
-
-      &.mat-mdc-button {
-        mat-icon {
-          font-size: 24px;
-          width: 24px;
-          height: 24px;
-          margin-bottom: 3px;
-        }
-
-        span {
-          font-size: 10px;
-        }
-      }
-    }
-
-    &__nav-center {
-      width: 48px;
-      height: 48px;
-      margin: 0 6px;
-    }
   }
 }

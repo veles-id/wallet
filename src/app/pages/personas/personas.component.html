@@ -5,9 +5,7 @@
       <mat-spinner diameter="60"></mat-spinner>
     </div>
     } @else {
-    <header class="personas__header">
-      <h1 class="personas__title">Personas</h1>
-    </header>
+    <app-header title="Personas" [showBackButton]="false"></app-header>
 
     <div class="personas__personas-list">
       @for (did of storedDIDs(); track did.did) {

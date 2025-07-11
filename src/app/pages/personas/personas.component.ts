@@ -8,6 +8,7 @@ import { AuthService } from "../../core/services/auth.service";
 import { DidService } from "../../core/services/did.service";
 import { StoredDID } from "../../core/services/did.types";
 import { FooterComponent } from "../../shared/footer/footer.component";
+import { HeaderComponent } from "../../shared/header/header.component";
 
 @Component({
   selector: "app-personas",
@@ -18,6 +19,7 @@ import { FooterComponent } from "../../shared/footer/footer.component";
     MatProgressSpinnerModule,
     MatIconModule,
     FooterComponent,
+    HeaderComponent,
   ],
   templateUrl: "./personas.component.html",
   styleUrl: "./personas.component.scss",

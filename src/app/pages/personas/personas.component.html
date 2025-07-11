@@ -1,0 +1,65 @@
+<div class="personas">
+  <div class="personas__container">
+    @if (isLoading()) {
+    <div class="personas__loading">
+      <mat-spinner diameter="60"></mat-spinner>
+    </div>
+    } @else {
+    <header class="personas__header">
+      <h1 class="personas__title">Personas</h1>
+    </header>
+
+    <div class="personas__personas-list">
+      @for (did of storedDIDs(); track did.did) {
+      <div class="personas__persona-item" (click)="selectDID(did)">
+        <div class="personas__persona-avatar">
+          <span class="personas__persona-initials">{{
+            getPersonaInitials(did)
+          }}</span>
+        </div>
+        <div class="personas__persona-info">
+          <h3 class="personas__persona-name">
+            {{ did.alias || "Unnamed Identity" }}
+          </h3>
+          <div class="personas__persona-details">
+            <span class="personas__persona-type">{{
+              (did.didType || "DHT").toUpperCase()
+            }}</span>
+            <div
+              class="personas__persona-status"
+              [class.personas__persona-status--published]="did.isPublished"
+            >
+              <mat-icon class="personas__persona-status-icon">
+                {{
+                  did.isPublished ? "check_circle" : "radio_button_unchecked"
+                }}
+              </mat-icon>
+              <span class="personas__persona-status-text">
+                {{ did.isPublished ? "Published" : "Not Published" }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="personas__actions">
+      <button
+        class="personas__button primary-button"
+        mat-flat-button
+        (click)="navigateToCreateDID()"
+      >
+        <span class="personas__button-text">Create new persona</span>
+      </button>
+    </div>
+
+    @if (error()) {
+    <div class="personas__error">
+      <span class="personas__error-text">{{ error() }}</span>
+    </div>
+    } }
+  </div>
+
+  <app-footer></app-footer>
+</div>

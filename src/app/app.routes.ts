@@ -1,17 +1,17 @@
 import { Routes } from "@angular/router";
-import { SplashComponent } from "./splash/splash.component";
-import { DidManagementComponent } from "./did-management/did-management.component";
-import { LoginComponent } from "./login/login.component";
-import { OnboardingComponent } from "./onboarding/onboarding.component";
-import { CreateDidComponent } from "./create-did/create-did.component";
-import { PersonasListComponent } from "./personas-list/personas-list.component";
-import { PersonaDetailsComponent } from "./persona-details/persona-details.component";
-import { PersonaEditComponent } from "./persona-edit/persona-edit.component";
-import { PersonaUnpublishedComponent } from "./persona-unpublished/persona-unpublished.component";
-import { CredentialsComponent } from "./credentials/credentials.component";
-import { CredentialCreateComponent } from "./credential-create/credential-create.component";
-import { CredentialDetailsComponent } from "./credential-details/credential-details.component";
-import { AuthGuard } from "./guards/auth.guard";
+import { SplashComponent } from "./pages/splash/splash.component";
+import { LoginComponent } from "./pages/login/login.component";
+import { OnboardingComponent } from "./pages/onboarding/onboarding.component";
+import { PersonasComponent } from "./pages/personas/personas.component";
+import { PersonaDetailsComponent } from "./pages/personas/persona-details/persona-details.component";
+import { PersonaEditComponent } from "./pages/personas/persona-edit/persona-edit.component";
+import { PersonaUnpublishedComponent } from "./pages/personas/persona-unpublished/persona-unpublished.component";
+import { CredentialsComponent } from "./pages/credentials/credentials.component";
+import { CredentialCreateComponent } from "./pages/credentials/credential-create/credential-create.component";
+import { CredentialDetailsComponent } from "./pages/credentials/credential-details/credential-details.component";
+import { AuthGuard } from "./core/guards/auth.guard";
+import { CreateDidComponent } from "./pages/personas/create-did/create-did.component";
+import { DidManagementComponent } from "./pages/personas/did-management/did-management.component";
 
 export const routes: Routes = [
   { path: "", component: SplashComponent },
@@ -28,7 +28,7 @@ export const routes: Routes = [
   },
   {
     path: "personas",
-    component: PersonasListComponent,
+    component: PersonasComponent,
     canActivate: [AuthGuard],
   },
   {

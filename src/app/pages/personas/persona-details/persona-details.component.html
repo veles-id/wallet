@@ -1,0 +1,149 @@
+<div class="personas">
+  <div class="personas__container">
+    @if (shouldShowBackButton()) {
+    <div class="personas__back-button">
+      <button mat-icon-button (click)="backToList()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    </div>
+    }
+
+    <header class="personas__published-header">
+      <app-avatar
+        [initials]="getPersonaInitials(currentDID()!)"
+        size="large"
+      ></app-avatar>
+      <div class="personas__published-info">
+        <h1 class="personas__published-name">{{ getPublicName() }}</h1>
+        <span class="personas__published-type">{{
+          (currentDID()?.didType || "DHT").toUpperCase()
+        }}</span>
+      </div>
+    </header>
+
+    <div class="personas__published-description">
+      <p class="personas__published-description-text">
+        Here you can view all publicly available<br />
+        information related to your persona
+      </p>
+    </div>
+
+    <div class="personas__qr-section">
+      @if (isLoading()) {
+      <div class="personas__loading">
+        <mat-spinner diameter="60"></mat-spinner>
+      </div>
+      } @else {
+      <div class="personas__qr-container">
+        <canvas
+          #qrCanvas
+          class="personas__qr-code"
+          [class.personas__qr-code--hidden]="!qrCodeGenerated()"
+        ></canvas>
+        @if (!qrCodeGenerated()) {
+        <div class="personas__qr-placeholder">
+          <mat-icon>qr_code</mat-icon>
+        </div>
+        } @if (qrCodeGenerated()) {
+        <div class="personas__veles-logo">
+          <img src="assets/signet-qr.svg" alt="Veles" />
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="personas__published-fields">
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Decentralized ID</label>
+        <div class="personas__published-field-container" (click)="copyDID()">
+          <span class="personas__published-field-value">{{ shortDID() }}</span>
+          <mat-icon class="personas__published-field-copy"
+            >content_copy</mat-icon
+          >
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Name</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicName()
+          }}</span>
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Nick</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicNick()
+          }}</span>
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Website</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicWebsite()
+          }}</span>
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">About</label>
+        <div class="personas__published-field-container">
+          <span
+            class="personas__published-field-value personas__published-field-value--multiline"
+            >{{ getPublicAbout() }}</span
+          >
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Lightning wallet</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicLightningWallet()
+          }}</span>
+        </div>
+      </div>
+
+      <div class="personas__published-field">
+        <label class="personas__published-field-label">Location</label>
+        <div class="personas__published-field-container">
+          <span class="personas__published-field-value">{{
+            getPublicLocation()
+          }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="personas__published-actions">
+      <button
+        class="personas__back-to-list-button"
+        mat-flat-button
+        (click)="backToList()"
+      >
+        Back
+      </button>
+
+      <button
+        class="personas__edit-button"
+        mat-flat-button
+        (click)="navigateToEdit()"
+      >
+        Edit
+      </button>
+    </div>
+
+    @if (error()) {
+    <div class="personas__error">
+      <span class="personas__error-text">{{ error() }}</span>
+    </div>
+    }
+  </div>
+
+  <app-footer></app-footer>
+</div>

@@ -12,6 +12,7 @@ import { CredentialService } from "../services/credential.service";
 import { StoredCredential } from "../services/credential.types";
 import { NavFooterComponent } from "../nav-footer/nav-footer.component";
 import { CredentialCardComponent } from "../credential-card/credential-card.component";
+import { HeaderComponent } from "../header/header.component";
 
 @Component({
   selector: "app-credentials",
@@ -26,6 +27,7 @@ import { CredentialCardComponent } from "../credential-card/credential-card.comp
     MatTooltipModule,
     NavFooterComponent,
     CredentialCardComponent,
+    HeaderComponent,
   ],
   templateUrl: "./credentials.component.html",
   styleUrl: "./credentials.component.scss",

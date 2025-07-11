@@ -4,5 +4,10 @@
     <mat-icon>arrow_back</mat-icon>
   </button>
   }
-  <h1 class="header__title">{{ title() }}</h1>
+  <h1
+    class="header__title"
+    [class.header__title--with-back-button]="showBackButton()"
+  >
+    {{ title() }}
+  </h1>
 </header>

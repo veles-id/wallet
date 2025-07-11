@@ -19,7 +19,10 @@
     margin: 0;
     text-align: center;
     flex: 1;
-    margin-right: 56px;
+
+    &--with-back-button {
+      margin-right: 56px;
+    }
   }
 }
 

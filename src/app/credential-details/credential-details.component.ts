@@ -13,6 +13,7 @@ import { VerificationResult } from "../services/credential-verification.service"
 import { NavFooterComponent } from "../nav-footer/nav-footer.component";
 import { CredentialCardComponent } from "../credential-card/credential-card.component";
 import { AvatarComponent } from "../avatar/avatar.component";
+import { HeaderComponent } from "../header/header.component";
 
 @Component({
   selector: "app-credential-details",
@@ -25,6 +26,7 @@ import { AvatarComponent } from "../avatar/avatar.component";
     NavFooterComponent,
     CredentialCardComponent,
     AvatarComponent,
+    HeaderComponent,
   ],
   templateUrl: "./credential-details.component.html",
   styleUrl: "./credential-details.component.scss",

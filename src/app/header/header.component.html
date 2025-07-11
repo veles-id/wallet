@@ -1,3 +1,8 @@
 <header class="header">
-  <img src="assets/veles-logo.svg" alt="App Logo" class="header__logo" />
+  @if (showBackButton()) {
+  <button mat-icon-button class="header__back-button" (click)="onBackClick()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  }
+  <h1 class="header__title">{{ title() }}</h1>
 </header>

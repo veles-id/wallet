@@ -16,19 +16,6 @@
     text-align: center;
   }
 
-  &__header {
-    margin-bottom: 20px;
-    margin-top: 20px;
-  }
-
-  &__title {
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--text-primary, #333);
-    margin: 0;
-    letter-spacing: -0.5px;
-  }
-
   &__message {
     margin-bottom: 40px;
   }
@@ -365,30 +352,6 @@
     color: var(--error-color, #c33);
     font-size: 12px;
     font-weight: 400;
-  }
-
-  &__back-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-
-    button {
-      background-color: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      width: 40px;
-      height: 40px;
-
-      mat-icon {
-        color: var(--text-primary, #333);
-      }
-
-      &:hover {
-        background-color: white;
-        border-color: var(--primary-color, #b8956a);
-      }
-    }
   }
 }
 

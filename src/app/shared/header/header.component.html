@@ -4,10 +4,14 @@
     <mat-icon>arrow_back</mat-icon>
   </button>
   }
-  <h1
-    class="header__title"
-    [class.header__title--with-back-button]="showBackButton()"
+  <div
+    class="header__content"
+    [class.header__content--with-back-button]="showBackButton()"
   >
-    {{ title() }}
-  </h1>
+    @if (title()) {
+    <h1 class="header__title">{{ title() }}</h1>
+    } @else {
+    <ng-content></ng-content>
+    }
+  </div>
 </header>

@@ -1,25 +1,16 @@
 <div class="personas">
   <div class="personas__container">
-    @if (shouldShowBackButton()) {
-    <div class="personas__back-button">
-      <button mat-icon-button (click)="backToList()">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-    </div>
-    }
-
-    <header class="personas__published-header">
-      <app-avatar
+    <app-header
+      [showBackButton]="shouldShowBackButton()"
+      (backButtonClick)="backToList()"
+    >
+      <app-profile
         [initials]="getPersonaInitials(currentDID()!)"
-        size="large"
-      ></app-avatar>
-      <div class="personas__published-info">
-        <h1 class="personas__published-name">{{ getPublicName() }}</h1>
-        <span class="personas__published-type">{{
-          (currentDID()?.didType || "DHT").toUpperCase()
-        }}</span>
-      </div>
-    </header>
+        [name]="getPublicName()"
+        [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
+        [avatarSize]="AvatarSize.MEDIUM"
+      ></app-profile>
+    </app-header>
 
     <div class="personas__published-description">
       <p class="personas__published-description-text">

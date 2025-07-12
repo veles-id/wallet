@@ -1,0 +1,41 @@
+.profile {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  &__name {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  &__type {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary, #666);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile {
+    &__name {
+      font-size: 22px;
+    }
+
+    &__type {
+      font-size: 12px;
+    }
+  }
+}

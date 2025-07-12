@@ -18,7 +18,9 @@ import { AuthService } from "../../../core/services/auth.service";
 import { DidService } from "../../../core/services/did.service";
 import { StoredDID, DIDType } from "../../../core/services/did.types";
 import { FooterComponent } from "../../../shared/footer/footer.component";
-import { AvatarComponent } from "../../../shared/avatar/avatar.component";
+import { ProfileComponent } from "../../../shared/profile/profile.component";
+import { AvatarSize } from "../../../shared/avatar/avatar.types";
+import { HeaderComponent } from "../../../shared/header/header.component";
 
 @Component({
   selector: "app-persona-details",
@@ -29,7 +31,8 @@ import { AvatarComponent } from "../../../shared/avatar/avatar.component";
     MatProgressSpinnerModule,
     MatIconModule,
     FooterComponent,
-    AvatarComponent,
+    ProfileComponent,
+    HeaderComponent,
   ],
   templateUrl: "./persona-details.component.html",
   styleUrl: "./persona-details.component.scss",
@@ -42,6 +45,8 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
   private _didService = inject(DidService);
   private _router = inject(Router);
   private _route = inject(ActivatedRoute);
+
+  AvatarSize = AvatarSize;
 
   isLoading = signal(false);
   error = signal<string | null>(null);
@@ -125,7 +130,6 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
       console.log("=== RETRIEVING DID:NOSTR INFORMATION ===");
       const didInfo = await this._didService.resolveDID(did);
 
-      // Store the retrieved data in the signal
       this.nostrData.set(didInfo);
 
       console.log("DID:Nostr Network Information:");
@@ -229,12 +233,10 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
     try {
       console.log("Generating QR code for DID:", didUri);
 
-      // Wait a brief moment for DOM to be ready
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       if (!this.qrCanvas?.nativeElement) {
         console.error("Canvas element not available, retrying...");
-        // Retry after a longer delay
         setTimeout(() => this._generateQRCode(didUri), 200);
         return;
       }
@@ -250,13 +252,12 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
 
       this.qrCodeGenerated.set(true);
       this.pendingQRGeneration.set(false);
-      this.error.set(null); // Clear any previous errors
+      this.error.set(null);
       console.log("QR code generated successfully");
     } catch (error) {
       console.error("Error generating QR code:", error);
       this.error.set("Failed to generate QR code");
 
-      // Retry once after a delay
       const currentError = this.error();
       if (!currentError || !currentError.includes("retry")) {
         setTimeout(() => {
@@ -295,7 +296,6 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
     return did.didType?.charAt(0).toUpperCase() || "D";
   }
 
-  // Helper methods for published view data
   getPublicName(): string {
     const nostrData = this.nostrData();
     if (nostrData?.profileMetadata?.metadata?.display_name) {

@@ -1,7 +1,6 @@
 import { Component, input, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
-
-export type AvatarSize = "small" | "medium" | "large";
+import { AvatarSize } from "./avatar.types";
 
 @Component({
   selector: "app-avatar",
@@ -12,7 +11,7 @@ export type AvatarSize = "small" | "medium" | "large";
 })
 export class AvatarComponent {
   initials = input.required<string>();
-  size = input<AvatarSize>("medium");
+  size = input<AvatarSize>(AvatarSize.MEDIUM);
   backgroundColor = input<string>("");
 
   avatarClasses = computed(() => {

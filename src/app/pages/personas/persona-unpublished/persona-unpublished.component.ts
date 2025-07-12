@@ -18,6 +18,7 @@ import { AuthService, User } from "../../../core/services/auth.service";
 import { DidService } from "../../../core/services/did.service";
 import { StoredDID, DIDType } from "../../../core/services/did.types";
 import { FooterComponent } from "../../../shared/footer/footer.component";
+import { HeaderComponent } from "../../../shared/header/header.component";
 
 @Component({
   selector: "app-persona-unpublished",
@@ -28,6 +29,7 @@ import { FooterComponent } from "../../../shared/footer/footer.component";
     MatProgressSpinnerModule,
     MatIconModule,
     FooterComponent,
+    HeaderComponent,
   ],
   templateUrl: "./persona-unpublished.component.html",
   styleUrl: "./persona-unpublished.component.scss",

@@ -11,7 +11,7 @@ import { MatIconModule } from "@angular/material/icon";
   styleUrl: "./header.component.scss",
 })
 export class HeaderComponent {
-  title = input.required<string>();
+  title = input<string>("");
   showBackButton = input<boolean>(true);
   backButtonClick = output<void>();
 

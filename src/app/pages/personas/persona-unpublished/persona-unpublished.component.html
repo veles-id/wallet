@@ -1,16 +1,10 @@
 <div class="personas">
   <div class="personas__container">
-    @if (shouldShowBackButton()) {
-    <div class="personas__back-button">
-      <button mat-icon-button (click)="backToList()">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-    </div>
-    }
-
-    <header class="personas__header">
-      <h1 class="personas__title">{{ userName() }}</h1>
-    </header>
+    <app-header
+      [title]="userName()"
+      [showBackButton]="shouldShowBackButton()"
+      (backButtonClick)="backToList()"
+    ></app-header>
 
     <div class="personas__message">
       <p class="personas__message-text">

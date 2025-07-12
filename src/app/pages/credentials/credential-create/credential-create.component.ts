@@ -32,6 +32,7 @@ import {
 } from "../../../core/services/credential.types";
 import { StoredDID } from "../../../core/services/did.types";
 import { FooterComponent } from "../../../shared/footer/footer.component";
+import { HeaderComponent } from "../../../shared/header/header.component";
 
 @Component({
   selector: "app-credential-create",
@@ -52,6 +53,7 @@ import { FooterComponent } from "../../../shared/footer/footer.component";
     MatChipsModule,
     ReactiveFormsModule,
     FooterComponent,
+    HeaderComponent,
   ],
   templateUrl: "./credential-create.component.html",
   styleUrl: "./credential-create.component.scss",

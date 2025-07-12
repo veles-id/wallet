@@ -1,16 +1,10 @@
 <div class="create-did">
   <div class="create-did__container">
-    <header class="create-did__header">
-      <button
-        class="create-did__back-button"
-        mat-icon-button
-        (click)="goBack()"
-        [disabled]="isCreating()"
-      >
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-      <h1 class="create-did__title">New digital personality</h1>
-    </header>
+    <app-header
+      title="New digital personality"
+      [showBackButton]="true"
+      (backButtonClick)="goBack()"
+    ></app-header>
 
     <div class="create-did__icon">
       <div class="create-did__logo">

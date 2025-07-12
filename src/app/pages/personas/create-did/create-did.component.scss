@@ -3,7 +3,6 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f8f9fa;
   padding: 20px;
 
   &__container {
@@ -14,45 +13,11 @@
     position: relative;
   }
 
-  &__header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 80px;
-    position: relative;
-  }
-
-  &__back-button {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary, #666);
-
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.04);
-    }
-
-    mat-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
-    }
-  }
-
-  &__title {
-    font-size: 20px;
-    font-weight: 500;
-    color: var(--text-primary, #333);
-    margin: 0;
-    text-align: center;
-    width: 100%;
-    letter-spacing: 0.3px;
-  }
-
   &__icon {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-top: 40px;
     margin-bottom: 80px;
   }
 

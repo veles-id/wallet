@@ -9,6 +9,7 @@ import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { DidService } from "../../../core/services/did.service";
 import { CreateDIDResult, DIDType } from "../../../core/services/did.types";
+import { HeaderComponent } from "../../../shared/header/header.component";
 
 @Component({
   selector: "app-create-did",
@@ -21,6 +22,7 @@ import { CreateDIDResult, DIDType } from "../../../core/services/did.types";
     MatSnackBarModule,
     MatRadioModule,
     FormsModule,
+    HeaderComponent,
   ],
   templateUrl: "./create-did.component.html",
   styleUrl: "./create-did.component.scss",

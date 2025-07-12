@@ -1,24 +1,13 @@
 <div class="persona-edit">
   <div class="persona-edit__container">
-    <div class="persona-edit__back-button">
-      <button mat-icon-button (click)="cancel()">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-    </div>
-
-    <header class="persona-edit__header">
-      <div class="persona-edit__avatar">
-        <span class="persona-edit__initials">{{
-          getPersonaInitials(currentDID()!)
-        }}</span>
-      </div>
-      <div class="persona-edit__info">
-        <h1 class="persona-edit__title">Edit Persona</h1>
-        <span class="persona-edit__type">{{
-          (currentDID()?.didType || "DHT").toUpperCase()
-        }}</span>
-      </div>
-    </header>
+    <app-header [showBackButton]="true" (backButtonClick)="cancel()">
+      <app-profile
+        [initials]="getPersonaInitials(currentDID()!)"
+        [name]="getPersonaName()"
+        [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
+        [avatarSize]="AvatarSize.MEDIUM"
+      ></app-profile>
+    </app-header>
 
     <div class="persona-edit__description">
       <p class="persona-edit__description-text">

@@ -12,8 +12,9 @@ import {
 import { VerificationResult } from "../../../core/services/credential-verification.service";
 import { FooterComponent } from "../../../shared/footer/footer.component";
 import { AvatarComponent } from "../../../shared/avatar/avatar.component";
-import { HeaderComponent } from "../../../shared/header/header.component";
 import { CredentialCardComponent } from "../credential-card/credential-card.component";
+import { HeaderService } from "../../../core/services/header.service";
+import { AvatarSize } from "../../../shared/avatar/avatar.types";
 
 @Component({
   selector: "app-credential-details",
@@ -26,7 +27,6 @@ import { CredentialCardComponent } from "../credential-card/credential-card.comp
     FooterComponent,
     CredentialCardComponent,
     AvatarComponent,
-    HeaderComponent,
   ],
   templateUrl: "./credential-details.component.html",
   styleUrl: "./credential-details.component.scss",
@@ -35,18 +35,28 @@ export class CredentialDetailsComponent implements OnInit {
   private _credentialService = inject(CredentialService);
   private _router = inject(Router);
   private _route = inject(ActivatedRoute);
+  private _headerService = inject(HeaderService);
 
   isLoading = signal(false);
   error = signal<string | null>(null);
   credential = signal<StoredCredential | null>(null);
   isVerifying = signal(false);
   verificationResult = signal<VerificationResult | null>(null);
-
   hasCredential = computed(() => this.credential() !== null);
   credentialData = computed(() => this.credential()?.credential);
+  AvatarSize = AvatarSize;
 
   ngOnInit(): void {
     this._loadCredential();
+    this._setupHeader();
+  }
+
+  private _setupHeader(): void {
+    this._headerService.setHeader({
+      title: this.getCredentialDisplayTitle(),
+      showBackButton: true,
+      backButtonHandler: () => this.goBack(),
+    });
   }
 
   private _loadCredential(): void {

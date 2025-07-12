@@ -32,7 +32,7 @@ import {
 } from "../../../core/services/credential.types";
 import { StoredDID } from "../../../core/services/did.types";
 import { FooterComponent } from "../../../shared/footer/footer.component";
-import { HeaderComponent } from "../../../shared/header/header.component";
+import { HeaderService } from "../../../core/services/header.service";
 
 @Component({
   selector: "app-credential-create",
@@ -53,7 +53,6 @@ import { HeaderComponent } from "../../../shared/header/header.component";
     MatChipsModule,
     ReactiveFormsModule,
     FooterComponent,
-    HeaderComponent,
   ],
   templateUrl: "./credential-create.component.html",
   styleUrl: "./credential-create.component.scss",
@@ -64,6 +63,7 @@ export class CredentialCreateComponent implements OnInit {
   private _authService = inject(AuthService);
   private _router = inject(Router);
   private _formBuilder = inject(FormBuilder);
+  private _headerService = inject(HeaderService);
 
   isLoading = signal(false);
   isCreating = signal(false);
@@ -77,17 +77,14 @@ export class CredentialCreateComponent implements OnInit {
   FieldType = FieldType;
   CredentialCategory = CredentialCategory;
   CredentialPrivacy = CredentialPrivacy;
-
   templateForm: FormGroup = this._formBuilder.group({
     templateId: [""],
     useTemplate: [true],
   });
-
   issuerForm: FormGroup = this._formBuilder.group({
     issuerDID: ["", Validators.required],
     subjectDID: ["", Validators.required],
   });
-
   credentialForm: FormGroup = this._formBuilder.group({
     alias: ["", [Validators.required, Validators.maxLength(100)]],
     category: [CredentialCategory.OTHER, Validators.required],
@@ -101,6 +98,7 @@ export class CredentialCreateComponent implements OnInit {
   ngOnInit(): void {
     this._loadInitialData();
     this._setupFormWatchers();
+    this._setupHeader();
   }
 
   getDIDAlias(did: string): string {
@@ -289,5 +287,13 @@ export class CredentialCreateComponent implements OnInit {
     });
 
     this.dynamicForm = this._formBuilder.group(group);
+  }
+
+  private _setupHeader(): void {
+    this._headerService.setHeader({
+      title: "Create Credential",
+      showBackButton: true,
+      backButtonHandler: () => this.cancel(),
+    });
   }
 }

@@ -1,11 +1,5 @@
 <div class="personas">
   <div class="personas__container">
-    <app-header
-      [title]="userName()"
-      [showBackButton]="shouldShowBackButton()"
-      (backButtonClick)="backToList()"
-    ></app-header>
-
     <div class="personas__message">
       <p class="personas__message-text">
         Your new digital personality<br />
@@ -111,3 +105,12 @@
 
   <app-footer></app-footer>
 </div>
+
+<ng-template #profileTemplate>
+  <app-profile
+    [initials]="getPersonaInitials(currentDID()!)"
+    [name]="getPublicName()"
+    [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
+    [avatarSize]="AvatarSize.MEDIUM"
+  ></app-profile>
+</ng-template>

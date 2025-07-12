@@ -7,6 +7,8 @@ import {
   AfterViewInit,
   ElementRef,
   ViewChild,
+  viewChild,
+  TemplateRef,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
@@ -14,11 +16,13 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
 import { Router, ActivatedRoute } from "@angular/router";
 import * as QRCode from "qrcode";
-import { AuthService, User } from "../../../core/services/auth.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { DidService } from "../../../core/services/did.service";
 import { StoredDID, DIDType } from "../../../core/services/did.types";
 import { FooterComponent } from "../../../shared/footer/footer.component";
-import { HeaderComponent } from "../../../shared/header/header.component";
+import { HeaderService } from "../../../core/services/header.service";
+import { ProfileComponent } from "../../../shared/profile/profile.component";
+import { AvatarSize } from "../../../shared/avatar/avatar.types";
 
 @Component({
   selector: "app-persona-unpublished",
@@ -29,7 +33,7 @@ import { HeaderComponent } from "../../../shared/header/header.component";
     MatProgressSpinnerModule,
     MatIconModule,
     FooterComponent,
-    HeaderComponent,
+    ProfileComponent,
   ],
   templateUrl: "./persona-unpublished.component.html",
   styleUrl: "./persona-unpublished.component.scss",
@@ -42,7 +46,10 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
   private _didService = inject(DidService);
   private _router = inject(Router);
   private _route = inject(ActivatedRoute);
+  private _headerService = inject(HeaderService);
 
+  AvatarSize = AvatarSize;
+  profileTemplate = viewChild<TemplateRef<any>>("profileTemplate");
   isLoading = signal(false);
   isPublishing = signal(false);
   error = signal<string | null>(null);
@@ -99,6 +106,7 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this._loadDIDFromRoute();
+    this._setupHeader();
   }
 
   ngAfterViewInit(): void {
@@ -112,6 +120,35 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
         this._generateQRCode(this.currentDID()!.did);
       }
     }, 100);
+  }
+
+  getPersonaInitials(did: StoredDID): string {
+    if (did.alias) {
+      return did.alias
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase())
+        .join("")
+        .substring(0, 2);
+    }
+    return did.didType?.charAt(0).toUpperCase() || "D";
+  }
+
+  getPublicName(): string {
+    const did = this.currentDID();
+    if (!did) return "Digital Identity";
+    return did.alias || "Digital Identity";
+  }
+
+  private _setupHeader(): void {
+    const template = this.profileTemplate();
+    if (template) {
+      this._headerService.setHeader({
+        showBackButton: true,
+        backButtonHandler: () => this.backToList(),
+        contentTemplate: template,
+        contentContext: { $implicit: this.currentDID() },
+      });
+    }
   }
 
   private async _loadDIDFromRoute(): Promise<void> {
@@ -166,12 +203,10 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
     try {
       console.log("Generating QR code for DID:", didUri);
 
-      // Wait a brief moment for DOM to be ready
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       if (!this.qrCanvas?.nativeElement) {
         console.error("Canvas element not available, retrying...");
-        // Retry after a longer delay
         setTimeout(() => this._generateQRCode(didUri), 200);
         return;
       }
@@ -187,13 +222,12 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
       this.qrCodeGenerated.set(true);
       this.pendingQRGeneration.set(false);
-      this.error.set(null); // Clear any previous errors
+      this.error.set(null);
       console.log("QR code generated successfully");
     } catch (error) {
       console.error("Error generating QR code:", error);
       this.error.set("Failed to generate QR code");
 
-      // Retry once after a delay
       const currentError = this.error();
       if (!currentError || !currentError.includes("retry")) {
         setTimeout(() => {

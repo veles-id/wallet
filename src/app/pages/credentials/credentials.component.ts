@@ -11,8 +11,8 @@ import { AuthService } from "../../core/services/auth.service";
 import { CredentialService } from "../../core/services/credential.service";
 import { StoredCredential } from "../../core/services/credential.types";
 import { FooterComponent } from "../../shared/footer/footer.component";
-import { HeaderComponent } from "../../shared/header/header.component";
 import { CredentialCardComponent } from "./credential-card/credential-card.component";
+import { HeaderService } from "../../core/services/header.service";
 
 @Component({
   selector: "app-credentials",
@@ -27,7 +27,6 @@ import { CredentialCardComponent } from "./credential-card/credential-card.compo
     MatTooltipModule,
     FooterComponent,
     CredentialCardComponent,
-    HeaderComponent,
   ],
   templateUrl: "./credentials.component.html",
   styleUrl: "./credentials.component.scss",
@@ -36,6 +35,7 @@ export class CredentialsComponent implements OnInit {
   private _authService = inject(AuthService);
   private _credentialService = inject(CredentialService);
   private _router = inject(Router);
+  private _headerService = inject(HeaderService);
 
   isLoading = signal(false);
   error = signal<string | null>(null);
@@ -44,6 +44,10 @@ export class CredentialsComponent implements OnInit {
   hasCredentials = computed(() => this.credentials().length > 0);
 
   ngOnInit(): void {
+    this._headerService.setHeader({
+      title: "Credentials",
+      showBackButton: false,
+    });
     this._loadCredentials();
   }
 

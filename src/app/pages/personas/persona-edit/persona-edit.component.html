@@ -1,14 +1,5 @@
 <div class="persona-edit">
   <div class="persona-edit__container">
-    <app-header [showBackButton]="true" (backButtonClick)="cancel()">
-      <app-profile
-        [initials]="getPersonaInitials(currentDID()!)"
-        [name]="getPersonaName()"
-        [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
-        [avatarSize]="AvatarSize.MEDIUM"
-      ></app-profile>
-    </app-header>
-
     <div class="persona-edit__description">
       <p class="persona-edit__description-text">
         Edit your persona information below
@@ -160,3 +151,12 @@
 
   <app-footer></app-footer>
 </div>
+
+<ng-template #profileTemplate>
+  <app-profile
+    [initials]="getPersonaInitials(currentDID()!)"
+    [name]="getPersonaName()"
+    [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
+    [avatarSize]="AvatarSize.MEDIUM"
+  ></app-profile>
+</ng-template>

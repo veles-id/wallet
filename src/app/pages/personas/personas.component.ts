@@ -8,7 +8,7 @@ import { AuthService } from "../../core/services/auth.service";
 import { DidService } from "../../core/services/did.service";
 import { StoredDID } from "../../core/services/did.types";
 import { FooterComponent } from "../../shared/footer/footer.component";
-import { HeaderComponent } from "../../shared/header/header.component";
+import { HeaderService } from "../../core/services/header.service";
 
 @Component({
   selector: "app-personas",
@@ -19,7 +19,6 @@ import { HeaderComponent } from "../../shared/header/header.component";
     MatProgressSpinnerModule,
     MatIconModule,
     FooterComponent,
-    HeaderComponent,
   ],
   templateUrl: "./personas.component.html",
   styleUrl: "./personas.component.scss",
@@ -28,6 +27,7 @@ export class PersonasComponent implements OnInit {
   private _authService = inject(AuthService);
   private _didService = inject(DidService);
   private _router = inject(Router);
+  private _headerService = inject(HeaderService);
 
   isLoading = signal(false);
   error = signal<string | null>(null);
@@ -36,6 +36,14 @@ export class PersonasComponent implements OnInit {
 
   ngOnInit(): void {
     this._loadUserDIDs();
+    this._setupHeader();
+  }
+
+  private _setupHeader(): void {
+    this._headerService.setHeader({
+      title: "Personas",
+      showBackButton: false,
+    });
   }
 
   private async _loadUserDIDs(): Promise<void> {

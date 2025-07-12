@@ -5,8 +5,6 @@
       <mat-spinner diameter="60"></mat-spinner>
     </div>
     } @else {
-    <app-header title="Personas" [showBackButton]="false"></app-header>
-
     <div class="personas__personas-list">
       @for (did of storedDIDs(); track did.did) {
       <div class="personas__persona-item" (click)="selectDID(did)">

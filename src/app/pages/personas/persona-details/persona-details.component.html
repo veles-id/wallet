@@ -1,17 +1,5 @@
 <div class="personas">
   <div class="personas__container">
-    <app-header
-      [showBackButton]="shouldShowBackButton()"
-      (backButtonClick)="backToList()"
-    >
-      <app-profile
-        [initials]="getPersonaInitials(currentDID()!)"
-        [name]="getPublicName()"
-        [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
-        [avatarSize]="AvatarSize.MEDIUM"
-      ></app-profile>
-    </app-header>
-
     <div class="personas__published-description">
       <p class="personas__published-description-text">
         Here you can view all publicly available<br />
@@ -138,3 +126,12 @@
 
   <app-footer></app-footer>
 </div>
+
+<ng-template #profileTemplate>
+  <app-profile
+    [initials]="getPersonaInitials(currentDID()!)"
+    [name]="getPublicName()"
+    [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
+    [avatarSize]="AvatarSize.MEDIUM"
+  ></app-profile>
+</ng-template>

@@ -7,6 +7,8 @@ import {
   AfterViewInit,
   ElementRef,
   ViewChild,
+  viewChild,
+  TemplateRef,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
@@ -18,9 +20,9 @@ import { AuthService } from "../../../core/services/auth.service";
 import { DidService } from "../../../core/services/did.service";
 import { StoredDID, DIDType } from "../../../core/services/did.types";
 import { FooterComponent } from "../../../shared/footer/footer.component";
-import { ProfileComponent } from "../../../shared/profile/profile.component";
 import { AvatarSize } from "../../../shared/avatar/avatar.types";
-import { HeaderComponent } from "../../../shared/header/header.component";
+import { HeaderService } from "../../../core/services/header.service";
+import { ProfileComponent } from "../../../shared/profile/profile.component";
 
 @Component({
   selector: "app-persona-details",
@@ -32,7 +34,6 @@ import { HeaderComponent } from "../../../shared/header/header.component";
     MatIconModule,
     FooterComponent,
     ProfileComponent,
-    HeaderComponent,
   ],
   templateUrl: "./persona-details.component.html",
   styleUrl: "./persona-details.component.scss",
@@ -45,9 +46,9 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
   private _didService = inject(DidService);
   private _router = inject(Router);
   private _route = inject(ActivatedRoute);
+  private _headerService = inject(HeaderService);
 
   AvatarSize = AvatarSize;
-
   isLoading = signal(false);
   error = signal<string | null>(null);
   qrCodeGenerated = signal(false);
@@ -65,9 +66,11 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
     }
     return did;
   });
+  profileTemplate = viewChild<TemplateRef<any>>("profileTemplate");
 
   ngOnInit(): void {
     this._loadDIDFromRoute();
+    this._setupHeader();
   }
 
   ngAfterViewInit(): void {
@@ -81,6 +84,18 @@ export class PersonaDetailsComponent implements OnInit, AfterViewInit {
         this._generateQRCode(this.currentDID()!.did);
       }
     }, 100);
+  }
+
+  private _setupHeader(): void {
+    const template = this.profileTemplate();
+    if (template) {
+      this._headerService.setHeader({
+        showBackButton: true,
+        backButtonHandler: () => this.backToList(),
+        contentTemplate: template,
+        contentContext: { $implicit: this.currentDID() },
+      });
+    }
   }
 
   private async _loadDIDFromRoute(): Promise<void> {

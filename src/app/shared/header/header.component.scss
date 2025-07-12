@@ -4,11 +4,11 @@
   .header {
     display: flex;
     align-items: center;
-    padding: 1rem 1.5rem;
     background-color: white;
     position: sticky;
     top: 0;
     z-index: 10;
+    box-sizing: border-box;
 
     &__back-button {
       color: #b69269;
@@ -32,12 +32,6 @@
       font-weight: 600;
       color: #111111;
       margin: 0;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .header {
-      padding: 1rem;
     }
   }
 }

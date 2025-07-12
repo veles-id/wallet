@@ -9,7 +9,7 @@ import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { DidService } from "../../../core/services/did.service";
 import { CreateDIDResult, DIDType } from "../../../core/services/did.types";
-import { HeaderComponent } from "../../../shared/header/header.component";
+import { HeaderService } from "../../../core/services/header.service";
 
 @Component({
   selector: "app-create-did",
@@ -22,7 +22,6 @@ import { HeaderComponent } from "../../../shared/header/header.component";
     MatSnackBarModule,
     MatRadioModule,
     FormsModule,
-    HeaderComponent,
   ],
   templateUrl: "./create-did.component.html",
   styleUrl: "./create-did.component.scss",
@@ -30,11 +29,24 @@ import { HeaderComponent } from "../../../shared/header/header.component";
 export class CreateDidComponent {
   private _didService = inject(DidService);
   private _router = inject(Router);
+  private _headerService = inject(HeaderService);
 
   DIDType = DIDType;
   isCreating = signal(false);
   didName = signal("");
   selectedDIDType = signal(DIDType.NOSTR);
+
+  ngOnInit(): void {
+    this._setupHeader();
+  }
+
+  private _setupHeader(): void {
+    this._headerService.setHeader({
+      title: "New digital personality",
+      showBackButton: true,
+      backButtonHandler: () => this.goBack(),
+    });
+  }
 
   async createDID(): Promise<void> {
     if (!this.didName().trim()) {

@@ -1,4 +1,12 @@
-import { Component, signal, computed, inject, OnInit } from "@angular/core";
+import {
+  Component,
+  signal,
+  computed,
+  inject,
+  OnInit,
+  viewChild,
+  TemplateRef,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -16,9 +24,9 @@ import { AuthService } from "../../../core/services/auth.service";
 import { DidService } from "../../../core/services/did.service";
 import { StoredDID, DIDType } from "../../../core/services/did.types";
 import { FooterComponent } from "../../../shared/footer/footer.component";
-import { HeaderComponent } from "../../../shared/header/header.component";
 import { ProfileComponent } from "../../../shared/profile/profile.component";
 import { AvatarSize } from "../../../shared/avatar/avatar.types";
+import { HeaderService } from "../../../core/services/header.service";
 
 interface PersonaFormData {
   alias: string;
@@ -42,7 +50,6 @@ interface PersonaFormData {
     MatFormFieldModule,
     ReactiveFormsModule,
     FooterComponent,
-    HeaderComponent,
     ProfileComponent,
   ],
   templateUrl: "./persona-edit.component.html",
@@ -54,16 +61,15 @@ export class PersonaEditComponent implements OnInit {
   private _router = inject(Router);
   private _route = inject(ActivatedRoute);
   private _formBuilder = inject(FormBuilder);
-
+  private _headerService = inject(HeaderService);
   AvatarSize = AvatarSize;
-
   isLoading = signal(false);
   isSaving = signal(false);
   error = signal<string | null>(null);
   currentDID = signal<StoredDID | null>(null);
   nostrData = signal<any>(null);
   currentUser = computed(() => this._authService.currentUser());
-
+  profileTemplate = viewChild<TemplateRef<any>>("profileTemplate");
   personaForm: FormGroup = this._formBuilder.group({
     alias: ["", [Validators.maxLength(50)]],
     name: ["", [Validators.maxLength(100)]],
@@ -76,6 +82,7 @@ export class PersonaEditComponent implements OnInit {
 
   ngOnInit(): void {
     this._loadDIDFromRoute();
+    this._setupHeader();
   }
 
   getFormControl(controlName: string) {
@@ -232,5 +239,17 @@ export class PersonaEditComponent implements OnInit {
       return currentDID.alias;
     }
     return "Edit Persona";
+  }
+
+  private _setupHeader(): void {
+    const template = this.profileTemplate();
+    if (template) {
+      this._headerService.setHeader({
+        showBackButton: true,
+        backButtonHandler: () => this.cancel(),
+        contentTemplate: template,
+        contentContext: { $implicit: this.currentDID() },
+      });
+    }
   }
 }

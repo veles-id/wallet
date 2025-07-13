@@ -19,7 +19,7 @@ export class HeaderComponent {
   showBackButton = computed(() => this.config().showBackButton || false);
   contentTemplate = computed(() => this.config().contentTemplate);
   contentContext = computed(() => this.config().contentContext);
-  padding = computed(() => this.config().padding || "1rem 1.5rem");
+  padding = computed(() => this.config().padding || "1.5rem");
 
   onBackClick(): void {
     this._headerService.handleBackClick();

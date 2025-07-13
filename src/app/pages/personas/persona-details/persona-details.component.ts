@@ -19,7 +19,6 @@ import * as QRCode from "qrcode";
 import { AuthService } from "../../../core/services/auth.service";
 import { DidService } from "../../../core/services/did.service";
 import { StoredDID, DIDType } from "../../../core/services/did.types";
-import { FooterComponent } from "../../../shared/footer/footer.component";
 import { AvatarSize } from "../../../shared/avatar/avatar.types";
 import { HeaderService } from "../../../core/services/header.service";
 import { ProfileComponent } from "../../../shared/profile/profile.component";
@@ -32,7 +31,6 @@ import { ProfileComponent } from "../../../shared/profile/profile.component";
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    FooterComponent,
     ProfileComponent,
   ],
   templateUrl: "./persona-details.component.html",

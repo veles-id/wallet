@@ -19,7 +19,7 @@ export class HeaderService {
     backButtonHandler: undefined,
     contentTemplate: undefined,
     contentContext: undefined,
-    padding: "1rem 1.5rem",
+    padding: "1.5rem",
   });
 
   config = computed(() => this._config());
@@ -27,10 +27,16 @@ export class HeaderService {
   setHeader(config: HeaderConfig): void {
     this._config.set({
       ...config,
-      padding: config.padding || "1rem 1.5rem",
+      padding: config.padding || "1.5rem",
     });
   }
 
+  /**
+   * @todo instead of playing with padding,
+   * we should use use @if on the header component
+   * with showHeader variable to fully hide the header
+   * for onboarding page after coming back from create did page
+   */
   clearHeader(): void {
     this._config.set({
       title: "",

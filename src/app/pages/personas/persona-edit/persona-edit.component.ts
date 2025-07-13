@@ -23,7 +23,6 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { DidService } from "../../../core/services/did.service";
 import { StoredDID, DIDType } from "../../../core/services/did.types";
-import { FooterComponent } from "../../../shared/footer/footer.component";
 import { ProfileComponent } from "../../../shared/profile/profile.component";
 import { AvatarSize } from "../../../shared/avatar/avatar.types";
 import { HeaderService } from "../../../core/services/header.service";
@@ -49,7 +48,6 @@ interface PersonaFormData {
     MatInputModule,
     MatFormFieldModule,
     ReactiveFormsModule,
-    FooterComponent,
     ProfileComponent,
   ],
   templateUrl: "./persona-edit.component.html",

@@ -10,7 +10,7 @@ import { Router } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import { CredentialService } from "../../core/services/credential.service";
 import { StoredCredential } from "../../core/services/credential.types";
-import { FooterComponent } from "../../shared/footer/footer.component";
+
 import { CredentialCardComponent } from "./credential-card/credential-card.component";
 import { HeaderService } from "../../core/services/header.service";
 
@@ -25,7 +25,6 @@ import { HeaderService } from "../../core/services/header.service";
     MatCardModule,
     MatChipsModule,
     MatTooltipModule,
-    FooterComponent,
     CredentialCardComponent,
   ],
   templateUrl: "./credentials.component.html",

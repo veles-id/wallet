@@ -8,6 +8,7 @@ import { filter } from "rxjs/operators";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { DidService } from "../../core/services/did.service";
 import { StoredDID } from "../../core/services/did.types";
+import { FooterService } from "../../core/services/footer.service";
 
 @Component({
   selector: "app-footer",
@@ -25,11 +26,13 @@ export class FooterComponent {
   private _didService = inject(DidService);
   private _router = inject(Router);
   private _destroyRef = inject(DestroyRef);
+  private _footerService = inject(FooterService);
 
   isLoading = signal(false);
   error = signal<string | null>(null);
   storedDIDs = signal<StoredDID[]>([]);
   currentRoute = signal<string>("");
+  showFooter = computed(() => this._footerService.showFooter());
 
   constructor() {
     this._router.events

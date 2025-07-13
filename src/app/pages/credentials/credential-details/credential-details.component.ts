@@ -10,7 +10,6 @@ import {
   VerifiableCredential,
 } from "../../../core/services/credential.types";
 import { VerificationResult } from "../../../core/services/credential-verification.service";
-import { FooterComponent } from "../../../shared/footer/footer.component";
 import { AvatarComponent } from "../../../shared/avatar/avatar.component";
 import { CredentialCardComponent } from "../credential-card/credential-card.component";
 import { HeaderService } from "../../../core/services/header.service";
@@ -24,7 +23,6 @@ import { AvatarSize } from "../../../shared/avatar/avatar.types";
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    FooterComponent,
     CredentialCardComponent,
     AvatarComponent,
   ],

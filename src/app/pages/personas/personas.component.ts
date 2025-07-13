@@ -7,7 +7,7 @@ import { Router } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import { DidService } from "../../core/services/did.service";
 import { StoredDID } from "../../core/services/did.types";
-import { FooterComponent } from "../../shared/footer/footer.component";
+
 import { HeaderService } from "../../core/services/header.service";
 
 @Component({
@@ -18,7 +18,6 @@ import { HeaderService } from "../../core/services/header.service";
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    FooterComponent,
   ],
   templateUrl: "./personas.component.html",
   styleUrl: "./personas.component.scss",

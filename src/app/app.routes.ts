@@ -14,12 +14,13 @@ import { CreateDidComponent } from "./pages/personas/create-did/create-did.compo
 import { DidManagementComponent } from "./pages/personas/did-management/did-management.component";
 
 export const routes: Routes = [
-  { path: "", component: SplashComponent },
-  { path: "login", component: LoginComponent },
+  { path: "", component: SplashComponent, data: { showHeader: false } },
+  { path: "login", component: LoginComponent, data: { showHeader: false } },
   {
     path: "onboarding",
     component: OnboardingComponent,
     canActivate: [AuthGuard],
+    data: { showHeader: false },
   },
   {
     path: "create-did",

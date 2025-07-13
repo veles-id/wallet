@@ -1,4 +1,14 @@
-import { Injectable, signal, computed, TemplateRef } from "@angular/core";
+import {
+  Injectable,
+  signal,
+  computed,
+  TemplateRef,
+  inject,
+  DestroyRef,
+} from "@angular/core";
+import { Router, NavigationEnd } from "@angular/router";
+import { filter } from "rxjs/operators";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 export interface HeaderConfig {
   title?: string;
@@ -6,37 +16,46 @@ export interface HeaderConfig {
   backButtonHandler?: () => void;
   contentTemplate?: TemplateRef<any>;
   contentContext?: any;
-  padding?: string;
 }
 
 @Injectable({
   providedIn: "root",
 })
 export class HeaderService {
+  private _router = inject(Router);
+  private _destroyRef = inject(DestroyRef);
+
   private _config = signal<HeaderConfig>({
     title: "",
     showBackButton: false,
     backButtonHandler: undefined,
     contentTemplate: undefined,
     contentContext: undefined,
-    padding: "1.5rem",
   });
 
-  config = computed(() => this._config());
+  private _showHeader = signal(true);
 
-  setHeader(config: HeaderConfig): void {
-    this._config.set({
-      ...config,
-      padding: config.padding || "1.5rem",
-    });
+  config = computed(() => this._config());
+  showHeader = computed(() => this._showHeader());
+
+  constructor() {
+    this._router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this._destroyRef)
+      )
+      .subscribe((event: NavigationEnd) => {
+        const routeData =
+          this._router.routerState.root.firstChild?.snapshot.data;
+        const showHeader = routeData?.["showHeader"] !== false;
+        this._showHeader.set(showHeader);
+      });
   }
 
-  /**
-   * @todo instead of playing with padding,
-   * we should use use @if on the header component
-   * with showHeader variable to fully hide the header
-   * for onboarding page after coming back from create did page
-   */
+  setHeader(config: HeaderConfig): void {
+    this._config.set(config);
+  }
+
   clearHeader(): void {
     this._config.set({
       title: "",
@@ -44,7 +63,6 @@ export class HeaderService {
       backButtonHandler: undefined,
       contentTemplate: undefined,
       contentContext: undefined,
-      padding: "0",
     });
   }
 

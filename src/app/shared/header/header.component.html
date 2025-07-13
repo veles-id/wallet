@@ -1,4 +1,5 @@
-<header class="header" [style.padding]="padding()">
+@if (showHeader()) {
+<header class="header">
   @if (showBackButton()) {
   <button mat-icon-button class="header__back-button" (click)="onBackClick()">
     <mat-icon>arrow_back</mat-icon>
@@ -17,3 +18,4 @@
     }
   </div>
 </header>
+}

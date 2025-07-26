@@ -75,31 +75,31 @@
   --shadow-primary: 0 4px 12px rgba(184, 149, 106, 0.3);
   --shadow-primary-hover: 0 6px 16px rgba(184, 149, 106, 0.4);
 
-  --mdc-theme-primary: var(--primary-color);
-  --mdc-theme-secondary: var(--text-secondary);
-  --mdc-theme-error: var(--error-color);
-  --mdc-theme-on-primary: var(--text-on-primary);
-  --mdc-theme-on-secondary: white;
-  --mdc-theme-on-error: white;
-  --mdc-theme-surface: white;
-  --mdc-theme-on-surface: var(--text-primary);
+  --mat-theme-primary: var(--primary-color);
+  --mat-theme-secondary: var(--text-secondary);
+  --mat-theme-error: var(--error-color);
+  --mat-theme-on-primary: var(--text-on-primary);
+  --mat-theme-on-secondary: white;
+  --mat-theme-on-error: white;
+  --mat-theme-surface: white;
+  --mat-theme-on-surface: var(--text-primary);
 
-  --mdc-filled-button-container-color: var(--primary-color);
-  --mdc-filled-button-label-text-color: var(--text-on-primary);
-  --mdc-filled-button-hover-container-color: var(--primary-hover-color);
-  --mdc-filled-button-disabled-container-color: var(--primary-disabled-color);
-  --mdc-filled-button-disabled-label-text-color: var(--text-disabled);
-  --mdc-filled-button-container-shape: 28px;
+  --mat-button-filled-container-color: var(--primary-color);
+  --mat-button-filled-label-text-color: var(--text-on-primary);
+  --mat-button-filled-hover-container-color: var(--primary-hover-color);
+  --mat-button-filled-disabled-container-color: var(--primary-disabled-color);
+  --mat-button-filled-disabled-label-text-color: var(--text-disabled);
+  --mat-button-filled-container-shape: 28px;
 
-  --mdc-filled-text-field-active-indicator-color: var(--primary-color);
-  --mdc-filled-text-field-focus-active-indicator-color: var(--primary-color);
-  --mdc-filled-text-field-focus-label-text-color: var(--primary-color);
-  --mdc-filled-text-field-hover-active-indicator-color: var(--primary-color);
-  --mdc-filled-text-field-label-text-color: var(--text-secondary);
-  --mdc-filled-text-field-input-text-color: var(--text-primary);
+  --mat-form-field-filled-active-indicator-color: var(--primary-color);
+  --mat-form-field-filled-focus-active-indicator-color: var(--primary-color);
+  --mat-form-field-filled-focus-label-text-color: var(--primary-color);
+  --mat-form-field-filled-hover-active-indicator-color: var(--primary-color);
+  --mat-form-field-filled-label-text-color: var(--text-secondary);
+  --mat-form-field-filled-input-text-color: var(--text-primary);
 
-  --mdc-circular-progress-active-indicator-color: var(--primary-color);
-  --mdc-linear-progress-active-indicator-color: var(--primary-color);
+  --mat-progress-spinner-active-indicator-color: var(--primary-color);
+  --mat-progress-bar-active-indicator-color: var(--primary-color);
 }
 
 html,

@@ -7,60 +7,61 @@
     </mat-card-header>
 
     <mat-card-content>
-      <div
-        *ngIf="storedDIDs.length === 0"
-        class="no-dids">
-        <mat-icon
-          color="primary"
-          class="large-icon">
-          account_circle
-        </mat-icon>
-        <h3>No DIDs found</h3>
-        <p>You haven't created any DIDs yet. Create your first DID to get started.</p>
-      </div>
-
-      <div
-        *ngIf="storedDIDs.length > 0"
-        class="dids-list">
+      @if (storedDIDs.length === 0) {
         <div
-          *ngFor="let did of storedDIDs"
-          class="did-item">
-          <div class="did-header">
-            <h4>{{ did.alias || 'Unnamed DID' }}</h4>
-            <span class="did-date">{{ formatDate(did.createdAt) }}</span>
-          </div>
-
-          <div class="did-content">
-            <label>DID:</label>
-            <div class="did-display-container">
-              <code class="did-display">{{ did.did }}</code>
-              <button
-                mat-icon-button
-                (click)="copyToClipboard(did.did)"
-                matTooltip="Copy to clipboard">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-            </div>
-          </div>
-
-          <div class="did-actions">
-            <button
-              mat-button
-              color="primary"
-              (click)="exportDID(did.did)">
-              <mat-icon>download</mat-icon>
-              Export
-            </button>
-            <button
-              mat-button
-              color="warn"
-              (click)="deleteDID(did.did)">
-              <mat-icon>delete</mat-icon>
-              Delete
-            </button>
-          </div>
+          class="no-dids">
+          <mat-icon
+            color="primary"
+            class="large-icon">
+            account_circle
+          </mat-icon>
+          <h3>No DIDs found</h3>
+          <p>You haven't created any DIDs yet. Create your first DID to get started.</p>
         </div>
-      </div>
+      }
+
+      @if (storedDIDs.length > 0) {
+        <div
+          class="dids-list">
+          @for (did of storedDIDs; track did) {
+            <div
+              class="did-item">
+              <div class="did-header">
+                <h4>{{ did.alias || 'Unnamed DID' }}</h4>
+                <span class="did-date">{{ formatDate(did.createdAt) }}</span>
+              </div>
+              <div class="did-content">
+                <label>DID:</label>
+                <div class="did-display-container">
+                  <code class="did-display">{{ did.did }}</code>
+                  <button
+                    mat-icon-button
+                    (click)="copyToClipboard(did.did)"
+                    matTooltip="Copy to clipboard">
+                    <mat-icon>content_copy</mat-icon>
+                  </button>
+                </div>
+              </div>
+              <div class="did-actions">
+                <button
+                  mat-button
+                  color="primary"
+                  (click)="exportDID(did.did)">
+                  <mat-icon>download</mat-icon>
+                  Export
+                </button>
+                <button
+                  mat-button
+                  color="warn"
+                  (click)="deleteDID(did.did)">
+                  <mat-icon>delete</mat-icon>
+                  Delete
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
     </mat-card-content>
 
     <mat-card-actions align="end">

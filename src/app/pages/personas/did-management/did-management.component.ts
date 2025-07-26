@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -11,7 +11,7 @@ import { StoredDID } from '../../../core/services/did.types';
 @Component({
   selector: 'app-did-management',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, MatSnackBarModule],
+  imports: [MatButtonModule, MatCardModule, MatIconModule, MatSnackBarModule],
   templateUrl: './did-management.component.html',
   styleUrl: './did-management.component.scss',
 })

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, inject, OnInit, signal, TemplateRef, viewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,15 +28,14 @@ interface PersonaFormData {
   selector: 'app-persona-edit',
   standalone: true,
   imports: [
-    CommonModule,
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
     ReactiveFormsModule,
-    ProfileComponent,
-  ],
+    ProfileComponent
+],
   templateUrl: './persona-edit.component.html',
   styleUrl: './persona-edit.component.scss',
 })

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,14 +15,13 @@ import { HeaderService } from '../../../core/services/header.service';
   selector: 'app-create-did',
   standalone: true,
   imports: [
-    CommonModule,
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
     MatSnackBarModule,
     MatRadioModule,
-    FormsModule,
-  ],
+    FormsModule
+],
   templateUrl: './create-did.component.html',
   styleUrl: './create-did.component.scss',
 })

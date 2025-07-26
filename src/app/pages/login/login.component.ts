@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,7 +13,7 @@ import { VerificationResponse } from './login.types';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [MatButtonModule, MatProgressSpinnerModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })

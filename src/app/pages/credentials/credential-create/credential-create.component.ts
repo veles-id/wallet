@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,7 +31,6 @@ import { HeaderService } from '../../../core/services/header.service';
   selector: 'app-credential-create',
   standalone: true,
   imports: [
-    CommonModule,
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
@@ -44,8 +43,8 @@ import { HeaderService } from '../../../core/services/header.service';
     MatStepperModule,
     MatCardModule,
     MatChipsModule,
-    ReactiveFormsModule,
-  ],
+    ReactiveFormsModule
+],
   templateUrl: './credential-create.component.html',
   styleUrl: './credential-create.component.scss',
 })

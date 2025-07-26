@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -18,15 +18,14 @@ import { CredentialCardComponent } from './credential-card/credential-card.compo
   selector: 'app-credentials',
   standalone: true,
   imports: [
-    CommonModule,
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
     MatCardModule,
     MatChipsModule,
     MatTooltipModule,
-    CredentialCardComponent,
-  ],
+    CredentialCardComponent
+],
   templateUrl: './credentials.component.html',
   styleUrl: './credentials.component.scss',
 })

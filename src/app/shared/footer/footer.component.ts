@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,7 +13,7 @@ import { FooterService } from '../../core/services/footer.service';
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule],
+  imports: [MatButtonModule, MatProgressSpinnerModule, MatIconModule],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss',
 })

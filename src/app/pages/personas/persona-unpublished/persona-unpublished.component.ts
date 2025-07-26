@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import {
   AfterViewInit,
   Component,
@@ -26,7 +26,7 @@ import { ProfileComponent } from '../../../shared/profile/profile.component';
 @Component({
   selector: 'app-persona-unpublished',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, ProfileComponent],
+  imports: [MatButtonModule, MatProgressSpinnerModule, MatIconModule, ProfileComponent],
   templateUrl: './persona-unpublished.component.html',
   styleUrl: './persona-unpublished.component.scss',
 })

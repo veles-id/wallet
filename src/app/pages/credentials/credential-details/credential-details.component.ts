@@ -1,22 +1,19 @@
-import { Component, signal, computed, inject, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatIconModule } from "@angular/material/icon";
-import { Router, ActivatedRoute } from "@angular/router";
-import { CredentialService } from "../../../core/services/credential.service";
-import {
-  StoredCredential,
-  VerifiableCredential,
-} from "../../../core/services/credential.types";
-import { VerificationResult } from "../../../core/services/credential-verification.service";
-import { CredentialCardComponent } from "../credential-card/credential-card.component";
-import { ProfileComponent } from "../../../shared/profile/profile.component";
-import { HeaderService } from "../../../core/services/header.service";
-import { AvatarSize } from "../../../shared/avatar/avatar.types";
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ActivatedRoute, Router } from '@angular/router';
+import { VerificationResult } from '../../../core/services/credential-verification.service';
+import { CredentialService } from '../../../core/services/credential.service';
+import { StoredCredential, VerifiableCredential } from '../../../core/services/credential.types';
+import { HeaderService } from '../../../core/services/header.service';
+import { AvatarSize } from '../../../shared/avatar/avatar.types';
+import { ProfileComponent } from '../../../shared/profile/profile.component';
+import { CredentialCardComponent } from '../credential-card/credential-card.component';
 
 @Component({
-  selector: "app-credential-details",
+  selector: 'app-credential-details',
   standalone: true,
   imports: [
     CommonModule,
@@ -26,8 +23,8 @@ import { AvatarSize } from "../../../shared/avatar/avatar.types";
     CredentialCardComponent,
     ProfileComponent,
   ],
-  templateUrl: "./credential-details.component.html",
-  styleUrl: "./credential-details.component.scss",
+  templateUrl: './credential-details.component.html',
+  styleUrl: './credential-details.component.scss',
 })
 export class CredentialDetailsComponent implements OnInit {
   private _credentialService = inject(CredentialService);
@@ -58,9 +55,9 @@ export class CredentialDetailsComponent implements OnInit {
   }
 
   private _loadCredential(): void {
-    const id = this._route.snapshot.paramMap.get("id");
+    const id = this._route.snapshot.paramMap.get('id');
     if (!id) {
-      this.error.set("No credential ID provided");
+      this.error.set('No credential ID provided');
       return;
     }
 
@@ -69,17 +66,17 @@ export class CredentialDetailsComponent implements OnInit {
       const storedCredential = this._credentialService.getCredentialById(id);
 
       if (!storedCredential) {
-        this.error.set("Credential not found");
+        this.error.set('Credential not found');
         return;
       }
 
       this.credential.set(storedCredential);
-      console.log("Credential Technical Details:", storedCredential.credential);
+      console.log('Credential Technical Details:', storedCredential.credential);
 
       this._verifyCredential(storedCredential.credential);
     } catch (error) {
-      console.error("Error loading credential:", error);
-      this.error.set("Failed to load credential");
+      console.error('Error loading credential:', error);
+      this.error.set('Failed to load credential');
     } finally {
       this.isLoading.set(false);
     }
@@ -87,56 +84,56 @@ export class CredentialDetailsComponent implements OnInit {
 
   getCredentialType(): string {
     const credentialData = this.credentialData();
-    if (!credentialData) return "Credential";
+    if (!credentialData) return 'Credential';
 
     const { type } = credentialData;
     if (type.length > 1) {
-      return type.find((t) => t !== "VerifiableCredential") || type[0];
+      return type.find((t) => t !== 'VerifiableCredential') || type[0];
     }
     const credential = this.credential();
     const { metadata } = credential || {};
-    return metadata?.category || "Credential";
+    return metadata?.category || 'Credential';
   }
 
   getCredentialDisplayTitle(): string {
     const credential = this.credential();
-    if (!credential) return "Credential Details";
+    if (!credential) return 'Credential Details';
     const { alias } = credential;
     return alias || this.getCredentialType();
   }
 
   getIssuerDisplayName(): string {
     const credentialData = this.credentialData();
-    if (!credentialData) return "";
+    if (!credentialData) return '';
 
     const { issuer } = credentialData;
-    if (typeof issuer === "string") {
-      return "Example University";
+    if (typeof issuer === 'string') {
+      return 'Example University';
     }
     const { name } = issuer || {};
-    return name || "Unknown Issuer";
+    return name || 'Unknown Issuer';
   }
 
   getIssuerCategory(): string {
     const { metadata } = this.credential() || {};
     const category = metadata?.category?.toLowerCase();
 
-    if (category?.includes("education") || category?.includes("alumni")) {
-      return "Alumni Of";
+    if (category?.includes('education') || category?.includes('alumni')) {
+      return 'Alumni Of';
     }
-    return "Issued By";
+    return 'Issued By';
   }
 
   getIssuerType(): string {
     const credentialData = this.credentialData();
-    if (!credentialData) return "Unknown";
+    if (!credentialData) return 'Unknown';
 
     const { issuer } = credentialData;
-    if (typeof issuer === "string") {
-      return "Self-issued";
+    if (typeof issuer === 'string') {
+      return 'Self-issued';
     }
     const { name } = issuer || {};
-    return name ? "Organization" : "Self-issued";
+    return name ? 'Organization' : 'Self-issued';
   }
 
   getSubjectInitials(): string {
@@ -144,14 +141,14 @@ export class CredentialDetailsComponent implements OnInit {
     const name = this.getSubjectName();
 
     if (name) {
-      const parts = name.split(" ");
+      const parts = name.split(' ');
       return parts
         .map((part) => part.charAt(0).toUpperCase())
-        .join("")
+        .join('')
         .substring(0, 2);
     }
 
-    return "GP";
+    return 'GP';
   }
 
   getSubjectName(): string {
@@ -160,26 +157,26 @@ export class CredentialDetailsComponent implements OnInit {
 
     if (name) return name;
     if (firstName && lastName) return `${firstName} ${lastName}`;
-    if (email) return email.split("@")[0];
+    if (email) return email.split('@')[0];
 
-    return "Gym Peterson";
+    return 'Gym Peterson';
   }
 
   getSubjectType(): string {
     const credentialData = this.credentialData();
-    if (!credentialData) return "Unknown";
+    if (!credentialData) return 'Unknown';
 
     const { credentialSubject } = credentialData;
     const { id } = credentialSubject || {};
 
-    if (typeof id === "string" && id.includes("nostr:")) {
-      return "Nostr";
+    if (typeof id === 'string' && id.includes('nostr:')) {
+      return 'Nostr';
     }
-    if (typeof id === "string" && id.includes("did:")) {
-      return "DID";
+    if (typeof id === 'string' && id.includes('did:')) {
+      return 'DID';
     }
 
-    return "Nostr";
+    return 'Nostr';
   }
 
   getCredentialSubjectData(): Record<string, any> {
@@ -192,7 +189,7 @@ export class CredentialDetailsComponent implements OnInit {
 
   getCredentialAge(): string {
     const credential = this.credential();
-    if (!credential) return "";
+    if (!credential) return '';
 
     const { createdAt } = credential;
     const createdDate = new Date(createdAt);
@@ -200,7 +197,7 @@ export class CredentialDetailsComponent implements OnInit {
     const diffTime = Math.abs(now.getTime() - createdDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 1) return "1 day ago";
+    if (diffDays === 1) return '1 day ago';
     if (diffDays < 30) return `${diffDays} days ago`;
     if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
     return `${Math.floor(diffDays / 365)} years ago`;
@@ -229,14 +226,10 @@ export class CredentialDetailsComponent implements OnInit {
   }
 
   formatValue(value: any): string {
-    if (value === null || value === undefined) return "Not specified";
-    if (typeof value === "boolean") return value ? "Yes" : "No";
-    if (typeof value === "object") return JSON.stringify(value, null, 2);
-    if (
-      typeof value === "string" &&
-      value.includes("T") &&
-      value.includes("Z")
-    ) {
+    if (value === null || value === undefined) return 'Not specified';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (typeof value === 'object') return JSON.stringify(value, null, 2);
+    if (typeof value === 'string' && value.includes('T') && value.includes('Z')) {
       try {
         return new Date(value).toLocaleDateString();
       } catch {
@@ -249,7 +242,7 @@ export class CredentialDetailsComponent implements OnInit {
   formatKey(key: string): string {
     // Convert camelCase to Title Case
     return key
-      .replace(/([A-Z])/g, " $1")
+      .replace(/([A-Z])/g, ' $1')
       .replace(/^./, (str) => str.toUpperCase())
       .trim();
   }
@@ -264,17 +257,17 @@ export class CredentialDetailsComponent implements OnInit {
     const credentialJson = this._credentialService.exportCredential(id);
     if (!credentialJson) return;
 
-    const blob = new Blob([credentialJson], { type: "application/json" });
+    const blob = new Blob([credentialJson], { type: 'application/json' });
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = url;
-    link.download = `credential-${alias || "export"}-${Date.now()}.json`;
+    link.download = `credential-${alias || 'export'}-${Date.now()}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    console.log("Credential exported successfully");
+    console.log('Credential exported successfully');
   }
 
   deleteCredential(): void {
@@ -285,44 +278,40 @@ export class CredentialDetailsComponent implements OnInit {
     const { id } = credentialData;
 
     const confirmed = confirm(
-      `Are you sure you want to delete "${
-        alias || "this credential"
-      }"? This action cannot be undone.`
+      `Are you sure you want to delete "${alias || 'this credential'}"? This action cannot be undone.`,
     );
 
     if (confirmed) {
       const success = this._credentialService.deleteCredential(id);
       if (success) {
-        console.log("Credential deleted successfully");
-        this._router.navigate(["/credentials"]);
+        console.log('Credential deleted successfully');
+        this._router.navigate(['/credentials']);
       } else {
-        console.error("Failed to delete credential");
+        console.error('Failed to delete credential');
       }
     }
   }
 
   editCredential(): void {
-    console.log("Credential editing coming soon");
+    console.log('Credential editing coming soon');
   }
 
   goBack(): void {
-    this._router.navigate(["/credentials"]);
+    this._router.navigate(['/credentials']);
   }
 
-  private async _verifyCredential(
-    credential: VerifiableCredential
-  ): Promise<void> {
+  private async _verifyCredential(credential: VerifiableCredential): Promise<void> {
     try {
       this.isVerifying.set(true);
       const result = await this._credentialService.verifyCredential(credential);
       this.verificationResult.set(result);
     } catch (error) {
-      console.error("Verification failed:", error);
+      console.error('Verification failed:', error);
       this.verificationResult.set({
         isValid: false,
-        details: "Verification failed",
+        details: 'Verification failed',
         issuerResolved: false,
-        errors: [error instanceof Error ? error.message : "Unknown error"],
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       });
     } finally {
       this.isVerifying.set(false);

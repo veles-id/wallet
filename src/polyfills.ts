@@ -4,14 +4,14 @@
  */
 
 // Buffer polyfill for browser environment
-import { Buffer } from "buffer";
+import { Buffer } from 'buffer';
 
 // Make Buffer available globally
 try {
-  if (typeof (globalThis as any).Buffer === "undefined") {
+  if (typeof (globalThis as any).Buffer === 'undefined') {
     (globalThis as any).Buffer = Buffer;
-    console.log("Buffer polyfill loaded successfully");
+    console.log('Buffer polyfill loaded successfully');
   }
 } catch (error) {
-  console.warn("Failed to assign Buffer globally:", error);
+  console.warn('Failed to assign Buffer globally:', error);
 }

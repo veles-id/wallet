@@ -95,10 +95,7 @@
 
       &:hover:not(:disabled) {
         background-color: var(--primary-hover-color, #d4af70);
-        box-shadow: var(
-          --shadow-primary-hover,
-          0 6px 16px rgba(184, 149, 106, 0.4)
-        );
+        box-shadow: var(--shadow-primary-hover, 0 6px 16px rgba(184, 149, 106, 0.4));
       }
 
       &:disabled {

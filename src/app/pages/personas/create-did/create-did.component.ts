@@ -1,18 +1,18 @@
-import { Component, signal, inject } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatIconModule } from "@angular/material/icon";
-import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { MatRadioModule } from "@angular/material/radio";
-import { FormsModule } from "@angular/forms";
-import { Router } from "@angular/router";
-import { DidService } from "../../../core/services/did.service";
-import { CreateDIDResult, DIDType } from "../../../core/services/did.types";
-import { HeaderService } from "../../../core/services/header.service";
+import { CommonModule } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+import { DidService } from '../../../core/services/did.service';
+import { CreateDIDResult, DIDType } from '../../../core/services/did.types';
+import { HeaderService } from '../../../core/services/header.service';
 
 @Component({
-  selector: "app-create-did",
+  selector: 'app-create-did',
   standalone: true,
   imports: [
     CommonModule,
@@ -23,8 +23,8 @@ import { HeaderService } from "../../../core/services/header.service";
     MatRadioModule,
     FormsModule,
   ],
-  templateUrl: "./create-did.component.html",
-  styleUrl: "./create-did.component.scss",
+  templateUrl: './create-did.component.html',
+  styleUrl: './create-did.component.scss',
 })
 export class CreateDidComponent {
   private _didService = inject(DidService);
@@ -33,7 +33,7 @@ export class CreateDidComponent {
 
   DIDType = DIDType;
   isCreating = signal(false);
-  didName = signal("");
+  didName = signal('');
   selectedDIDType = signal(DIDType.NOSTR);
 
   ngOnInit(): void {
@@ -42,7 +42,7 @@ export class CreateDidComponent {
 
   private _setupHeader(): void {
     this._headerService.setHeader({
-      title: "New digital personality",
+      title: 'New digital personality',
       showBackButton: true,
       backButtonHandler: () => this.goBack(),
     });
@@ -59,12 +59,10 @@ export class CreateDidComponent {
       const didType = this.selectedDIDType() as DIDType;
 
       // Create DID using the gateway service
-      const createdDID: CreateDIDResult = await this._didService.createDID(
-        didType
-      );
+      const createdDID: CreateDIDResult = await this._didService.createDID(didType);
       await this._didService.storeDID(createdDID, this.didName().trim());
 
-      this._router.navigate(["/personas"]);
+      this._router.navigate(['/personas']);
     } catch (error) {
       const didType = this.selectedDIDType();
       console.log(`DID:${didType} creation failed:`, error);
@@ -72,23 +70,21 @@ export class CreateDidComponent {
       // Only try DHT fallback if we were trying to create Nostr
       if (this.selectedDIDType() === DIDType.NOSTR) {
         try {
-          console.log("Trying DHT fallback...");
-          const offlineDID: CreateDIDResult =
-            await this._didService.createOfflineDID();
+          console.log('Trying DHT fallback...');
+          const offlineDID: CreateDIDResult = await this._didService.createOfflineDID();
           await this._didService.storeDID(offlineDID, this.didName().trim());
-          this._router.navigate(["/personas"]);
+          this._router.navigate(['/personas']);
         } catch (offlineError) {
-          console.error("Error creating fallback DID:", offlineError);
+          console.error('Error creating fallback DID:', offlineError);
         }
       } else {
         // DHT creation failed, try offline mode
         try {
-          const offlineDID: CreateDIDResult =
-            await this._didService.createOfflineDID();
+          const offlineDID: CreateDIDResult = await this._didService.createOfflineDID();
           await this._didService.storeDID(offlineDID, this.didName().trim());
-          this._router.navigate(["/personas"]);
+          this._router.navigate(['/personas']);
         } catch (offlineError) {
-          console.error("Error creating offline DID:", offlineError);
+          console.error('Error creating offline DID:', offlineError);
         }
       }
     } finally {
@@ -97,6 +93,6 @@ export class CreateDidComponent {
   }
 
   goBack(): void {
-    this._router.navigate(["/onboarding"]);
+    this._router.navigate(['/onboarding']);
   }
 }

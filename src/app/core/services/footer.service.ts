@@ -1,16 +1,10 @@
-import {
-  Injectable,
-  signal,
-  computed,
-  inject,
-  DestroyRef,
-} from "@angular/core";
-import { Router, NavigationEnd } from "@angular/router";
-import { filter } from "rxjs/operators";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class FooterService {
   private _router = inject(Router);
@@ -23,12 +17,11 @@ export class FooterService {
     this._router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
-        takeUntilDestroyed(this._destroyRef)
+        takeUntilDestroyed(this._destroyRef),
       )
       .subscribe((event: NavigationEnd) => {
-        const routeData =
-          this._router.routerState.root.firstChild?.snapshot.data;
-        const showFooter = routeData?.["showFooter"] || false;
+        const routeData = this._router.routerState.root.firstChild?.snapshot.data;
+        const showFooter = routeData?.['showFooter'] || false;
         this._showFooter.set(showFooter);
       });
   }

@@ -2,13 +2,16 @@
   <div class="create-did__container">
     <div class="create-did__icon">
       <div class="create-did__logo">
-        <img src="assets/signet_bright.svg" alt="Veles Logo" />
+        <img
+          src="assets/signet_bright.svg"
+          alt="Veles Logo" />
       </div>
     </div>
 
     <div class="create-did__content">
       <p class="create-did__description">
-        Give your digital personality a name<br />
+        Give your digital personality a name
+        <br />
         for easy identification
       </p>
     </div>
@@ -21,8 +24,7 @@
           [(ngModel)]="didName"
           [disabled]="isCreating()"
           (keyup.enter)="createDID()"
-          autocomplete="off"
-        />
+          autocomplete="off" />
       </div>
 
       <div class="create-did__type-selection">
@@ -30,28 +32,21 @@
         <mat-radio-group
           [(ngModel)]="selectedDIDType"
           class="create-did__radio-group"
-          [disabled]="isCreating()"
-        >
+          [disabled]="isCreating()">
           <mat-radio-button
             [value]="DIDType.DHT"
-            class="create-did__radio-option"
-          >
+            class="create-did__radio-option">
             <span class="create-did__radio-content">
               <strong>Bittorrent</strong>
-              <span class="create-did__radio-description"
-                >Create decentralized indentity on Mainline DHT</span
-              >
+              <span class="create-did__radio-description">Create decentralized indentity on Mainline DHT</span>
             </span>
           </mat-radio-button>
           <mat-radio-button
             [value]="DIDType.NOSTR"
-            class="create-did__radio-option"
-          >
+            class="create-did__radio-option">
             <span class="create-did__radio-content">
               <strong>Nostr</strong>
-              <span class="create-did__radio-description"
-                >Create decentralized identity on Nostr</span
-              >
+              <span class="create-did__radio-description">Create decentralized identity on Nostr</span>
             </span>
           </mat-radio-button>
         </mat-radio-group>
@@ -63,11 +58,14 @@
         class="create-did__button"
         mat-flat-button
         (click)="createDID()"
-        [disabled]="isCreating() || !didName().trim()"
-      >
+        [disabled]="isCreating() || !didName().trim()">
         @if (isCreating()) {
-        <mat-spinner diameter="20" class="create-did__spinner"></mat-spinner>
-        } @else { Create DID }
+          <mat-spinner
+            diameter="20"
+            class="create-did__spinner"></mat-spinner>
+        } @else {
+          Create DID
+        }
       </button>
     </div>
   </div>

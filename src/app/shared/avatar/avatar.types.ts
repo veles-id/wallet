@@ -1,5 +1,5 @@
 export enum AvatarSize {
-  SMALL = "small",
-  MEDIUM = "medium",
-  LARGE = "large",
+  SMALL = 'small',
+  MEDIUM = 'medium',
+  LARGE = 'large',
 }

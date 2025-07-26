@@ -1,47 +1,39 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject } from '@angular/core';
+import { CredentialVerificationService, VerificationResult } from './credential-verification.service';
 import {
-  VerifiableCredential,
-  StoredCredential,
   CreateCredentialRequest,
-  CredentialTemplate,
   CredentialCategory,
-  CredentialSource,
   CredentialPrivacy,
+  CredentialSource,
+  CredentialTemplate,
   FieldType,
-} from "./credential.types";
-import { DidService } from "./did.service";
-import {
-  CredentialVerificationService,
-  VerificationResult,
-} from "./credential-verification.service";
+  StoredCredential,
+  VerifiableCredential,
+} from './credential.types';
+import { DidService } from './did.service';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class CredentialService {
   private _didService = inject(DidService);
   private _verificationService = inject(CredentialVerificationService);
-  private readonly STORAGE_KEY = "veles_credentials";
-  private readonly TEMPLATES_KEY = "veles_credential_templates";
+  private readonly STORAGE_KEY = 'veles_credentials';
+  private readonly TEMPLATES_KEY = 'veles_credential_templates';
 
   constructor() {
     this._initializeDefaultTemplates();
   }
 
-  async createCredential(
-    request: CreateCredentialRequest
-  ): Promise<StoredCredential> {
+  async createCredential(request: CreateCredentialRequest): Promise<StoredCredential> {
     try {
       const credentialId = this._generateCredentialId();
       const issuanceDate = new Date().toISOString();
 
       const credential: VerifiableCredential = {
-        "@context": [
-          "https://www.w3.org/2018/credentials/v1",
-          "https://www.w3.org/ns/credentials/examples/v1",
-        ],
+        '@context': ['https://www.w3.org/2018/credentials/v1', 'https://www.w3.org/ns/credentials/examples/v1'],
         id: credentialId,
-        type: ["VerifiableCredential"],
+        type: ['VerifiableCredential'],
         issuer: request.issuerDID,
         issuanceDate,
         ...(request.expirationDate && {
@@ -57,10 +49,7 @@ export class CredentialService {
       if (request.templateId) {
         const template = this.getTemplate(request.templateId);
         if (template) {
-          credential["@context"] = [
-            ...credential["@context"],
-            ...template.context,
-          ];
+          credential['@context'] = [...credential['@context'], ...template.context];
           credential.type = [...credential.type, ...template.type];
         }
       }
@@ -82,7 +71,7 @@ export class CredentialService {
       this._storeCredential(storedCredential);
       return storedCredential;
     } catch (error) {
-      console.error("Failed to create credential:", error);
+      console.error('Failed to create credential:', error);
       throw error;
     }
   }
@@ -91,8 +80,7 @@ export class CredentialService {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     const credentials = stored ? JSON.parse(stored) : [];
     return credentials.sort(
-      (a: StoredCredential, b: StoredCredential) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (a: StoredCredential, b: StoredCredential) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }
 
@@ -128,16 +116,12 @@ export class CredentialService {
   }
 
   getCredentialsByCategory(category: CredentialCategory): StoredCredential[] {
-    return this.getStoredCredentials().filter(
-      (cred) => cred.metadata?.category === category
-    );
+    return this.getStoredCredentials().filter((cred) => cred.metadata?.category === category);
   }
 
   getCredentialsByDID(did: string): StoredCredential[] {
     return this.getStoredCredentials().filter(
-      (cred) =>
-        cred.credential.credentialSubject.id === did ||
-        cred.credential.issuer === did
+      (cred) => cred.credential.credentialSubject.id === did || cred.credential.issuer === did,
     );
   }
 
@@ -149,27 +133,20 @@ export class CredentialService {
     return null;
   }
 
-  async importCredential(
-    credentialJson: string,
-    alias?: string
-  ): Promise<StoredCredential> {
+  async importCredential(credentialJson: string, alias?: string): Promise<StoredCredential> {
     try {
       const credential: VerifiableCredential = JSON.parse(credentialJson);
 
       // Basic validation
-      if (
-        !credential.id ||
-        !credential.issuer ||
-        !credential.credentialSubject
-      ) {
-        throw new Error("Invalid credential format");
+      if (!credential.id || !credential.issuer || !credential.credentialSubject) {
+        throw new Error('Invalid credential format');
       }
 
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        alias: alias || "Imported Credential",
-        tags: ["imported"],
+        alias: alias || 'Imported Credential',
+        tags: ['imported'],
         isVerified: false,
         metadata: {
           category: CredentialCategory.OTHER,
@@ -181,8 +158,8 @@ export class CredentialService {
       this._storeCredential(storedCredential);
       return storedCredential;
     } catch (error) {
-      console.error("Failed to import credential:", error);
-      throw new Error("Invalid credential format");
+      console.error('Failed to import credential:', error);
+      throw new Error('Invalid credential format');
     }
   }
 
@@ -196,9 +173,7 @@ export class CredentialService {
     return templates.find((template) => template.id === id) || null;
   }
 
-  async verifyCredential(
-    credential: VerifiableCredential
-  ): Promise<VerificationResult> {
+  async verifyCredential(credential: VerifiableCredential): Promise<VerificationResult> {
     return await this._verificationService.verifyCredential(credential);
   }
 
@@ -217,130 +192,124 @@ export class CredentialService {
     if (!existingTemplates) {
       const defaultTemplates: CredentialTemplate[] = [
         {
-          id: "education-degree",
-          name: "Educational Degree",
-          description: "University or college degree credential",
+          id: 'education-degree',
+          name: 'Educational Degree',
+          description: 'University or college degree credential',
           category: CredentialCategory.EDUCATION,
-          context: ["https://www.w3.org/ns/credentials/examples/v1"],
-          type: ["UniversityDegreeCredential"],
+          context: ['https://www.w3.org/ns/credentials/examples/v1'],
+          type: ['UniversityDegreeCredential'],
           fields: [
             {
-              key: "degree",
-              label: "Degree",
+              key: 'degree',
+              label: 'Degree',
               type: FieldType.TEXT,
               required: true,
-              placeholder: "Bachelor of Science",
+              placeholder: 'Bachelor of Science',
             },
             {
-              key: "degreeType",
-              label: "Degree Type",
+              key: 'degreeType',
+              label: 'Degree Type',
               type: FieldType.SELECT,
               required: true,
-              options: [
-                "Bachelor",
-                "Master",
-                "Doctorate",
-                "Associate",
-                "Certificate",
-              ],
+              options: ['Bachelor', 'Master', 'Doctorate', 'Associate', 'Certificate'],
             },
             {
-              key: "university",
-              label: "Institution",
+              key: 'university',
+              label: 'Institution',
               type: FieldType.TEXT,
               required: true,
-              placeholder: "University Name",
+              placeholder: 'University Name',
             },
             {
-              key: "graduationDate",
-              label: "Graduation Date",
+              key: 'graduationDate',
+              label: 'Graduation Date',
               type: FieldType.DATE,
               required: true,
             },
             {
-              key: "gpa",
-              label: "GPA",
+              key: 'gpa',
+              label: 'GPA',
               type: FieldType.NUMBER,
               required: false,
-              placeholder: "3.75",
+              placeholder: '3.75',
             },
           ],
         },
         {
-          id: "professional-certification",
-          name: "Professional Certification",
-          description: "Industry or professional certification",
+          id: 'professional-certification',
+          name: 'Professional Certification',
+          description: 'Industry or professional certification',
           category: CredentialCategory.CERTIFICATION,
-          context: ["https://www.w3.org/ns/credentials/examples/v1"],
-          type: ["ProfessionalCertificationCredential"],
+          context: ['https://www.w3.org/ns/credentials/examples/v1'],
+          type: ['ProfessionalCertificationCredential'],
           fields: [
             {
-              key: "certificationName",
-              label: "Certification Name",
+              key: 'certificationName',
+              label: 'Certification Name',
               type: FieldType.TEXT,
               required: true,
-              placeholder: "AWS Solutions Architect",
+              placeholder: 'AWS Solutions Architect',
             },
             {
-              key: "issuingOrganization",
-              label: "Issuing Organization",
+              key: 'issuingOrganization',
+              label: 'Issuing Organization',
               type: FieldType.TEXT,
               required: true,
-              placeholder: "Amazon Web Services",
+              placeholder: 'Amazon Web Services',
             },
             {
-              key: "certificationId",
-              label: "Certification ID",
+              key: 'certificationId',
+              label: 'Certification ID',
               type: FieldType.TEXT,
               required: false,
-              placeholder: "AWS-123456",
+              placeholder: 'AWS-123456',
             },
             {
-              key: "issueDate",
-              label: "Issue Date",
+              key: 'issueDate',
+              label: 'Issue Date',
               type: FieldType.DATE,
               required: true,
             },
             {
-              key: "validUntil",
-              label: "Valid Until",
+              key: 'validUntil',
+              label: 'Valid Until',
               type: FieldType.DATE,
               required: false,
             },
           ],
         },
         {
-          id: "achievement-badge",
-          name: "Achievement Badge",
-          description: "Personal or professional achievement",
+          id: 'achievement-badge',
+          name: 'Achievement Badge',
+          description: 'Personal or professional achievement',
           category: CredentialCategory.ACHIEVEMENT,
-          context: ["https://www.w3.org/ns/credentials/examples/v1"],
-          type: ["AchievementCredential"],
+          context: ['https://www.w3.org/ns/credentials/examples/v1'],
+          type: ['AchievementCredential'],
           fields: [
             {
-              key: "achievementName",
-              label: "Achievement Name",
+              key: 'achievementName',
+              label: 'Achievement Name',
               type: FieldType.TEXT,
               required: true,
-              placeholder: "Hackathon Winner",
+              placeholder: 'Hackathon Winner',
             },
             {
-              key: "description",
-              label: "Description",
+              key: 'description',
+              label: 'Description',
               type: FieldType.TEXTAREA,
               required: true,
-              placeholder: "First place in blockchain hackathon",
+              placeholder: 'First place in blockchain hackathon',
             },
             {
-              key: "awardedBy",
-              label: "Awarded By",
+              key: 'awardedBy',
+              label: 'Awarded By',
               type: FieldType.TEXT,
               required: true,
-              placeholder: "Tech Conference 2024",
+              placeholder: 'Tech Conference 2024',
             },
             {
-              key: "achievementDate",
-              label: "Achievement Date",
+              key: 'achievementDate',
+              label: 'Achievement Date',
               type: FieldType.DATE,
               required: true,
             },
@@ -348,10 +317,7 @@ export class CredentialService {
         },
       ];
 
-      localStorage.setItem(
-        this.TEMPLATES_KEY,
-        JSON.stringify(defaultTemplates)
-      );
+      localStorage.setItem(this.TEMPLATES_KEY, JSON.stringify(defaultTemplates));
     }
   }
 }

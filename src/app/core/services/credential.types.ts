@@ -1,5 +1,5 @@
 export interface VerifiableCredential {
-  "@context": string[];
+  '@context': string[];
   id: string;
   type: string[];
   issuer: string | CredentialIssuer;
@@ -53,29 +53,29 @@ export interface CredentialMetadata {
 }
 
 export enum CredentialCategory {
-  EDUCATION = "education",
-  PROFESSIONAL = "professional",
-  PERSONAL = "personal",
-  ACHIEVEMENT = "achievement",
-  CERTIFICATION = "certification",
-  MEMBERSHIP = "membership",
-  EMAIL = "email",
-  DEVICE = "device",
-  IDENTITY = "identity",
-  ALUMNI = "alumni",
-  OTHER = "other",
+  EDUCATION = 'education',
+  PROFESSIONAL = 'professional',
+  PERSONAL = 'personal',
+  ACHIEVEMENT = 'achievement',
+  CERTIFICATION = 'certification',
+  MEMBERSHIP = 'membership',
+  EMAIL = 'email',
+  DEVICE = 'device',
+  IDENTITY = 'identity',
+  ALUMNI = 'alumni',
+  OTHER = 'other',
 }
 
 export enum CredentialPrivacy {
-  PUBLIC = "public",
-  PRIVATE = "private",
-  SELECTIVE = "selective",
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+  SELECTIVE = 'selective',
 }
 
 export enum CredentialSource {
-  SELF_ISSUED = "self-issued",
-  THIRD_PARTY = "third-party",
-  IMPORTED = "imported",
+  SELF_ISSUED = 'self-issued',
+  THIRD_PARTY = 'third-party',
+  IMPORTED = 'imported',
 }
 
 export interface CredentialTemplate {
@@ -99,14 +99,14 @@ export interface CredentialField {
 }
 
 export enum FieldType {
-  TEXT = "text",
-  EMAIL = "email",
-  URL = "url",
-  DATE = "date",
-  NUMBER = "number",
-  SELECT = "select",
-  TEXTAREA = "textarea",
-  BOOLEAN = "boolean",
+  TEXT = 'text',
+  EMAIL = 'email',
+  URL = 'url',
+  DATE = 'date',
+  NUMBER = 'number',
+  SELECT = 'select',
+  TEXTAREA = 'textarea',
+  BOOLEAN = 'boolean',
 }
 
 export interface FieldValidation {
@@ -130,25 +130,25 @@ export interface CreateCredentialRequest {
 }
 
 export enum VerificationStatus {
-  VALID = "valid",
-  INVALID = "invalid",
-  EXPIRED = "expired",
-  VERIFYING = "verifying",
-  UNKNOWN = "unknown",
+  VALID = 'valid',
+  INVALID = 'invalid',
+  EXPIRED = 'expired',
+  VERIFYING = 'verifying',
+  UNKNOWN = 'unknown',
 }
 
 export enum CredentialColorClass {
-  BROWN = "brown",
-  DARK = "dark",
-  BLACK = "black",
-  BLUE = "blue",
-  GREEN = "green",
+  BROWN = 'brown',
+  DARK = 'dark',
+  BLACK = 'black',
+  BLUE = 'blue',
+  GREEN = 'green',
 }
 
 export enum CredentialIconType {
-  EMAIL_OUTLINED = "email_outlined",
-  SCHOOL_OUTLINED = "school_outlined",
-  PHONE_IPHONE_OUTLINED = "phone_iphone_outlined",
-  BADGE_OUTLINED = "badge_outlined",
-  WORK_OUTLINE = "work_outline",
+  EMAIL_OUTLINED = 'email_outlined',
+  SCHOOL_OUTLINED = 'school_outlined',
+  PHONE_IPHONE_OUTLINED = 'phone_iphone_outlined',
+  BADGE_OUTLINED = 'badge_outlined',
+  WORK_OUTLINE = 'work_outline',
 }

@@ -1,40 +1,34 @@
-import { Component, signal, computed, inject, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatIconModule } from "@angular/material/icon";
-import { MatInputModule } from "@angular/material/input";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatSelectModule } from "@angular/material/select";
-import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatNativeDateModule } from "@angular/material/core";
-import { MatCheckboxModule } from "@angular/material/checkbox";
-import { MatStepperModule } from "@angular/material/stepper";
-import { MatCardModule } from "@angular/material/card";
-import { MatChipsModule } from "@angular/material/chips";
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatStepperModule } from '@angular/material/stepper';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { CredentialService } from '../../../core/services/credential.service';
 import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-  FormControl,
-} from "@angular/forms";
-import { Router } from "@angular/router";
-import { CredentialService } from "../../../core/services/credential.service";
-import { DidService } from "../../../core/services/did.service";
-import { AuthService } from "../../../core/services/auth.service";
-import {
-  CredentialTemplate,
+  CreateCredentialRequest,
   CredentialCategory,
   CredentialPrivacy,
+  CredentialTemplate,
   FieldType,
-  CreateCredentialRequest,
-} from "../../../core/services/credential.types";
-import { StoredDID } from "../../../core/services/did.types";
-import { HeaderService } from "../../../core/services/header.service";
+} from '../../../core/services/credential.types';
+import { DidService } from '../../../core/services/did.service';
+import { StoredDID } from '../../../core/services/did.types';
+import { HeaderService } from '../../../core/services/header.service';
 
 @Component({
-  selector: "app-credential-create",
+  selector: 'app-credential-create',
   standalone: true,
   imports: [
     CommonModule,
@@ -52,8 +46,8 @@ import { HeaderService } from "../../../core/services/header.service";
     MatChipsModule,
     ReactiveFormsModule,
   ],
-  templateUrl: "./credential-create.component.html",
-  styleUrl: "./credential-create.component.scss",
+  templateUrl: './credential-create.component.html',
+  styleUrl: './credential-create.component.scss',
 })
 export class CredentialCreateComponent implements OnInit {
   private _credentialService = inject(CredentialService);
@@ -76,19 +70,19 @@ export class CredentialCreateComponent implements OnInit {
   CredentialCategory = CredentialCategory;
   CredentialPrivacy = CredentialPrivacy;
   templateForm: FormGroup = this._formBuilder.group({
-    templateId: [""],
+    templateId: [''],
     useTemplate: [true],
   });
   issuerForm: FormGroup = this._formBuilder.group({
-    issuerDID: ["", Validators.required],
-    subjectDID: ["", Validators.required],
+    issuerDID: ['', Validators.required],
+    subjectDID: ['', Validators.required],
   });
   credentialForm: FormGroup = this._formBuilder.group({
-    alias: ["", [Validators.required, Validators.maxLength(100)]],
+    alias: ['', [Validators.required, Validators.maxLength(100)]],
     category: [CredentialCategory.OTHER, Validators.required],
     privacy: [CredentialPrivacy.PRIVATE, Validators.required],
-    expirationDate: [""],
-    tags: [""],
+    expirationDate: [''],
+    tags: [''],
   });
 
   dynamicForm: FormGroup = this._formBuilder.group({});
@@ -105,9 +99,9 @@ export class CredentialCreateComponent implements OnInit {
   }
 
   getTagsArray(): string[] {
-    const tagsValue = this.credentialForm.get("tags")?.value || "";
+    const tagsValue = this.credentialForm.get('tags')?.value || '';
     return tagsValue
-      .split(",")
+      .split(',')
       .map((tag: string) => tag.trim())
       .filter((tag: string) => tag.length > 0);
   }
@@ -137,21 +131,19 @@ export class CredentialCreateComponent implements OnInit {
         privacy: credentialValues.privacy,
       };
 
-      const credential = await this._credentialService.createCredential(
-        request
-      );
+      const credential = await this._credentialService.createCredential(request);
 
-      this._router.navigate(["/credentials"]);
+      this._router.navigate(['/credentials']);
     } catch (error) {
-      console.error("Error creating credential:", error);
-      this.error.set("Failed to create credential. Please try again.");
+      console.error('Error creating credential:', error);
+      this.error.set('Failed to create credential. Please try again.');
     } finally {
       this.isCreating.set(false);
     }
   }
 
   cancel(): void {
-    this._router.navigate(["/credentials"]);
+    this._router.navigate(['/credentials']);
   }
 
   getFormControl(formGroup: FormGroup, controlName: string): FormControl {
@@ -180,11 +172,8 @@ export class CredentialCreateComponent implements OnInit {
       isValid = false;
     }
 
-    if (
-      !this.selectedTemplate() &&
-      Object.keys(this.dynamicForm.controls).length === 0
-    ) {
-      this.error.set("Please select a template or provide credential data");
+    if (!this.selectedTemplate() && Object.keys(this.dynamicForm.controls).length === 0) {
+      this.error.set('Please select a template or provide credential data');
       isValid = false;
     }
 
@@ -199,30 +188,24 @@ export class CredentialCreateComponent implements OnInit {
   }
 
   private _setupFormWatchers(): void {
-    this.templateForm
-      .get("templateId")
-      ?.valueChanges.subscribe((templateId) => {
-        if (templateId) {
-          const template = this.availableTemplates().find(
-            (t) => t.id === templateId
-          );
-          this.selectedTemplate.set(template || null);
-          this._buildDynamicForm(template);
-        } else {
-          this.selectedTemplate.set(null);
-          this._clearDynamicForm();
-        }
-      });
+    this.templateForm.get('templateId')?.valueChanges.subscribe((templateId) => {
+      if (templateId) {
+        const template = this.availableTemplates().find((t) => t.id === templateId);
+        this.selectedTemplate.set(template || null);
+        this._buildDynamicForm(template);
+      } else {
+        this.selectedTemplate.set(null);
+        this._clearDynamicForm();
+      }
+    });
 
-    this.templateForm
-      .get("useTemplate")
-      ?.valueChanges.subscribe((useTemplate) => {
-        if (!useTemplate) {
-          this.selectedTemplate.set(null);
-          this._clearDynamicForm();
-          this.templateForm.patchValue({ templateId: "" });
-        }
-      });
+    this.templateForm.get('useTemplate')?.valueChanges.subscribe((useTemplate) => {
+      if (!useTemplate) {
+        this.selectedTemplate.set(null);
+        this._clearDynamicForm();
+        this.templateForm.patchValue({ templateId: '' });
+      }
+    });
   }
 
   private async _loadInitialData(): Promise<void> {
@@ -242,8 +225,8 @@ export class CredentialCreateComponent implements OnInit {
         });
       }
     } catch (error) {
-      console.error("Error loading initial data:", error);
-      this.error.set("Failed to load required data");
+      console.error('Error loading initial data:', error);
+      this.error.set('Failed to load required data');
     } finally {
       this.isLoading.set(false);
     }
@@ -281,7 +264,7 @@ export class CredentialCreateComponent implements OnInit {
         validators.push(Validators.pattern(/^https?:\/\/.+/));
       }
 
-      group[field.key] = new FormControl("", validators);
+      group[field.key] = new FormControl('', validators);
     });
 
     this.dynamicForm = this._formBuilder.group(group);
@@ -289,7 +272,7 @@ export class CredentialCreateComponent implements OnInit {
 
   private _setupHeader(): void {
     this._headerService.setHeader({
-      title: "Create Credential",
+      title: 'Create Credential',
       showBackButton: true,
       backButtonHandler: () => this.cancel(),
     });

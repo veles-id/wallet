@@ -1,31 +1,18 @@
-import {
-  Component,
-  signal,
-  computed,
-  inject,
-  OnInit,
-  viewChild,
-  TemplateRef,
-} from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatIconModule } from "@angular/material/icon";
-import { MatInputModule } from "@angular/material/input";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from "@angular/forms";
-import { Router, ActivatedRoute } from "@angular/router";
-import { AuthService } from "../../../core/services/auth.service";
-import { DidService } from "../../../core/services/did.service";
-import { StoredDID, DIDType } from "../../../core/services/did.types";
-import { ProfileComponent } from "../../../shared/profile/profile.component";
-import { AvatarSize } from "../../../shared/avatar/avatar.types";
-import { HeaderService } from "../../../core/services/header.service";
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal, TemplateRef, viewChild } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { DidService } from '../../../core/services/did.service';
+import { DIDType, StoredDID } from '../../../core/services/did.types';
+import { HeaderService } from '../../../core/services/header.service';
+import { AvatarSize } from '../../../shared/avatar/avatar.types';
+import { ProfileComponent } from '../../../shared/profile/profile.component';
 
 interface PersonaFormData {
   alias: string;
@@ -38,7 +25,7 @@ interface PersonaFormData {
 }
 
 @Component({
-  selector: "app-persona-edit",
+  selector: 'app-persona-edit',
   standalone: true,
   imports: [
     CommonModule,
@@ -50,8 +37,8 @@ interface PersonaFormData {
     ReactiveFormsModule,
     ProfileComponent,
   ],
-  templateUrl: "./persona-edit.component.html",
-  styleUrl: "./persona-edit.component.scss",
+  templateUrl: './persona-edit.component.html',
+  styleUrl: './persona-edit.component.scss',
 })
 export class PersonaEditComponent implements OnInit {
   private _authService = inject(AuthService);
@@ -67,15 +54,15 @@ export class PersonaEditComponent implements OnInit {
   currentDID = signal<StoredDID | null>(null);
   nostrData = signal<any>(null);
   currentUser = computed(() => this._authService.currentUser());
-  profileTemplate = viewChild<TemplateRef<any>>("profileTemplate");
+  profileTemplate = viewChild<TemplateRef<any>>('profileTemplate');
   personaForm: FormGroup = this._formBuilder.group({
-    alias: ["", [Validators.maxLength(50)]],
-    name: ["", [Validators.maxLength(100)]],
-    nick: ["", [Validators.maxLength(50)]],
-    website: ["", [Validators.pattern(/^https?:\/\/.*$/)]],
-    about: ["", [Validators.maxLength(500)]],
-    lightningWallet: ["", [Validators.maxLength(100)]],
-    location: ["", [Validators.maxLength(100)]],
+    alias: ['', [Validators.maxLength(50)]],
+    name: ['', [Validators.maxLength(100)]],
+    nick: ['', [Validators.maxLength(50)]],
+    website: ['', [Validators.pattern(/^https?:\/\/.*$/)]],
+    about: ['', [Validators.maxLength(500)]],
+    lightningWallet: ['', [Validators.maxLength(100)]],
+    location: ['', [Validators.maxLength(100)]],
   });
 
   ngOnInit(): void {
@@ -90,10 +77,10 @@ export class PersonaEditComponent implements OnInit {
   private async _loadDIDFromRoute(): Promise<void> {
     try {
       this.isLoading.set(true);
-      const didId = this._route.snapshot.paramMap.get("id");
+      const didId = this._route.snapshot.paramMap.get('id');
 
       if (!didId) {
-        this._router.navigate(["/personas"]);
+        this._router.navigate(['/personas']);
         return;
       }
 
@@ -101,20 +88,20 @@ export class PersonaEditComponent implements OnInit {
       const did = storedDIDs.find((d) => d.did === didId);
 
       if (!did) {
-        this._router.navigate(["/personas"]);
+        this._router.navigate(['/personas']);
         return;
       }
 
       this.currentDID.set(did);
 
-      if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
+      if (did.didType === DIDType.NOSTR || did.did.startsWith('did:nostr:')) {
         await this._loadNostrData(did.did);
       }
 
       this._populateFormData(did);
     } catch (error) {
-      console.error("Error loading DID from route:", error);
-      this.error.set("Failed to load your digital identity");
+      console.error('Error loading DID from route:', error);
+      this.error.set('Failed to load your digital identity');
     } finally {
       this.isLoading.set(false);
     }
@@ -125,7 +112,7 @@ export class PersonaEditComponent implements OnInit {
       const didInfo = await this._didService.resolveDID(did);
       this.nostrData.set(didInfo);
     } catch (error) {
-      console.error("Error loading NOSTR data:", error);
+      console.error('Error loading NOSTR data:', error);
     }
   }
 
@@ -134,18 +121,18 @@ export class PersonaEditComponent implements OnInit {
     const metadata = nostr?.profileMetadata?.metadata;
 
     this.personaForm.patchValue({
-      alias: did.alias || "",
-      name: metadata?.name || metadata?.display_name || did.alias || "",
-      nick: metadata?.display_name || "",
-      website: metadata?.website || "",
-      about: metadata?.about || "",
-      lightningWallet: metadata?.lud16 || metadata?.lud06 || "",
-      location: metadata?.location || "",
+      alias: did.alias || '',
+      name: metadata?.name || metadata?.display_name || did.alias || '',
+      nick: metadata?.display_name || '',
+      website: metadata?.website || '',
+      about: metadata?.about || '',
+      lightningWallet: metadata?.lud16 || metadata?.lud06 || '',
+      location: metadata?.location || '',
     });
   }
 
   shortDID = computed(() => {
-    const did = this.currentDID()?.did || "";
+    const did = this.currentDID()?.did || '';
     if (did.length > 30) {
       return `${did.substring(0, 20)}...${did.substring(did.length - 10)}`;
     }
@@ -158,7 +145,7 @@ export class PersonaEditComponent implements OnInit {
       try {
         await navigator.clipboard.writeText(did);
       } catch (error) {
-        console.error("Failed to copy DID:", error);
+        console.error('Failed to copy DID:', error);
       }
     }
   }
@@ -177,17 +164,14 @@ export class PersonaEditComponent implements OnInit {
       const formValues = this.personaForm.value as PersonaFormData;
 
       if (!currentDID) {
-        throw new Error("No DID selected");
+        throw new Error('No DID selected');
       }
 
       if (formValues.alias !== currentDID.alias) {
         this._didService.updateDIDAlias(currentDID.did, formValues.alias);
       }
 
-      if (
-        currentDID.didType === DIDType.NOSTR ||
-        currentDID.did.startsWith("did:nostr:")
-      ) {
+      if (currentDID.didType === DIDType.NOSTR || currentDID.did.startsWith('did:nostr:')) {
         const success = await this._didService.updateNostrProfile(currentDID, {
           name: formValues.name,
           display_name: formValues.nick,
@@ -198,14 +182,14 @@ export class PersonaEditComponent implements OnInit {
         });
 
         if (!success) {
-          throw new Error("Failed to update profile on Nostr relays");
+          throw new Error('Failed to update profile on Nostr relays');
         }
       }
 
-      this._router.navigate(["/personas", currentDID.did]);
+      this._router.navigate(['/personas', currentDID.did]);
     } catch (error) {
-      console.error("Error saving persona:", error);
-      this.error.set("Failed to save changes");
+      console.error('Error saving persona:', error);
+      this.error.set('Failed to save changes');
     } finally {
       this.isSaving.set(false);
     }
@@ -214,21 +198,21 @@ export class PersonaEditComponent implements OnInit {
   cancel(): void {
     const currentDID = this.currentDID();
     if (currentDID) {
-      this._router.navigate(["/personas", currentDID.did]);
+      this._router.navigate(['/personas', currentDID.did]);
     } else {
-      this._router.navigate(["/personas"]);
+      this._router.navigate(['/personas']);
     }
   }
 
   getPersonaInitials(did: StoredDID): string {
     if (did.alias) {
       return did.alias
-        .split(" ")
+        .split(' ')
         .map((word) => word.charAt(0).toUpperCase())
-        .join("")
+        .join('')
         .substring(0, 2);
     }
-    return did.didType?.charAt(0).toUpperCase() || "D";
+    return did.didType?.charAt(0).toUpperCase() || 'D';
   }
 
   getPersonaName(): string {
@@ -236,7 +220,7 @@ export class PersonaEditComponent implements OnInit {
     if (currentDID?.alias) {
       return currentDID.alias;
     }
-    return "Edit Persona";
+    return 'Edit Persona';
   }
 
   private _setupHeader(): void {

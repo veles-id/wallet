@@ -1,21 +1,21 @@
 @if (showHeader()) {
-<header class="header">
-  @if (showBackButton()) {
-  <button mat-icon-button class="header__back-button" (click)="onBackClick()">
-    <mat-icon>arrow_back</mat-icon>
-  </button>
-  }
-  <div
-    class="header__content"
-    [class.header__content--with-back-button]="showBackButton()"
-  >
-    @if (title()) {
-    <h1 class="header__title">{{ title() }}</h1>
-    } @else if (contentTemplate()) {
-    <ng-container
-      *ngTemplateOutlet="contentTemplate() || null; context: contentContext()"
-    ></ng-container>
+  <header class="header">
+    @if (showBackButton()) {
+      <button
+        mat-icon-button
+        class="header__back-button"
+        (click)="onBackClick()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
     }
-  </div>
-</header>
+    <div
+      class="header__content"
+      [class.header__content--with-back-button]="showBackButton()">
+      @if (title()) {
+        <h1 class="header__title">{{ title() }}</h1>
+      } @else if (contentTemplate()) {
+        <ng-container *ngTemplateOutlet="contentTemplate() || null; context: contentContext()"></ng-container>
+      }
+    </div>
+  </header>
 }

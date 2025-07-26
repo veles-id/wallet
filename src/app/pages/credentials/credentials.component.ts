@@ -1,21 +1,21 @@
-import { Component, signal, computed, inject, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatIconModule } from "@angular/material/icon";
-import { MatCardModule } from "@angular/material/card";
-import { MatChipsModule } from "@angular/material/chips";
-import { MatTooltipModule } from "@angular/material/tooltip";
-import { Router } from "@angular/router";
-import { AuthService } from "../../core/services/auth.service";
-import { CredentialService } from "../../core/services/credential.service";
-import { StoredCredential } from "../../core/services/credential.types";
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { CredentialService } from '../../core/services/credential.service';
+import { StoredCredential } from '../../core/services/credential.types';
 
-import { CredentialCardComponent } from "./credential-card/credential-card.component";
-import { HeaderService } from "../../core/services/header.service";
+import { HeaderService } from '../../core/services/header.service';
+import { CredentialCardComponent } from './credential-card/credential-card.component';
 
 @Component({
-  selector: "app-credentials",
+  selector: 'app-credentials',
   standalone: true,
   imports: [
     CommonModule,
@@ -27,8 +27,8 @@ import { HeaderService } from "../../core/services/header.service";
     MatTooltipModule,
     CredentialCardComponent,
   ],
-  templateUrl: "./credentials.component.html",
-  styleUrl: "./credentials.component.scss",
+  templateUrl: './credentials.component.html',
+  styleUrl: './credentials.component.scss',
 })
 export class CredentialsComponent implements OnInit {
   private _authService = inject(AuthService);
@@ -44,7 +44,7 @@ export class CredentialsComponent implements OnInit {
 
   ngOnInit(): void {
     this._headerService.setHeader({
-      title: "Credentials",
+      title: 'Credentials',
       showBackButton: false,
     });
     this._loadCredentials();
@@ -55,33 +55,29 @@ export class CredentialsComponent implements OnInit {
       const storedCredentials = this._credentialService.getStoredCredentials();
       this.credentials.set(storedCredentials);
     } catch (error) {
-      console.error("Error loading credentials:", error);
-      this.error.set("Failed to load credentials");
+      console.error('Error loading credentials:', error);
+      this.error.set('Failed to load credentials');
     }
   }
 
   createNewCredential(): void {
-    this._router.navigate(["/credentials/create"]);
+    this._router.navigate(['/credentials/create']);
   }
 
   viewCredential(credential: StoredCredential): void {
-    this._router.navigate(["/credentials", credential.credential.id]);
+    this._router.navigate(['/credentials', credential.credential.id]);
   }
 
   deleteCredential(credential: StoredCredential): void {
     const { alias, credential: cred } = credential;
     const { id } = cred;
 
-    if (
-      confirm(
-        `Are you sure you want to delete "${alias || "this credential"}"?`
-      )
-    ) {
+    if (confirm(`Are you sure you want to delete "${alias || 'this credential'}"?`)) {
       const success = this._credentialService.deleteCredential(id);
       if (success) {
         this._loadCredentials();
       } else {
-        this.error.set("Failed to delete credential");
+        this.error.set('Failed to delete credential');
       }
     }
   }

@@ -1,8 +1,8 @@
 // DID
 
 export enum DIDType {
-  DHT = "dht",
-  NOSTR = "nostr",
+  DHT = 'dht',
+  NOSTR = 'nostr',
 }
 
 export interface CreateDIDResult {

@@ -1,6 +1,6 @@
-import { Injectable, signal, inject } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { Router } from "@angular/router";
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 export interface User {
   id: string;
@@ -8,10 +8,10 @@ export interface User {
 }
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class AuthService {
-  private readonly _API_URL = "http://localhost:4300/api";
+  private readonly _API_URL = 'http://localhost:4300/api';
   private _http = inject(HttpClient);
   private _router = inject(Router);
   private _isAuthenticated = signal(false);
@@ -24,9 +24,6 @@ export class AuthService {
     this.checkAuthStatus();
   }
 
-  /**
-   * Check if user is currently authenticated
-   */
   private async checkAuthStatus(): Promise<void> {
     try {
       // Check with backend if user has valid session
@@ -44,23 +41,17 @@ export class AuthService {
         this._currentUser.set(null);
       }
     } catch (error) {
-      console.error("Error checking auth status:", error);
+      console.error('Error checking auth status:', error);
       this._isAuthenticated.set(false);
       this._currentUser.set(null);
     }
   }
 
-  /**
-   * Set authentication state after successful login
-   */
   setAuthenticated(user: User): void {
     this._isAuthenticated.set(true);
     this._currentUser.set(user);
   }
 
-  /**
-   * Clear authentication state and logout
-   */
   async logout(): Promise<void> {
     try {
       await this._http
@@ -69,21 +60,18 @@ export class AuthService {
           {},
           {
             withCredentials: true,
-          }
+          },
         )
         .toPromise();
     } catch (error) {
-      console.error("Error during logout:", error);
+      console.error('Error during logout:', error);
     } finally {
       this._isAuthenticated.set(false);
       this._currentUser.set(null);
-      this._router.navigate(["/login"]);
+      this._router.navigate(['/login']);
     }
   }
 
-  /**
-   * Refresh authentication status
-   */
   async refreshAuthStatus(): Promise<void> {
     await this.checkAuthStatus();
   }

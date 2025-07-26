@@ -1,23 +1,23 @@
-import { Component, input, computed } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { AvatarSize } from "./avatar.types";
+import { CommonModule } from '@angular/common';
+import { Component, computed, input } from '@angular/core';
+import { AvatarSize } from './avatar.types';
 
 @Component({
-  selector: "app-avatar",
+  selector: 'app-avatar',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: "./avatar.component.html",
-  styleUrl: "./avatar.component.scss",
+  templateUrl: './avatar.component.html',
+  styleUrl: './avatar.component.scss',
 })
 export class AvatarComponent {
   initials = input.required<string>();
   size = input<AvatarSize>(AvatarSize.MEDIUM);
-  backgroundColor = input<string>("");
+  backgroundColor = input<string>('');
 
   avatarClasses = computed(() => {
-    const classes = ["avatar"];
+    const classes = ['avatar'];
     classes.push(`avatar--${this.size()}`);
-    return classes.join(" ");
+    return classes.join(' ');
   });
 
   avatarStyles = computed(() => {
@@ -25,7 +25,7 @@ export class AvatarComponent {
     const customBackground = this.backgroundColor();
 
     if (customBackground) {
-      styles["background-color"] = customBackground;
+      styles['background-color'] = customBackground;
     }
 
     return styles;

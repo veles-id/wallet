@@ -2,23 +2,31 @@
   <mat-card class="did-management-card">
     <mat-card-header>
       <mat-card-title>Your DIDs</mat-card-title>
-      <br /><br />
+      <br />
+      <br />
     </mat-card-header>
 
     <mat-card-content>
-      <div *ngIf="storedDIDs.length === 0" class="no-dids">
-        <mat-icon color="primary" class="large-icon">account_circle</mat-icon>
+      <div
+        *ngIf="storedDIDs.length === 0"
+        class="no-dids">
+        <mat-icon
+          color="primary"
+          class="large-icon">
+          account_circle
+        </mat-icon>
         <h3>No DIDs found</h3>
-        <p>
-          You haven't created any DIDs yet. Create your first DID to get
-          started.
-        </p>
+        <p>You haven't created any DIDs yet. Create your first DID to get started.</p>
       </div>
 
-      <div *ngIf="storedDIDs.length > 0" class="dids-list">
-        <div *ngFor="let did of storedDIDs" class="did-item">
+      <div
+        *ngIf="storedDIDs.length > 0"
+        class="dids-list">
+        <div
+          *ngFor="let did of storedDIDs"
+          class="did-item">
           <div class="did-header">
-            <h4>{{ did.alias || "Unnamed DID" }}</h4>
+            <h4>{{ did.alias || 'Unnamed DID' }}</h4>
             <span class="did-date">{{ formatDate(did.createdAt) }}</span>
           </div>
 
@@ -29,19 +37,24 @@
               <button
                 mat-icon-button
                 (click)="copyToClipboard(did.did)"
-                matTooltip="Copy to clipboard"
-              >
+                matTooltip="Copy to clipboard">
                 <mat-icon>content_copy</mat-icon>
               </button>
             </div>
           </div>
 
           <div class="did-actions">
-            <button mat-button color="primary" (click)="exportDID(did.did)">
+            <button
+              mat-button
+              color="primary"
+              (click)="exportDID(did.did)">
               <mat-icon>download</mat-icon>
               Export
             </button>
-            <button mat-button color="warn" (click)="deleteDID(did.did)">
+            <button
+              mat-button
+              color="warn"
+              (click)="deleteDID(did.did)">
               <mat-icon>delete</mat-icon>
               Delete
             </button>
@@ -51,11 +64,16 @@
     </mat-card-content>
 
     <mat-card-actions align="end">
-      <button mat-raised-button color="primary" (click)="createNewDID()">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="createNewDID()">
         <mat-icon>add</mat-icon>
         Create New DID
       </button>
-      <button mat-button (click)="goBack()">
+      <button
+        mat-button
+        (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
         Back
       </button>

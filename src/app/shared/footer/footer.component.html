@@ -1,59 +1,42 @@
 @if (showFooter()) {
-<nav class="nav-footer__bottom-nav">
-  <button
-    [class]="
-      'nav-footer__nav-item' +
-      (isRouteActive('/personas') ? ' nav-footer__nav-item--active' : '')
-    "
-    mat-button
-    (click)="navigateToIdentity()"
-  >
-    <mat-icon>fingerprint</mat-icon>
-    <span>Identity</span>
-  </button>
+  <nav class="nav-footer__bottom-nav">
+    <button
+      [class]="'nav-footer__nav-item' + (isRouteActive('/personas') ? ' nav-footer__nav-item--active' : '')"
+      mat-button
+      (click)="navigateToIdentity()">
+      <mat-icon>fingerprint</mat-icon>
+      <span>Identity</span>
+    </button>
 
-  <button
-    [class]="
-      'nav-footer__nav-item' +
-      (isRouteActive('/credentials') ? ' nav-footer__nav-item--active' : '')
-    "
-    mat-button
-    (click)="navigateToCredentials()"
-  >
-    <mat-icon>badge</mat-icon>
-    <span>Credentials</span>
-  </button>
+    <button
+      [class]="'nav-footer__nav-item' + (isRouteActive('/credentials') ? ' nav-footer__nav-item--active' : '')"
+      mat-button
+      (click)="navigateToCredentials()">
+      <mat-icon>badge</mat-icon>
+      <span>Credentials</span>
+    </button>
 
-  <div class="nav-footer__nav-center">
-    <img
-      src="assets/signet-menu.svg"
-      alt="Veles"
-      class="nav-footer__nav-logo"
-    />
-  </div>
+    <div class="nav-footer__nav-center">
+      <img
+        src="assets/signet-menu.svg"
+        alt="Veles"
+        class="nav-footer__nav-logo" />
+    </div>
 
-  <button
-    [class]="
-      'nav-footer__nav-item' +
-      (isRouteActive('/linked') ? ' nav-footer__nav-item--active' : '')
-    "
-    mat-button
-    (click)="navigateToLinked()"
-  >
-    <mat-icon>link</mat-icon>
-    <span>Linked</span>
-  </button>
+    <button
+      [class]="'nav-footer__nav-item' + (isRouteActive('/linked') ? ' nav-footer__nav-item--active' : '')"
+      mat-button
+      (click)="navigateToLinked()">
+      <mat-icon>link</mat-icon>
+      <span>Linked</span>
+    </button>
 
-  <button
-    [class]="
-      'nav-footer__nav-item' +
-      (isRouteActive('/settings') ? ' nav-footer__nav-item--active' : '')
-    "
-    mat-button
-    (click)="navigateToSettings()"
-  >
-    <mat-icon>settings</mat-icon>
-    <span>Settings</span>
-  </button>
-</nav>
+    <button
+      [class]="'nav-footer__nav-item' + (isRouteActive('/settings') ? ' nav-footer__nav-item--active' : '')"
+      mat-button
+      (click)="navigateToSettings()">
+      <mat-icon>settings</mat-icon>
+      <span>Settings</span>
+    </button>
+  </nav>
 }

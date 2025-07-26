@@ -1,6 +1,6 @@
 {
   "name": "veles",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -12,8 +12,8 @@
     "test:ci": "jest --ci --coverage --watchAll=false",
     "lint": "eslint src/**/*.ts src/**/*.html",
     "lint:fix": "eslint src/**/*.ts src/**/*.html --fix",
-    "format": "prettier --check src/**/*.{ts,html,scss,css,json}",
-    "format:fix": "prettier --write src/**/*.{ts,html,scss,css,json}",
+    "format": "prettier --check \"src/**/*.{ts,html,scss}\"",
+    "format:fix": "prettier --write \"src/**/*.{ts,html,scss}\"",
     "format:staged": "pretty-quick --staged"
   },
   "private": true,

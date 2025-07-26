@@ -1,20 +1,9 @@
-import { Injectable } from "@angular/core";
-import {
-  CreateDIDResult,
-  NostrDIDResult,
-  NostrEvent,
-  NostrRelay,
-  StoredDID,
-} from "./did.types";
-import {
-  generateSecretKey,
-  getPublicKey,
-  finalizeEvent,
-  verifyEvent,
-} from "nostr-tools/pure";
+import { Injectable } from '@angular/core';
+import { finalizeEvent, generateSecretKey, getPublicKey, verifyEvent } from 'nostr-tools/pure';
+import { NostrDIDResult, NostrEvent, NostrRelay, StoredDID } from './did.types';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class DidNostrService {
   /**
@@ -23,9 +12,9 @@ export class DidNostrService {
    */
   private readonly DEFAULT_RELAYS: NostrRelay[] = [
     // Tier 1: Major stable
-    { url: "wss://relay.damus.io", name: "Damus" },
-    { url: "wss://nos.lol", name: "nos.lol" },
-    { url: "wss://relay.nostr.band", name: "Nostr Band" },
+    { url: 'wss://relay.damus.io', name: 'Damus' },
+    { url: 'wss://nos.lol', name: 'nos.lol' },
+    { url: 'wss://relay.nostr.band', name: 'Nostr Band' },
     // Tier 2: Regional
     // { url: "wss://nostr.wine", name: "Nostr.wine Europe" },
     // { url: "wss://relay.current.fyi", name: "Current Asia" },
@@ -37,7 +26,7 @@ export class DidNostrService {
 
   async createDID(): Promise<NostrDIDResult> {
     try {
-      console.log("Creating new DID:Nostr...");
+      console.log('Creating new DID:Nostr...');
 
       const keyPair = await this.generateNostrKeyPair();
 
@@ -45,15 +34,12 @@ export class DidNostrService {
 
       // Create DID document
       const document = {
-        "@context": [
-          "https://www.w3.org/ns/did/v1",
-          "https://w3id.org/security/suites/ed25519-2020/v1",
-        ],
+        '@context': ['https://www.w3.org/ns/did/v1', 'https://w3id.org/security/suites/ed25519-2020/v1'],
         id: did,
         verificationMethod: [
           {
             id: `${did}#key-1`,
-            type: "Ed25519VerificationKey2020",
+            type: 'Ed25519VerificationKey2020',
             controller: did,
             publicKeyMultibase: `z${keyPair.publicKey}`, // Multibase encoding
           },
@@ -63,7 +49,7 @@ export class DidNostrService {
         service: [
           {
             id: `${did}#nostr`,
-            type: "NostrRelay",
+            type: 'NostrRelay',
             serviceEndpoint: this.DEFAULT_RELAYS.map((r) => r.url),
           },
         ],
@@ -78,42 +64,36 @@ export class DidNostrService {
         nostrPrivateKey: keyPair.privateKey,
       };
     } catch (error) {
-      console.error("Failed to create DID:Nostr:", error);
+      console.error('Failed to create DID:Nostr:', error);
       throw error;
     }
   }
 
   async publishDID(storedDID: StoredDID): Promise<boolean> {
     try {
-      console.log("Publishing DID:Nostr...");
-      console.log("DID to publish:", storedDID.did);
+      console.log('Publishing DID:Nostr...');
+      console.log('DID to publish:', storedDID.did);
 
-      if (!storedDID.did.startsWith("did:nostr:")) {
-        throw new Error("Can only publish DID:Nostr documents to Nostr relays");
+      if (!storedDID.did.startsWith('did:nostr:')) {
+        throw new Error('Can only publish DID:Nostr documents to Nostr relays');
       }
 
       const nostrKeys = this.extractNostrKeys(storedDID);
       if (!nostrKeys) {
-        throw new Error("Could not extract Nostr keys from DID");
+        throw new Error('Could not extract Nostr keys from DID');
       }
-      console.log(
-        "Extracted keys - Public:",
-        nostrKeys.publicKey.substring(0, 16) + "..."
-      );
+      console.log('Extracted keys - Public:', nostrKeys.publicKey.substring(0, 16) + '...');
 
       const event = await this.createDIDEvent(storedDID, nostrKeys);
-      console.log("Created event:", {
+      console.log('Created event:', {
         kind: event.kind,
-        pubkey: event.pubkey.substring(0, 16) + "...",
+        pubkey: event.pubkey.substring(0, 16) + '...',
         tags: event.tags,
         contentLength: event.content.length,
       });
 
       const signedEvent = await this.signEvent(event, nostrKeys.privateKey);
-      console.log(
-        "Signed event - ID:",
-        signedEvent.id?.substring(0, 16) + "..."
-      );
+      console.log('Signed event - ID:', signedEvent.id?.substring(0, 16) + '...');
 
       const publishResults = await this.publishToRelays(signedEvent);
 
@@ -121,20 +101,16 @@ export class DidNostrService {
         if (result.success) {
           console.log(`${result.relay}: SUCCESS`);
         } else {
-          console.log(
-            `${result.relay}: FAILED${result.error ? ` - ${result.error}` : ""}`
-          );
+          console.log(`${result.relay}: FAILED${result.error ? ` - ${result.error}` : ''}`);
         }
       });
 
       const successCount = publishResults.filter((r) => r.success).length;
-      console.log(
-        `Final result: ${successCount}/${publishResults.length} relays succeeded`
-      );
+      console.log(`Final result: ${successCount}/${publishResults.length} relays succeeded`);
 
       return successCount > 0;
     } catch (error) {
-      console.error("Failed to publish DID:Nostr:", error);
+      console.error('Failed to publish DID:Nostr:', error);
       throw error;
     }
   }
@@ -148,24 +124,22 @@ export class DidNostrService {
       about?: string;
       lud16?: string;
       location?: string;
-    }
+    },
   ): Promise<boolean> {
     try {
-      console.log("Updating Nostr profile metadata...");
+      console.log('Updating Nostr profile metadata...');
 
-      if (!storedDID.did.startsWith("did:nostr:")) {
-        throw new Error("Can only update profile metadata for DID:Nostr");
+      if (!storedDID.did.startsWith('did:nostr:')) {
+        throw new Error('Can only update profile metadata for DID:Nostr');
       }
 
       const nostrKeys = this.extractNostrKeys(storedDID);
       if (!nostrKeys) {
-        throw new Error("Could not extract Nostr keys from DID");
+        throw new Error('Could not extract Nostr keys from DID');
       }
 
       const filteredMetadata = Object.fromEntries(
-        Object.entries(metadata).filter(
-          ([_, value]) => value !== undefined && value !== null && value !== ""
-        )
+        Object.entries(metadata).filter(([_, value]) => value !== undefined && value !== null && value !== ''),
       );
 
       const event: NostrEvent = {
@@ -176,9 +150,9 @@ export class DidNostrService {
         content: JSON.stringify(filteredMetadata),
       };
 
-      console.log("Created profile metadata event:", {
+      console.log('Created profile metadata event:', {
         kind: event.kind,
-        pubkey: event.pubkey.substring(0, 16) + "...",
+        pubkey: event.pubkey.substring(0, 16) + '...',
         metadata: filteredMetadata,
       });
 
@@ -189,40 +163,34 @@ export class DidNostrService {
         if (result.success) {
           console.log(`Profile update to ${result.relay}: SUCCESS`);
         } else {
-          console.log(
-            `Profile update to ${result.relay}: FAILED${
-              result.error ? ` - ${result.error}` : ""
-            }`
-          );
+          console.log(`Profile update to ${result.relay}: FAILED${result.error ? ` - ${result.error}` : ''}`);
         }
       });
 
       const successCount = publishResults.filter((r) => r.success).length;
-      console.log(
-        `Profile metadata update result: ${successCount}/${publishResults.length} relays succeeded`
-      );
+      console.log(`Profile metadata update result: ${successCount}/${publishResults.length} relays succeeded`);
 
       return successCount > 0;
     } catch (error) {
-      console.error("Failed to update profile metadata:", error);
+      console.error('Failed to update profile metadata:', error);
       throw error;
     }
   }
 
   async retrieveDIDInfo(did: string): Promise<any> {
     try {
-      console.log("Retrieving DID:Nostr information from network:", did);
+      console.log('Retrieving DID:Nostr information from network:', did);
 
-      if (!did.startsWith("did:nostr:")) {
-        throw new Error("Not a valid DID:Nostr identifier");
+      if (!did.startsWith('did:nostr:')) {
+        throw new Error('Not a valid DID:Nostr identifier');
       }
 
-      const publicKey = did.split(":")[2];
+      const publicKey = did.split(':')[2];
       if (!publicKey || publicKey.length !== 64) {
-        throw new Error("Invalid public key in DID:Nostr");
+        throw new Error('Invalid public key in DID:Nostr');
       }
 
-      console.log("Extracted public key:", publicKey.substring(0, 16) + "...");
+      console.log('Extracted public key:', publicKey.substring(0, 16) + '...');
 
       const results = await Promise.allSettled([
         this.retrieveDIDDocument(publicKey),
@@ -231,14 +199,10 @@ export class DidNostrService {
         this.retrieveContactList(publicKey),
       ]);
 
-      const didDocument =
-        results[0].status === "fulfilled" ? results[0].value : null;
-      const profileMetadata =
-        results[1].status === "fulfilled" ? results[1].value : null;
-      const relayList =
-        results[2].status === "fulfilled" ? results[2].value : null;
-      const contactList =
-        results[3].status === "fulfilled" ? results[3].value : null;
+      const didDocument = results[0].status === 'fulfilled' ? results[0].value : null;
+      const profileMetadata = results[1].status === 'fulfilled' ? results[1].value : null;
+      const relayList = results[2].status === 'fulfilled' ? results[2].value : null;
+      const contactList = results[3].status === 'fulfilled' ? results[3].value : null;
 
       return {
         did,
@@ -250,7 +214,7 @@ export class DidNostrService {
         retrievedAt: new Date().toISOString(),
       };
     } catch (error) {
-      console.error("Failed to retrieve DID:Nostr information:", error);
+      console.error('Failed to retrieve DID:Nostr information:', error);
       throw error;
     }
   }
@@ -262,7 +226,7 @@ export class DidNostrService {
     const filter = {
       kinds: [30000],
       authors: [publicKey],
-      "#d": [`did:nostr:${publicKey}`],
+      '#d': [`did:nostr:${publicKey}`],
       limit: 1,
     };
 
@@ -277,7 +241,7 @@ export class DidNostrService {
           publishedAt: new Date(event.created_at * 1000).toISOString(),
         };
       } catch (error) {
-        console.warn("Failed to parse DID document:", error);
+        console.warn('Failed to parse DID document:', error);
         return {
           event,
           document: null,
@@ -310,7 +274,7 @@ export class DidNostrService {
           updatedAt: new Date(event.created_at * 1000).toISOString(),
         };
       } catch (error) {
-        console.warn("Failed to parse profile metadata:", error);
+        console.warn('Failed to parse profile metadata:', error);
         return {
           event,
           metadata: null,
@@ -337,10 +301,10 @@ export class DidNostrService {
     if (events.length > 0) {
       const event = events[0];
       const relays = event.tags
-        .filter((tag: string[]) => tag[0] === "r")
+        .filter((tag: string[]) => tag[0] === 'r')
         .map((tag: string[]) => ({
           url: tag[1],
-          type: tag[2] || "read+write",
+          type: tag[2] || 'read+write',
         }));
 
       return {
@@ -368,7 +332,7 @@ export class DidNostrService {
     if (events.length > 0) {
       const event = events[0];
       const contacts = event.tags
-        .filter((tag: string[]) => tag[0] === "p")
+        .filter((tag: string[]) => tag[0] === 'p')
         .map((tag: string[]) => ({
           pubkey: tag[1],
           relay: tag[2],
@@ -392,28 +356,19 @@ export class DidNostrService {
   private async queryRelays(filter: any): Promise<any[]> {
     const allEvents: any[] = [];
 
-    const results = await Promise.allSettled(
-      this.DEFAULT_RELAYS.map((relay) => this.queryRelay(relay, filter))
-    );
+    const results = await Promise.allSettled(this.DEFAULT_RELAYS.map((relay) => this.queryRelay(relay, filter)));
 
     results.forEach((result, index) => {
-      if (result.status === "fulfilled" && result.value.length > 0) {
-        console.log(
-          `Retrieved ${result.value.length} events from ${this.DEFAULT_RELAYS[index].name}`
-        );
+      if (result.status === 'fulfilled' && result.value.length > 0) {
+        console.log(`Retrieved ${result.value.length} events from ${this.DEFAULT_RELAYS[index].name}`);
         allEvents.push(...result.value);
-      } else if (result.status === "rejected") {
-        console.warn(
-          `Failed to query ${this.DEFAULT_RELAYS[index].name}:`,
-          result.reason
-        );
+      } else if (result.status === 'rejected') {
+        console.warn(`Failed to query ${this.DEFAULT_RELAYS[index].name}:`, result.reason);
       }
     });
 
     // Remove duplicates based on event id
-    const uniqueEvents = allEvents.filter(
-      (event, index, self) => index === self.findIndex((e) => e.id === event.id)
-    );
+    const uniqueEvents = allEvents.filter((event, index, self) => index === self.findIndex((e) => e.id === event.id));
 
     // Sort by created_at descending (newest first)
     uniqueEvents.sort((a, b) => b.created_at - a.created_at);
@@ -442,7 +397,7 @@ export class DidNostrService {
         }, 5000);
 
         ws.onopen = () => {
-          const request = ["REQ", subscriptionId, filter];
+          const request = ['REQ', subscriptionId, filter];
           ws.send(JSON.stringify(request));
         };
 
@@ -450,16 +405,13 @@ export class DidNostrService {
           try {
             const response = JSON.parse(msg.data);
 
-            if (response[0] === "EVENT" && response[1] === subscriptionId) {
+            if (response[0] === 'EVENT' && response[1] === subscriptionId) {
               events.push(response[2]);
-            } else if (
-              response[0] === "EOSE" &&
-              response[1] === subscriptionId
-            ) {
+            } else if (response[0] === 'EOSE' && response[1] === subscriptionId) {
               if (!resolved) {
                 resolved = true;
                 clearTimeout(timeout);
-                ws.send(JSON.stringify(["CLOSE", subscriptionId]));
+                ws.send(JSON.stringify(['CLOSE', subscriptionId]));
                 ws.close();
                 resolve(events);
               }
@@ -495,21 +447,17 @@ export class DidNostrService {
     privateKey: string;
   } | null {
     try {
-      console.log("Extracting Nostr keys from DID:", storedDID.did);
+      console.log('Extracting Nostr keys from DID:', storedDID.did);
 
       // For DID:Nostr, the public key is in the DID identifier
-      const didParts = storedDID.did.split(":");
-      if (
-        didParts.length !== 3 ||
-        didParts[0] !== "did" ||
-        didParts[1] !== "nostr"
-      ) {
-        console.log("Invalid DID format for Nostr");
+      const didParts = storedDID.did.split(':');
+      if (didParts.length !== 3 || didParts[0] !== 'did' || didParts[1] !== 'nostr') {
+        console.log('Invalid DID format for Nostr');
         return null;
       }
 
       const publicKey = didParts[2];
-      console.log("Public key from DID:", publicKey.substring(0, 16) + "...");
+      console.log('Public key from DID:', publicKey.substring(0, 16) + '...');
 
       // Try to get private key from stored data
       let privateKey = null;
@@ -517,7 +465,7 @@ export class DidNostrService {
       // Check if we have Nostr-specific keys stored
       if ((storedDID as any).nostrPrivateKey) {
         privateKey = (storedDID as any).nostrPrivateKey;
-        console.log("Found Nostr private key in stored data");
+        console.log('Found Nostr private key in stored data');
       }
       // Fallback: try to derive from JWK if available
       else if (storedDID.privateKeyJwk?.d) {
@@ -526,24 +474,21 @@ export class DidNostrService {
 
         // Also derive the correct public key using nostr-tools
         const correctPublicKey = getPublicKey(privateKeyBytes);
-        console.log(
-          "Derived keys from JWK - Public key:",
-          correctPublicKey.substring(0, 16) + "..."
-        );
+        console.log('Derived keys from JWK - Public key:', correctPublicKey.substring(0, 16) + '...');
 
         // Update the public key to match what nostr-tools generates
         return { publicKey: correctPublicKey, privateKey };
       }
 
       if (!privateKey) {
-        console.log("No private key found");
+        console.log('No private key found');
         return null;
       }
 
-      console.log("Successfully extracted both keys");
+      console.log('Successfully extracted both keys');
       return { publicKey, privateKey };
     } catch (error) {
-      console.error("Failed to extract Nostr keys:", error);
+      console.error('Failed to extract Nostr keys:', error);
       return null;
     }
   }
@@ -553,7 +498,7 @@ export class DidNostrService {
    */
   private async createDIDEvent(
     storedDID: StoredDID,
-    keyPair: { publicKey: string; privateKey: string }
+    keyPair: { publicKey: string; privateKey: string },
   ): Promise<NostrEvent> {
     const now = Math.floor(Date.now() / 1000);
 
@@ -562,20 +507,17 @@ export class DidNostrService {
       created_at: now,
       kind: 30000, // Parameterized replaceable event for DID documents
       tags: [
-        ["d", storedDID.did], // DID identifier
-        ["t", "did"], // Topic tag
-        ["k", "30000"], // Kind tag
+        ['d', storedDID.did], // DID identifier
+        ['t', 'did'], // Topic tag
+        ['k', '30000'], // Kind tag
       ],
       content: JSON.stringify(storedDID.document),
     };
   }
 
-  private async signEvent(
-    event: NostrEvent,
-    privateKeyHex: string
-  ): Promise<NostrEvent> {
+  private async signEvent(event: NostrEvent, privateKeyHex: string): Promise<NostrEvent> {
     try {
-      console.log("Signing Nostr event with proper tools...");
+      console.log('Signing Nostr event with proper tools...');
 
       const secretKey = this.hexToBytes(privateKeyHex);
 
@@ -588,8 +530,8 @@ export class DidNostrService {
         content: event.content,
       };
 
-      console.log("Event to sign:", {
-        pubkey: event.pubkey.substring(0, 16) + "...",
+      console.log('Event to sign:', {
+        pubkey: event.pubkey.substring(0, 16) + '...',
         created_at: event.created_at,
         kind: event.kind,
         tagsCount: event.tags.length,
@@ -598,19 +540,19 @@ export class DidNostrService {
 
       const signedEvent = finalizeEvent(unsignedEvent, secretKey);
 
-      console.log("Event signed with nostr-tools:", {
-        id: signedEvent.id.substring(0, 16) + "...",
-        sig: signedEvent.sig.substring(0, 16) + "...",
+      console.log('Event signed with nostr-tools:', {
+        id: signedEvent.id.substring(0, 16) + '...',
+        sig: signedEvent.sig.substring(0, 16) + '...',
         sigLength: signedEvent.sig.length,
       });
 
       // Verify the signature
       const isValid = verifyEvent(signedEvent);
-      console.log("Signature verification:", isValid ? "VALID" : "INVALID");
+      console.log('Signature verification:', isValid ? 'VALID' : 'INVALID');
 
       return signedEvent as NostrEvent;
     } catch (error) {
-      console.error("Failed to sign event:", error);
+      console.error('Failed to sign event:', error);
       throw error;
     }
   }
@@ -622,21 +564,16 @@ export class DidNostrService {
       error?: string;
     }>
   > {
-    const results = await Promise.allSettled(
-      this.DEFAULT_RELAYS.map((relay) => this.publishToRelay(event, relay))
-    );
+    const results = await Promise.allSettled(this.DEFAULT_RELAYS.map((relay) => this.publishToRelay(event, relay)));
 
     return results.map((result, index) => ({
       relay: this.DEFAULT_RELAYS[index].name,
-      success: result.status === "fulfilled" && result.value,
-      error: result.status === "rejected" ? result.reason?.message : undefined,
+      success: result.status === 'fulfilled' && result.value,
+      error: result.status === 'rejected' ? result.reason?.message : undefined,
     }));
   }
 
-  private async publishToRelay(
-    event: NostrEvent,
-    relay: NostrRelay
-  ): Promise<boolean> {
+  private async publishToRelay(event: NostrEvent, relay: NostrRelay): Promise<boolean> {
     return new Promise((resolve) => {
       try {
         console.log(`Connecting to ${relay.name} (${relay.url})...`);
@@ -654,10 +591,10 @@ export class DidNostrService {
 
         ws.onopen = () => {
           console.log(`${relay.name}: Connected, sending event...`);
-          const message = JSON.stringify(["EVENT", event]);
+          const message = JSON.stringify(['EVENT', event]);
           console.log(`${relay.name}: Sending message:`, {
-            type: "EVENT",
-            eventId: event.id?.substring(0, 16) + "...",
+            type: 'EVENT',
+            eventId: event.id?.substring(0, 16) + '...',
             messageLength: message.length,
           });
           ws.send(message);
@@ -674,23 +611,16 @@ export class DidNostrService {
               console.log(`${relay.name}: Received response:`, response);
 
               // Check if it's an OK response for our event
-              if (response[0] === "OK" && response[1] === event.id) {
+              if (response[0] === 'OK' && response[1] === event.id) {
                 const success = response[2] === true;
-                console.log(
-                  `${relay.name}: ${success ? "Accepted" : "Rejected"} - ${
-                    response[3] || "No message"
-                  }`
-                );
+                console.log(`${relay.name}: ${success ? 'Accepted' : 'Rejected'} - ${response[3] || 'No message'}`);
                 resolve(success);
               } else {
                 console.log(`${relay.name}: Unexpected response format`);
                 resolve(false);
               }
             } catch (parseError) {
-              console.log(
-                `${relay.name}: Failed to parse response:`,
-                parseError
-              );
+              console.log(`${relay.name}: Failed to parse response:`, parseError);
               resolve(false);
             }
           }
@@ -728,11 +658,11 @@ export class DidNostrService {
     publicKey: string;
     privateKey: string;
   }> {
-    console.log("Generating proper Nostr keypair...");
+    console.log('Generating proper Nostr keypair...');
     const secretKey = generateSecretKey();
     const publicKey = getPublicKey(secretKey);
 
-    console.log("Generated Nostr keys:", {
+    console.log('Generated Nostr keys:', {
       publicKeyLength: publicKey.length,
       secretKeyLength: this.bytesToHex(secretKey).length,
     });
@@ -747,18 +677,16 @@ export class DidNostrService {
    * Utility functions
    */
   private base64UrlDecode(base64Url: string): Uint8Array {
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
     const binaryString = atob(base64 + padding);
-    return new Uint8Array(
-      binaryString.split("").map((char) => char.charCodeAt(0))
-    );
+    return new Uint8Array(binaryString.split('').map((char) => char.charCodeAt(0)));
   }
 
   private bytesToHex(bytes: Uint8Array): string {
     return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
   }
 
   private hexToBytes(hex: string): Uint8Array {

@@ -1,19 +1,19 @@
-import { Component, input, output } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatIconModule } from "@angular/material/icon";
+import { CommonModule } from '@angular/common';
+import { Component, input, output } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import {
-  StoredCredential,
   CredentialCategory,
   CredentialColorClass,
   CredentialIconType,
-} from "../../../core/services/credential.types";
+  StoredCredential,
+} from '../../../core/services/credential.types';
 
 @Component({
-  selector: "app-credential-card",
+  selector: 'app-credential-card',
   standalone: true,
   imports: [CommonModule, MatIconModule],
-  templateUrl: "./credential-card.component.html",
-  styleUrl: "./credential-card.component.scss",
+  templateUrl: './credential-card.component.html',
+  styleUrl: './credential-card.component.scss',
 })
 export class CredentialCardComponent {
   credential = input.required<StoredCredential>();
@@ -22,16 +22,13 @@ export class CredentialCardComponent {
   private _getCategoryFromString(input: string): CredentialCategory | null {
     const lowerInput = input.toLowerCase();
 
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } =
-      CredentialCategory;
+    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialCategory;
 
-    if (lowerInput.includes("email")) return EMAIL;
-    if (lowerInput.includes("education") || lowerInput.includes("alumni"))
-      return EDUCATION;
-    if (lowerInput.includes("device") || lowerInput.includes("phone"))
-      return DEVICE;
-    if (lowerInput.includes("identity")) return IDENTITY;
-    if (lowerInput.includes("professional")) return PROFESSIONAL;
+    if (lowerInput.includes('email')) return EMAIL;
+    if (lowerInput.includes('education') || lowerInput.includes('alumni')) return EDUCATION;
+    if (lowerInput.includes('device') || lowerInput.includes('phone')) return DEVICE;
+    if (lowerInput.includes('identity')) return IDENTITY;
+    if (lowerInput.includes('professional')) return PROFESSIONAL;
 
     return null;
   }
@@ -41,9 +38,9 @@ export class CredentialCardComponent {
     const { type } = cred;
 
     if (type.length > 1) {
-      return type.find((t) => t !== "VerifiableCredential") || type[0];
+      return type.find((t) => t !== 'VerifiableCredential') || type[0];
     }
-    return metadata?.category || "Credential";
+    return metadata?.category || 'Credential';
   }
 
   getCredentialIcon(): string {
@@ -51,19 +48,10 @@ export class CredentialCardComponent {
     const category = metadata?.category?.toLowerCase();
     const type = this.getCredentialType().toLowerCase();
 
-    const detectedCategory =
-      this._getCategoryFromString(category || "") ||
-      this._getCategoryFromString(type || "");
+    const detectedCategory = this._getCategoryFromString(category || '') || this._getCategoryFromString(type || '');
 
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } =
-      CredentialCategory;
-    const {
-      EMAIL_OUTLINED,
-      SCHOOL_OUTLINED,
-      PHONE_IPHONE_OUTLINED,
-      BADGE_OUTLINED,
-      WORK_OUTLINE,
-    } = CredentialIconType;
+    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialCategory;
+    const { EMAIL_OUTLINED, SCHOOL_OUTLINED, PHONE_IPHONE_OUTLINED, BADGE_OUTLINED, WORK_OUTLINE } = CredentialIconType;
 
     switch (detectedCategory) {
       case EMAIL:
@@ -86,13 +74,10 @@ export class CredentialCardComponent {
     const category = metadata?.category?.toLowerCase();
     const type = this.getCredentialType().toLowerCase();
 
-    const detectedCategory =
-      this._getCategoryFromString(category || "") ||
-      this._getCategoryFromString(type || "");
+    const detectedCategory = this._getCategoryFromString(category || '') || this._getCategoryFromString(type || '');
 
     const { BROWN, DARK, BLACK, BLUE, GREEN } = CredentialColorClass;
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } =
-      CredentialCategory;
+    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialCategory;
 
     switch (detectedCategory) {
       case EMAIL:

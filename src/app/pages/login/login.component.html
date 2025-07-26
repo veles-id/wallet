@@ -9,14 +9,13 @@
       <img
         src="icons/fingerprint_wght100.svg"
         alt="Fingerprint"
-        class="login__fingerprint"
-      />
+        class="login__fingerprint" />
     </div>
 
     @if (infoText()) {
-    <div class="login__info">
-      <p class="login__info-text">{{ infoText() }}</p>
-    </div>
+      <div class="login__info">
+        <p class="login__info-text">{{ infoText() }}</p>
+      </div>
     }
 
     <div class="login__actions">
@@ -24,15 +23,13 @@
         class="login__button primary-button"
         mat-flat-button
         (click)="handleAuthentication()"
-        [disabled]="isLoading()"
-      >
+        [disabled]="isLoading()">
         @if (isLoading()) {
-        <mat-spinner
-          class="login__spinner primary-spinner"
-          diameter="20"
-        ></mat-spinner>
+          <mat-spinner
+            class="login__spinner primary-spinner"
+            diameter="20"></mat-spinner>
         } @else {
-        <span class="login__button-text">{{ buttonText() }}</span>
+          <span class="login__button-text">{{ buttonText() }}</span>
         }
       </button>
 
@@ -40,21 +37,18 @@
         class="login__toggle secondary-button"
         mat-button
         (click)="toggleMode()"
-        [disabled]="isLoading()"
-      >
+        [disabled]="isLoading()">
         <span class="login__toggle-text">
-          <span class="login__toggle-descriptive">{{
-            toggleDescriptiveText()
-          }}</span>
+          <span class="login__toggle-descriptive">{{ toggleDescriptiveText() }}</span>
           <span class="login__toggle-action">{{ toggleActionText() }}</span>
         </span>
       </button>
     </div>
 
     @if (showError()) {
-    <div class="login__error">
-      <span class="login__error-text">{{ error() }}</span>
-    </div>
+      <div class="login__error">
+        <span class="login__error-text">{{ error() }}</span>
+      </div>
     }
   </div>
 </div>

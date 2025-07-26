@@ -1,10 +1,10 @@
-import { jest } from "@jest/globals";
-import { setupZoneTestEnv } from "jest-preset-angular/setup-env/zone";
+import { jest } from '@jest/globals';
+import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
 
 setupZoneTestEnv();
 
 // Mock global objects that might not be available in Jest environment
-Object.defineProperty(window, "matchMedia", {
+Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
     matches: false,
@@ -26,19 +26,14 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 })) as unknown as typeof global.ResizeObserver;
 
 // Mock crypto for testing
-Object.defineProperty(global, "crypto", {
+Object.defineProperty(global, 'crypto', {
   value: {
     randomUUID: () =>
       `${Date.now()}-${Math.floor(Math.random() * 1000)}-${Math.floor(
-        Math.random() * 1000
-      )}-${Math.floor(Math.random() * 1000)}-${Math.floor(
-        Math.random() * 100000000000
-      )}`,
+        Math.random() * 1000,
+      )}-${Math.floor(Math.random() * 1000)}-${Math.floor(Math.random() * 100000000000)}`,
     subtle: {
-      digest: (() =>
-        Promise.resolve(
-          new ArrayBuffer(32)
-        )) as unknown as typeof crypto.subtle.digest,
+      digest: (() => Promise.resolve(new ArrayBuffer(32))) as unknown as typeof crypto.subtle.digest,
     },
     getRandomValues: (arr: Uint8Array) => {
       for (let i = 0; i < arr.length; i++) {
@@ -51,8 +46,8 @@ Object.defineProperty(global, "crypto", {
 
 // Suppress console warnings in tests unless explicitly needed
 beforeEach(() => {
-  jest.spyOn(console, "warn").mockImplementation(() => {});
-  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  jest.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {

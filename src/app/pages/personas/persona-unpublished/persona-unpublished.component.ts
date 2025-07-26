@@ -1,43 +1,37 @@
+import { CommonModule } from '@angular/common';
 import {
+  AfterViewInit,
   Component,
-  signal,
   computed,
+  ElementRef,
   inject,
   OnInit,
-  AfterViewInit,
-  ElementRef,
+  signal,
+  TemplateRef,
   ViewChild,
   viewChild,
-  TemplateRef,
-} from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatButtonModule } from "@angular/material/button";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatIconModule } from "@angular/material/icon";
-import { Router, ActivatedRoute } from "@angular/router";
-import * as QRCode from "qrcode";
-import { AuthService } from "../../../core/services/auth.service";
-import { DidService } from "../../../core/services/did.service";
-import { StoredDID, DIDType } from "../../../core/services/did.types";
-import { HeaderService } from "../../../core/services/header.service";
-import { ProfileComponent } from "../../../shared/profile/profile.component";
-import { AvatarSize } from "../../../shared/avatar/avatar.types";
+} from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ActivatedRoute, Router } from '@angular/router';
+import * as QRCode from 'qrcode';
+import { AuthService } from '../../../core/services/auth.service';
+import { DidService } from '../../../core/services/did.service';
+import { DIDType, StoredDID } from '../../../core/services/did.types';
+import { HeaderService } from '../../../core/services/header.service';
+import { AvatarSize } from '../../../shared/avatar/avatar.types';
+import { ProfileComponent } from '../../../shared/profile/profile.component';
 
 @Component({
-  selector: "app-persona-unpublished",
+  selector: 'app-persona-unpublished',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatIconModule,
-    ProfileComponent,
-  ],
-  templateUrl: "./persona-unpublished.component.html",
-  styleUrl: "./persona-unpublished.component.scss",
+  imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule, MatIconModule, ProfileComponent],
+  templateUrl: './persona-unpublished.component.html',
+  styleUrl: './persona-unpublished.component.scss',
 })
 export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
-  @ViewChild("qrCanvas", { static: false })
+  @ViewChild('qrCanvas', { static: false })
   qrCanvas!: ElementRef<HTMLCanvasElement>;
 
   private _authService = inject(AuthService);
@@ -47,7 +41,7 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
   private _headerService = inject(HeaderService);
 
   AvatarSize = AvatarSize;
-  profileTemplate = viewChild<TemplateRef<any>>("profileTemplate");
+  profileTemplate = viewChild<TemplateRef<any>>('profileTemplate');
   isLoading = signal(false);
   isPublishing = signal(false);
   error = signal<string | null>(null);
@@ -56,8 +50,8 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
   pendingQRGeneration = signal(false);
   storedDIDs = signal<StoredDID[]>([]);
   currentUser = computed(() => this._authService.currentUser());
-  userName = computed(() => this.currentDID()?.alias || "Digital Identity");
-  didUri = computed(() => this.currentDID()?.did || "");
+  userName = computed(() => this.currentDID()?.alias || 'Digital Identity');
+  didUri = computed(() => this.currentDID()?.did || '');
   shortDID = computed(() => {
     const did = this.didUri();
     if (did.length > 30) {
@@ -92,13 +86,13 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
   didTypeBadgeText = computed(() => {
     const did = this.currentDID();
-    if (!did) return "DHT";
+    if (!did) return 'DHT';
     return (did.didType || DIDType.DHT).toUpperCase();
   });
 
   didTypeBadgeClass = computed(() => {
     const did = this.currentDID();
-    if (!did) return "personas-type-badge--dht";
+    if (!did) return 'personas-type-badge--dht';
     return `personas-type-badge--${did.didType || DIDType.DHT}`;
   });
 
@@ -114,7 +108,7 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
     setTimeout(() => {
       if (this.currentDID() && this.pendingQRGeneration()) {
-        console.log("Retrying QR code generation after timeout");
+        console.log('Retrying QR code generation after timeout');
         this._generateQRCode(this.currentDID()!.did);
       }
     }, 100);
@@ -123,18 +117,18 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
   getPersonaInitials(did: StoredDID): string {
     if (did.alias) {
       return did.alias
-        .split(" ")
+        .split(' ')
         .map((word) => word.charAt(0).toUpperCase())
-        .join("")
+        .join('')
         .substring(0, 2);
     }
-    return did.didType?.charAt(0).toUpperCase() || "D";
+    return did.didType?.charAt(0).toUpperCase() || 'D';
   }
 
   getPublicName(): string {
     const did = this.currentDID();
-    if (!did) return "Digital Identity";
-    return did.alias || "Digital Identity";
+    if (!did) return 'Digital Identity';
+    return did.alias || 'Digital Identity';
   }
 
   private _setupHeader(): void {
@@ -152,10 +146,10 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
   private async _loadDIDFromRoute(): Promise<void> {
     try {
       this.isLoading.set(true);
-      const didId = this._route.snapshot.paramMap.get("id");
+      const didId = this._route.snapshot.paramMap.get('id');
 
       if (!didId) {
-        this._router.navigate(["/personas"]);
+        this._router.navigate(['/personas']);
         return;
       }
 
@@ -165,24 +159,20 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
       const did = storedDIDs.find((d) => d.did === didId);
 
       if (!did) {
-        this._router.navigate(["/personas"]);
+        this._router.navigate(['/personas']);
         return;
       }
 
       if (did.isPublished) {
-        this._router.navigate(["/personas", didId]);
+        this._router.navigate(['/personas', didId]);
         return;
       }
 
       this.currentDID.set(did);
       this.pendingQRGeneration.set(true);
 
-      if (
-        !did.privateKeyJwk &&
-        !did.isPublished &&
-        did.didType === DIDType.DHT
-      ) {
-        console.log("Attempting to migrate DID for publishing...");
+      if (!did.privateKeyJwk && !did.isPublished && did.didType === DIDType.DHT) {
+        console.log('Attempting to migrate DID for publishing...');
         await this._didService.migrateDIDForPublishing(did.did);
         const updatedDID = this._didService.getStoredDID(did.did);
         if (updatedDID) {
@@ -190,8 +180,8 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
         }
       }
     } catch (error) {
-      console.error("Error loading DID from route:", error);
-      this.error.set("Failed to load your digital identity");
+      console.error('Error loading DID from route:', error);
+      this.error.set('Failed to load your digital identity');
     } finally {
       this.isLoading.set(false);
     }
@@ -199,12 +189,12 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
   private async _generateQRCode(didUri: string): Promise<void> {
     try {
-      console.log("Generating QR code for DID:", didUri);
+      console.log('Generating QR code for DID:', didUri);
 
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       if (!this.qrCanvas?.nativeElement) {
-        console.error("Canvas element not available, retrying...");
+        console.error('Canvas element not available, retrying...');
         setTimeout(() => this._generateQRCode(didUri), 200);
         return;
       }
@@ -213,23 +203,23 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
         width: 280,
         margin: 2,
         color: {
-          dark: "#000000",
-          light: "#FFFFFF",
+          dark: '#000000',
+          light: '#FFFFFF',
         },
       });
 
       this.qrCodeGenerated.set(true);
       this.pendingQRGeneration.set(false);
       this.error.set(null);
-      console.log("QR code generated successfully");
+      console.log('QR code generated successfully');
     } catch (error) {
-      console.error("Error generating QR code:", error);
-      this.error.set("Failed to generate QR code");
+      console.error('Error generating QR code:', error);
+      this.error.set('Failed to generate QR code');
 
       const currentError = this.error();
-      if (!currentError || !currentError.includes("retry")) {
+      if (!currentError || !currentError.includes('retry')) {
         setTimeout(() => {
-          this.error.set("Failed to generate QR code (retry)");
+          this.error.set('Failed to generate QR code (retry)');
           this._generateQRCode(didUri);
         }, 1000);
       }
@@ -246,58 +236,50 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
     this.error.set(null);
 
     try {
-      if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
+      if (did.didType === DIDType.NOSTR || did.did.startsWith('did:nostr:')) {
         const success = await this._didService.publishDID(did);
         if (success) {
           this._didService.updateDIDPublicationStatus(did.did, true);
-          console.log("DID:Nostr published successfully!");
-          this._router.navigate(["/personas", did.did]);
+          console.log('DID:Nostr published successfully!');
+          this._router.navigate(['/personas', did.did]);
         }
       } else {
         const success = await this._didService.publishDID(did);
         if (success) {
           this._didService.updateDIDPublicationStatus(did.did, true);
-          console.log("DID:DHT published successfully!");
-          this._router.navigate(["/personas", did.did]);
+          console.log('DID:DHT published successfully!');
+          this._router.navigate(['/personas', did.did]);
         }
       }
     } catch (error) {
-      console.error("Error publishing DID:", error);
+      console.error('Error publishing DID:', error);
 
-      let errorMessage = "Failed to publish DID. Please try again.";
+      let errorMessage = 'Failed to publish DID. Please try again.';
 
       if (error instanceof Error) {
-        if (did.didType === DIDType.NOSTR || did.did.startsWith("did:nostr:")) {
-          if (error.message.includes("Could not extract Nostr keys")) {
-            errorMessage =
-              "Cannot publish this DID - failed to extract Nostr keys.";
+        if (did.didType === DIDType.NOSTR || did.did.startsWith('did:nostr:')) {
+          if (error.message.includes('Could not extract Nostr keys')) {
+            errorMessage = 'Cannot publish this DID - failed to extract Nostr keys.';
           }
         } else {
-          if (error.message.includes("No private keys available")) {
+          if (error.message.includes('No private keys available')) {
+            errorMessage = 'Cannot publish this DID - it was created offline and has no private keys.';
+          } else if (error.message.includes('KeySet is not a valid DidDht instance')) {
             errorMessage =
-              "Cannot publish this DID - it was created offline and has no private keys.";
-          } else if (
-            error.message.includes("KeySet is not a valid DidDht instance")
-          ) {
+              'Cannot publish this DID - the cryptographic keys are no longer valid. Try creating a new DID.';
+          } else if (error.message.includes('Failed to reconstruct DID')) {
             errorMessage =
-              "Cannot publish this DID - the cryptographic keys are no longer valid. Try creating a new DID.";
-          } else if (error.message.includes("Failed to reconstruct DID")) {
-            errorMessage =
-              "Cannot publish this DID - failed to reconstruct the cryptographic keys. Try creating a new DID.";
-          } else if (error.message.includes("Invalid DID document structure")) {
-            errorMessage =
-              "Cannot publish this DID - the document structure is invalid.";
-          } else if (
-            error.message.includes("Failed to publish to all available")
-          ) {
-            errorMessage =
-              "Publishing failed - all publishing methods are unavailable. Please try again later.";
+              'Cannot publish this DID - failed to reconstruct the cryptographic keys. Try creating a new DID.';
+          } else if (error.message.includes('Invalid DID document structure')) {
+            errorMessage = 'Cannot publish this DID - the document structure is invalid.';
+          } else if (error.message.includes('Failed to publish to all available')) {
+            errorMessage = 'Publishing failed - all publishing methods are unavailable. Please try again later.';
           }
         }
       }
 
       this.error.set(errorMessage);
-      console.log("Failed to publish DID");
+      console.log('Failed to publish DID');
     } finally {
       this.isPublishing.set(false);
     }
@@ -308,16 +290,16 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
     if (did) {
       try {
         await navigator.clipboard.writeText(did);
-        console.log("DID copied to clipboard!");
+        console.log('DID copied to clipboard!');
       } catch (error) {
-        console.error("Error copying DID:", error);
-        console.log("Failed to copy DID");
+        console.error('Error copying DID:', error);
+        console.log('Failed to copy DID');
       }
     }
   }
 
   backToList(): void {
-    this._router.navigate(["/personas"]);
+    this._router.navigate(['/personas']);
   }
 
   async createNewPublishableDID(): Promise<void> {
@@ -325,13 +307,13 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
     this.error.set(null);
 
     try {
-      console.log("Creating new publishable DID to replace legacy DID...");
+      console.log('Creating new publishable DID to replace legacy DID...');
       const newDID = await this._didService.createPublishableDID();
 
-      this._router.navigate(["/personas", newDID.did, "unpublished"]);
+      this._router.navigate(['/personas', newDID.did, 'unpublished']);
     } catch (error) {
-      console.error("Error creating new publishable DID:", error);
-      this.error.set("Failed to create new DID. Please try again.");
+      console.error('Error creating new publishable DID:', error);
+      this.error.set('Failed to create new DID. Please try again.');
     } finally {
       this.isLoading.set(false);
     }

@@ -1,14 +1,7 @@
-import {
-  Injectable,
-  signal,
-  computed,
-  TemplateRef,
-  inject,
-  DestroyRef,
-} from "@angular/core";
-import { Router, NavigationEnd } from "@angular/router";
-import { filter } from "rxjs/operators";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { computed, DestroyRef, inject, Injectable, signal, TemplateRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 export interface HeaderConfig {
   title?: string;
@@ -19,13 +12,13 @@ export interface HeaderConfig {
 }
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class HeaderService {
   private _router = inject(Router);
   private _destroyRef = inject(DestroyRef);
   private _config = signal<HeaderConfig>({
-    title: "",
+    title: '',
     showBackButton: false,
     backButtonHandler: undefined,
     contentTemplate: undefined,
@@ -41,12 +34,11 @@ export class HeaderService {
     this._router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
-        takeUntilDestroyed(this._destroyRef)
+        takeUntilDestroyed(this._destroyRef),
       )
       .subscribe((event: NavigationEnd) => {
-        const routeData =
-          this._router.routerState.root.firstChild?.snapshot.data;
-        const showHeader = routeData?.["showHeader"] !== false;
+        const routeData = this._router.routerState.root.firstChild?.snapshot.data;
+        const showHeader = routeData?.['showHeader'] !== false;
         this._showHeader.set(showHeader);
       });
   }
@@ -57,7 +49,7 @@ export class HeaderService {
 
   clearHeader(): void {
     this._config.set({
-      title: "",
+      title: '',
       showBackButton: false,
       backButtonHandler: undefined,
       contentTemplate: undefined,

@@ -24,7 +24,6 @@ export interface HeaderConfig {
 export class HeaderService {
   private _router = inject(Router);
   private _destroyRef = inject(DestroyRef);
-
   private _config = signal<HeaderConfig>({
     title: "",
     showBackButton: false,

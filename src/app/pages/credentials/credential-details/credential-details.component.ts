@@ -10,8 +10,8 @@ import {
   VerifiableCredential,
 } from "../../../core/services/credential.types";
 import { VerificationResult } from "../../../core/services/credential-verification.service";
-import { AvatarComponent } from "../../../shared/avatar/avatar.component";
 import { CredentialCardComponent } from "../credential-card/credential-card.component";
+import { ProfileComponent } from "../../../shared/profile/profile.component";
 import { HeaderService } from "../../../core/services/header.service";
 import { AvatarSize } from "../../../shared/avatar/avatar.types";
 
@@ -24,7 +24,7 @@ import { AvatarSize } from "../../../shared/avatar/avatar.types";
     MatProgressSpinnerModule,
     MatIconModule,
     CredentialCardComponent,
-    AvatarComponent,
+    ProfileComponent,
   ],
   templateUrl: "./credential-details.component.html",
   styleUrl: "./credential-details.component.scss",

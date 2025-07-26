@@ -55,6 +55,24 @@ export class FooterComponent {
     return currentUrl.startsWith(route);
   }
 
+  navigateToIdentity(): void {
+    this._navigateToIdentity();
+  }
+
+  navigateToCredentials(): void {
+    this._router.navigate(["/credentials"]);
+  }
+
+  navigateToLinked(): void {
+    // @todo: Implement linked accounts page
+    console.log("Linked accounts feature coming soon!");
+  }
+
+  navigateToSettings(): void {
+    // @todo: Implement settings page
+    console.log("Settings feature coming soon!");
+  }
+
   private async _navigateToIdentity(): Promise<void> {
     try {
       this.isLoading.set(true);
@@ -79,23 +97,5 @@ export class FooterComponent {
     } finally {
       this.isLoading.set(false);
     }
-  }
-
-  navigateToIdentity(): void {
-    this._navigateToIdentity();
-  }
-
-  navigateToCredentials(): void {
-    this._router.navigate(["/credentials"]);
-  }
-
-  navigateToLinked(): void {
-    // TODO: Implement linked accounts page
-    console.log("Linked accounts feature coming soon!");
-  }
-
-  navigateToSettings(): void {
-    // TODO: Implement settings page
-    console.log("Settings feature coming soon!");
   }
 }

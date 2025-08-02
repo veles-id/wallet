@@ -1,7 +1,6 @@
 // DID
 
 export enum DIDType {
-  DHT = 'dht',
   NOSTR = 'nostr',
 }
 
@@ -47,5 +46,3 @@ export interface NostrDIDResult extends CreateDIDResult {
   nostrPublicKey: string;
   nostrPrivateKey: string;
 }
-
-//DHT

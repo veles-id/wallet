@@ -1,4 +1,3 @@
-
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,14 +13,7 @@ import { HeaderService } from '../../../core/services/header.service';
 @Component({
   selector: 'app-create-did',
   standalone: true,
-  imports: [
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatIconModule,
-    MatSnackBarModule,
-    MatRadioModule,
-    FormsModule
-],
+  imports: [MatButtonModule, MatProgressSpinnerModule, MatIconModule, MatSnackBarModule, MatRadioModule, FormsModule],
   templateUrl: './create-did.component.html',
   styleUrl: './create-did.component.scss',
 })
@@ -56,36 +48,11 @@ export class CreateDidComponent {
 
     try {
       const didType = this.selectedDIDType() as DIDType;
-
-      // Create DID using the gateway service
       const createdDID: CreateDIDResult = await this._didService.createDID(didType);
       await this._didService.storeDID(createdDID, this.didName().trim());
-
       this._router.navigate(['/personas']);
     } catch (error) {
-      const didType = this.selectedDIDType();
-      console.log(`DID:${didType} creation failed:`, error);
-
-      // Only try DHT fallback if we were trying to create Nostr
-      if (this.selectedDIDType() === DIDType.NOSTR) {
-        try {
-          console.log('Trying DHT fallback...');
-          const offlineDID: CreateDIDResult = await this._didService.createOfflineDID();
-          await this._didService.storeDID(offlineDID, this.didName().trim());
-          this._router.navigate(['/personas']);
-        } catch (offlineError) {
-          console.error('Error creating fallback DID:', offlineError);
-        }
-      } else {
-        // DHT creation failed, try offline mode
-        try {
-          const offlineDID: CreateDIDResult = await this._didService.createOfflineDID();
-          await this._didService.storeDID(offlineDID, this.didName().trim());
-          this._router.navigate(['/personas']);
-        } catch (offlineError) {
-          console.error('Error creating offline DID:', offlineError);
-        }
-      }
+      console.error('DID creation failed:', error);
     } finally {
       this.isCreating.set(false);
     }

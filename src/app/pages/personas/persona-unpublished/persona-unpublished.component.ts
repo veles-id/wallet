@@ -1,4 +1,3 @@
-
 import {
   AfterViewInit,
   Component,
@@ -69,11 +68,7 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
   });
 
   isLegacyDID = computed(() => {
-    const did = this.currentDID();
-    if (!did) return false;
-
-    const publishability = this._didService.canPublishDID(did);
-    return publishability.isLegacyDID || false;
+    return false; // No legacy DIDs with Nostr-only support
   });
 
   publishabilityReason = computed(() => {
@@ -86,14 +81,14 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
   didTypeBadgeText = computed(() => {
     const did = this.currentDID();
-    if (!did) return 'DHT';
-    return (did.didType || DIDType.DHT).toUpperCase();
+    if (!did) return 'NOSTR';
+    return (did.didType || DIDType.NOSTR).toUpperCase();
   });
 
   didTypeBadgeClass = computed(() => {
     const did = this.currentDID();
-    if (!did) return 'personas-type-badge--dht';
-    return `personas-type-badge--${did.didType || DIDType.DHT}`;
+    if (!did) return 'personas-type-badge--nostr';
+    return `personas-type-badge--${did.didType || DIDType.NOSTR}`;
   });
 
   ngOnInit(): void {
@@ -170,15 +165,6 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
       this.currentDID.set(did);
       this.pendingQRGeneration.set(true);
-
-      if (!did.privateKeyJwk && !did.isPublished && did.didType === DIDType.DHT) {
-        console.log('Attempting to migrate DID for publishing...');
-        await this._didService.migrateDIDForPublishing(did.did);
-        const updatedDID = this._didService.getStoredDID(did.did);
-        if (updatedDID) {
-          this.currentDID.set(updatedDID);
-        }
-      }
     } catch (error) {
       console.error('Error loading DID from route:', error);
       this.error.set('Failed to load your digital identity');
@@ -236,20 +222,11 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
     this.error.set(null);
 
     try {
-      if (did.didType === DIDType.NOSTR || did.did.startsWith('did:nostr:')) {
-        const success = await this._didService.publishDID(did);
-        if (success) {
-          this._didService.updateDIDPublicationStatus(did.did, true);
-          console.log('DID:Nostr published successfully!');
-          this._router.navigate(['/personas', did.did]);
-        }
-      } else {
-        const success = await this._didService.publishDID(did);
-        if (success) {
-          this._didService.updateDIDPublicationStatus(did.did, true);
-          console.log('DID:DHT published successfully!');
-          this._router.navigate(['/personas', did.did]);
-        }
+      const success = await this._didService.publishDID(did);
+      if (success) {
+        this._didService.updateDIDPublicationStatus(did.did, true);
+        console.log('DID published successfully!');
+        this._router.navigate(['/personas', did.did]);
       }
     } catch (error) {
       console.error('Error publishing DID:', error);
@@ -257,24 +234,17 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
       let errorMessage = 'Failed to publish DID. Please try again.';
 
       if (error instanceof Error) {
-        if (did.didType === DIDType.NOSTR || did.did.startsWith('did:nostr:')) {
-          if (error.message.includes('Could not extract Nostr keys')) {
-            errorMessage = 'Cannot publish this DID - failed to extract Nostr keys.';
-          }
-        } else {
-          if (error.message.includes('No private keys available')) {
-            errorMessage = 'Cannot publish this DID - it was created offline and has no private keys.';
-          } else if (error.message.includes('KeySet is not a valid DidDht instance')) {
-            errorMessage =
-              'Cannot publish this DID - the cryptographic keys are no longer valid. Try creating a new DID.';
-          } else if (error.message.includes('Failed to reconstruct DID')) {
-            errorMessage =
-              'Cannot publish this DID - failed to reconstruct the cryptographic keys. Try creating a new DID.';
-          } else if (error.message.includes('Invalid DID document structure')) {
-            errorMessage = 'Cannot publish this DID - the document structure is invalid.';
-          } else if (error.message.includes('Failed to publish to all available')) {
-            errorMessage = 'Publishing failed - all publishing methods are unavailable. Please try again later.';
-          }
+        if (error.message.includes('Could not extract Nostr keys')) {
+          errorMessage = 'Cannot publish this DID - failed to extract Nostr keys.';
+        } else if (error.message.includes('No private keys available')) {
+          errorMessage = 'Cannot publish this DID - it was created offline and has no private keys.';
+        } else if (error.message.includes('Failed to reconstruct DID')) {
+          errorMessage =
+            'Cannot publish this DID - failed to reconstruct the cryptographic keys. Try creating a new DID.';
+        } else if (error.message.includes('Invalid DID document structure')) {
+          errorMessage = 'Cannot publish this DID - the document structure is invalid.';
+        } else if (error.message.includes('Failed to publish to all available')) {
+          errorMessage = 'Publishing failed - all publishing methods are unavailable. Please try again later.';
         }
       }
 
@@ -300,23 +270,6 @@ export class PersonaUnpublishedComponent implements OnInit, AfterViewInit {
 
   backToList(): void {
     this._router.navigate(['/personas']);
-  }
-
-  async createNewPublishableDID(): Promise<void> {
-    this.isLoading.set(true);
-    this.error.set(null);
-
-    try {
-      console.log('Creating new publishable DID to replace legacy DID...');
-      const newDID = await this._didService.createPublishableDID();
-
-      this._router.navigate(['/personas', newDID.did, 'unpublished']);
-    } catch (error) {
-      console.error('Error creating new publishable DID:', error);
-      this.error.set('Failed to create new DID. Please try again.');
-    } finally {
-      this.isLoading.set(false);
-    }
   }
 
   shouldShowBackButton(): boolean {

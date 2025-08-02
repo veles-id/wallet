@@ -67,29 +67,6 @@
             Publish
           }
         </button>
-      } @else if (isLegacyDID()) {
-        <div class="personas__legacy-did-section">
-          <div class="personas__legacy-warning">
-            <mat-icon class="personas__warning-icon">warning</mat-icon>
-            <span class="personas__warning-text">This DID cannot be published</span>
-          </div>
-          <p class="personas__legacy-explanation">
-            {{ publishabilityReason() }}
-          </p>
-          <button
-            class="personas__create-new-button"
-            mat-flat-button
-            (click)="createNewPublishableDID()"
-            [disabled]="isLoading()">
-            @if (isLoading()) {
-              <mat-spinner
-                diameter="20"
-                class="personas__spinner"></mat-spinner>
-            } @else {
-              Create New Publishable DID
-            }
-          </button>
-        </div>
       } @else if (currentDID()?.isPublished) {
         <div class="personas__published-status">
           <mat-icon class="personas__published-icon">check_circle</mat-icon>
@@ -115,6 +92,6 @@
   <app-profile
     [initials]="getPersonaInitials(currentDID()!)"
     [name]="getPublicName()"
-    [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
+    [type]="(currentDID()?.didType || 'NOSTR').toUpperCase()"
     [avatarSize]="AvatarSize.MEDIUM"></app-profile>
 </ng-template>

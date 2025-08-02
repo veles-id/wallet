@@ -119,6 +119,6 @@
   <app-profile
     [initials]="getPersonaInitials(currentDID()!)"
     [name]="getPublicName()"
-    [type]="(currentDID()?.didType || 'DHT').toUpperCase()"
+    [type]="(currentDID()?.didType || 'NOSTR').toUpperCase()"
     [avatarSize]="AvatarSize.MEDIUM"></app-profile>
 </ng-template>

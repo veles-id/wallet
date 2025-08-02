@@ -18,7 +18,7 @@
                 {{ did.alias || 'Unnamed Identity' }}
               </h3>
               <div class="personas__persona-details">
-                <span class="personas__persona-type">{{ (did.didType || 'DHT').toUpperCase() }}</span>
+                <span class="personas__persona-type">{{ (did.didType || 'NOSTR').toUpperCase() }}</span>
                 <div
                   class="personas__persona-status"
                   [class.personas__persona-status--published]="did.isPublished">

@@ -4,7 +4,6 @@ import { sha512 } from '@noble/hashes/sha512';
 import { VerifiableCredential } from './credential.types';
 import { DidService } from './did.service';
 
-// Configure SHA-512 for ed25519 using @noble/hashes
 ed25519.etc.sha512Sync = (...m) => {
   const hash = sha512.create();
   for (const msg of m) {
@@ -30,13 +29,11 @@ export class CredentialVerificationService {
 
   async verifyCredential(credential: VerifiableCredential): Promise<VerificationResult> {
     try {
-      // Basic structure validation
       const structureValidation = this._validateCredentialStructure(credential);
       if (!structureValidation.isValid) {
         return structureValidation;
       }
 
-      // Check if credential has cryptographic proof
       if (!credential.proof) {
         return {
           isValid: false,
@@ -48,13 +45,8 @@ export class CredentialVerificationService {
 
       const issuerDID = typeof credential.issuer === 'string' ? credential.issuer : credential.issuer.id;
 
-      // Route to appropriate verification method based on DID type
       if (issuerDID.startsWith('did:nostr:')) {
         return await this._verifyNostrCredential(credential);
-      }
-
-      if (issuerDID.startsWith('did:dht:')) {
-        return await this._verifyDHTCredential(credential);
       }
 
       return {
@@ -308,62 +300,6 @@ export class CredentialVerificationService {
         details: `Nostr direct verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         issuerResolved: true,
         signatureType: credential.proof?.type || 'NostrSignature2024',
-        errors: [error instanceof Error ? error.message : 'Unknown error'],
-      };
-    }
-  }
-
-  private async _verifyDHTCredential(credential: VerifiableCredential): Promise<VerificationResult> {
-    try {
-      const issuerDID = typeof credential.issuer === 'string' ? credential.issuer : credential.issuer.id;
-
-      // Try to resolve the DID document
-      try {
-        const didInfo = await this._didService.resolveDID(issuerDID);
-        if (!didInfo) {
-          return {
-            isValid: false,
-            details: 'Could not resolve issuer DID',
-            issuerResolved: false,
-            errors: ['DID resolution failed'],
-          };
-        }
-
-        // For DHT DIDs, we need to extract the public key from the DID document
-        // and verify the signature according to the proof type
-        const proof = credential.proof!;
-
-        if (proof.type === 'JsonWebSignature2020' || proof.type === 'JsonWebSignature2018') {
-          // For DHT DIDs, we might need to extract secp256k1 keys
-          return {
-            isValid: false,
-            details: 'DHT JWS verification not yet implemented',
-            issuerResolved: true,
-            signatureType: proof.type,
-            errors: ['DHT signature verification not implemented'],
-          };
-        }
-
-        return {
-          isValid: false,
-          details: `Unsupported proof type for DHT: ${proof.type}`,
-          issuerResolved: true,
-          signatureType: proof.type,
-          errors: [`Unsupported proof type: ${proof.type}`],
-        };
-      } catch (resolveError) {
-        return {
-          isValid: false,
-          details: 'Failed to resolve DHT DID',
-          issuerResolved: false,
-          errors: [`DID resolution error: ${resolveError instanceof Error ? resolveError.message : 'Unknown error'}`],
-        };
-      }
-    } catch (error) {
-      return {
-        isValid: false,
-        details: `DHT verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        issuerResolved: false,
         errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }

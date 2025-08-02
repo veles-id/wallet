@@ -1,5 +1,4 @@
 import { Injectable, inject } from '@angular/core';
-import { DidDhtService } from './did-dht.service';
 import { DidNostrService } from './did-nostr.service';
 import { CreateDIDResult, DIDType, StoredDID } from './did.types';
 
@@ -7,14 +6,10 @@ import { CreateDIDResult, DIDType, StoredDID } from './did.types';
   providedIn: 'root',
 })
 export class DidService {
-  private _didDhtService = inject(DidDhtService);
   private _didNostrService = inject(DidNostrService);
 
   async createDID(type: DIDType): Promise<CreateDIDResult> {
     switch (type) {
-      case DIDType.DHT:
-        const dhtResult = await this._didDhtService.createDID();
-        return { ...dhtResult, didType: DIDType.DHT };
       case DIDType.NOSTR:
         const nostrResult = await this._didNostrService.createDID();
         return { ...nostrResult, didType: DIDType.NOSTR };
@@ -23,17 +18,10 @@ export class DidService {
     }
   }
 
-  async createOfflineDID(): Promise<CreateDIDResult> {
-    const result = await this._didDhtService.createOfflineDID();
-    return { ...result, didType: DIDType.DHT };
-  }
-
   async publishDID(storedDID: StoredDID): Promise<boolean> {
     const didType = this.getDIDType(storedDID);
 
     switch (didType) {
-      case DIDType.DHT:
-        return await this._didDhtService.publishDIDWithFallback(storedDID);
       case DIDType.NOSTR:
         return await this._didNostrService.publishDID(storedDID);
       default:
@@ -48,11 +36,9 @@ export class DidService {
 
     if (storedDID.did.startsWith('did:nostr:')) {
       return DIDType.NOSTR;
-    } else if (storedDID.did.startsWith('did:dht:')) {
-      return DIDType.DHT;
     }
 
-    return DIDType.DHT;
+    throw new Error('Unsupported DID type');
   }
 
   canPublishDID(storedDID: StoredDID): {
@@ -76,9 +62,6 @@ export class DidService {
           reason: 'No Nostr private key available',
         };
 
-      case DIDType.DHT:
-        return this._didDhtService.canPublishDID(storedDID);
-
       default:
         return {
           canPublish: false,
@@ -97,30 +80,15 @@ export class DidService {
       nostrPublicKey = (didResult as any).nostrPublicKey;
     }
 
-    let privateKeyJwk: any = null;
-    if (didResult.didType === DIDType.DHT && didResult.keySet && typeof didResult.keySet === 'object') {
-      try {
-        if ('export' in didResult.keySet && typeof didResult.keySet.export === 'function') {
-          const exported = await didResult.keySet.export();
-          privateKeyJwk = exported.privateKeys?.[0] || null;
-        } else if (didResult.keySet.keyManager && 'export' in didResult.keySet.keyManager) {
-          const exported = await didResult.keySet.keyManager.export();
-          privateKeyJwk = exported.privateKeys?.[0] || null;
-        }
-      } catch (error) {
-        console.warn('Could not extract private key for future publishing:', error);
-      }
-    }
-
     const newDID: StoredDID = {
       did: didResult.did,
       document: didResult.document,
       keySet: didResult.keySet,
-      privateKeyJwk: privateKeyJwk,
+      privateKeyJwk: null,
       createdAt: new Date().toISOString(),
       alias: alias,
       isPublished: didResult.isPublished,
-      didType: didResult.didType || (didResult.did.startsWith('did:nostr:') ? DIDType.NOSTR : DIDType.DHT),
+      didType: didResult.didType || DIDType.NOSTR,
       ...(nostrPrivateKey && { nostrPrivateKey }),
       ...(nostrPublicKey && { nostrPublicKey }),
     };
@@ -209,9 +177,7 @@ export class DidService {
   }
 
   async resolveDID(did: string): Promise<any> {
-    if (did.startsWith('did:dht:')) {
-      return await this._didDhtService.resolveDID(did);
-    } else if (did.startsWith('did:nostr:')) {
+    if (did.startsWith('did:nostr:')) {
       return await this._didNostrService.retrieveDIDInfo(did);
     } else {
       throw new Error(`Unsupported DID method: ${did}`);
@@ -219,32 +185,10 @@ export class DidService {
   }
 
   async isDIDResolvable(didUri: string): Promise<boolean> {
-    if (didUri.startsWith('did:dht:')) {
-      return await this._didDhtService.isDIDResolvable(didUri);
-    } else if (didUri.startsWith('did:nostr:')) {
+    if (didUri.startsWith('did:nostr:')) {
       return didUri.split(':').length === 3;
     } else {
       return false;
     }
-  }
-
-  async migrateDIDForPublishing(didUri: string): Promise<boolean> {
-    if (didUri.startsWith('did:dht:')) {
-      const storedDID = this.getStoredDID(didUri);
-      if (!storedDID) {
-        throw new Error(`DID not found in storage: ${didUri}`);
-      }
-      return await this._didDhtService.migrateDIDForPublishing(storedDID);
-    }
-    return true;
-  }
-
-  async createPublishableDID(): Promise<CreateDIDResult> {
-    const result = await this._didDhtService.createPublishableDID();
-    return { ...result, didType: DIDType.DHT };
-  }
-
-  stopServices(): void {
-    this._didDhtService.stopRepublishing();
   }
 }

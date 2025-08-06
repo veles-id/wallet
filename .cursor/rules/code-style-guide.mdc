@@ -78,3 +78,7 @@ Don't leave unused code in the codebse.
 ### Follow **Composition over Inheritance Principle**
 
 Ideally all reuse can be achieved by assembling existing components, but in practice inheritance is often needed to make new ones.
+
+## Minimize changes
+
+Don't attempt to rewrite whole files, when you face issues, but rather make the smallest changes necessary to achieve the goal described in the prompt.

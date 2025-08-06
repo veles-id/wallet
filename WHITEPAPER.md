@@ -40,7 +40,7 @@ Password-based authentication is an insecure approach to online interactions and
 
 ## The solution
 
-`Self-sovereign identity wallet on Bitcoin`
+`Self-sovereign identity wallet`
 
 We are at the dawn of Web3—designed to bring identity and private data ownership back to users.
 
@@ -100,22 +100,6 @@ Because decentralized identifiers are URI, they are pointing to where the data i
 Verifiable Credentials (VCs) complement DIDs and empower decentralized identity management. VCs (also known as attestations) are tamper-proof, cryptographically verifiable claims made by the issuer. Every attestation or Verifiable Credential is associated with a DID. Verifiable Credentials represent statements made by an issuer in a tamper-evident and privacy-respecting manner since they use public-key encryption to verify claims.
 
 Anyone can use the embedded issuer DID in the Verifiable Credential to find a public cryptographic key in the associated DID document and do the math to confirm. Because DIDs are stored on the blockchain, anyone can verify attestations by cross-checking the issuer's DID.
-
-## Public Key Infrastructure
-
-Decentralization reengineers how data is stored and secured. Bitcoin brings a new paradigm in reducing cyber risks with its public-key cryptography infrastructure.
-
-With a decentralized identity, you can safely use one ID for different services. Thanks to Public Key Infrastructure provided by Bitcoin, you gain the ability to log in with a single click to a growing number of online services.
-
-Decentralized Public Key Infrastructure is the core of Decentralized Identity. The PKI is a set of roles, policies, and procedures, as well as hardware and software to create, manage, distribute, store, and revoke digital certificates. PKI manages public-key encryption. The biggest PKI infrastructure in the world is US Military ID System, which uses public-key cryptography for authorization and access management. Bitcoin brings this type of system to the civilian world, as the biggest deployed civilian Public Key Infrastructure.
-
-A Public Key Infrastructure stands between you and your service providers and handles all requests for identity and access, and includes the:
-- Verifiable Credential exchange protocols,
-- Identity Overlay Network (ION).
-
-Like with any dentity and Access Management system, these components come together to securely facilitate access to critical information while allowing to verify identity on-chain, without intermediaries.
-
-Before the decentralized Public Key Infrastructure, everyone had to buy or obtain digital certificates from traditional Certificate Authorities (CA). Thanks to Bitcoin, there is no need for centralized CA anymore.
 
 ## ION
 

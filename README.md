@@ -1,6 +1,11 @@
 # Veles ID Wallet
 
-Veles Id Wallet is an open-source project. In the current phase it is an Angular PWA, than you can add as a shortcut to your desktop both on iOS and Android.
+Veles ID Wallet is an open-source project. In the current phase it is an Angular PWA, that you can add as a shortcut to your desktop both on iOS and Android. The choice of PWA is due to higher degree of censorship-resistance in case of Web applications, as opposed to Native iOS and Android applications, where app stores are the bottlenecks.
+
+Veles ID leverages decentralized technologies:
+- [Nostr](https://github.com/nostr-protocol/nostr) for communication
+- Bitcoin for [timestamping](https://opentimestamps.org/)
+- [IPFS](https://docs.ipfs.tech/) for data storage
 
 ## Design System
 
@@ -67,7 +72,7 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
 - **Control**: Issuers/holders manage access (via NIP-04 DMs), storage (IPFS pinning), and revocation (Nostr events), aligning with self-sovereign identity.
 - **Verifiability**: Minimal Nostr events and ZKP-based VPs enable universal verification without exposing sensitive data.
 - **Resilience**: IPFS’s distributed storage and Nostr’s relay network ensure availability, with Bitcoin timestamps adding immutability.
-- **Cost-Efficiency**: Self-hosted IPFS nodes and Nostr relays are free or low-cost (~$5-$10/month for IPFS, ~$0.10/GB for pinning, free for Nostr events), far cheaper than blockchain alternatives like Ethereum.
+- **Cost-Efficiency**: Self-hosted IPFS nodes and Nostr relays are free or low-cost (~$5-$10/month for IPFS, ~$0.10/GB for pinning, free for Nostr events), far cheaper than blockchain alternatives.
 
 ### Flow diagram
 
@@ -96,5 +101,25 @@ graph TD
     class C,E,F,G storage;
   ```
 
-### Conclusion
+## Conclusion
 Combining **IPFS** for persistent, encrypted storage with **Nostr** for secure event publishing and communication creates a decentralized, cost-efficient, and user-controlled system for VCs. Encryption and ZKPs protect privacy, while NIP-05 and **Bitcoin** anchoring ensure robust identity resolution. This approach empowers issuers and holders to manage VCs securely.
+
+## Running the client application
+
+### Install packages
+
+Once the source is cloned, you'll need to install the packages:
+
+```
+npm install
+```
+
+### Angular development server
+
+For a development server run:
+
+```
+npm start
+```
+
+Navigate to `http://localhost:4210/`. The app will automatically reload if you change any of the source files.

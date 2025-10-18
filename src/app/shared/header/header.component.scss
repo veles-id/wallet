@@ -1,0 +1,38 @@
+:host {
+  width: 100%;
+
+  .header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    background-color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-sizing: border-box;
+
+    &__back-button {
+      color: #b69269;
+      margin-right: 1rem;
+    }
+
+    &__content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+
+      &--with-back-button {
+        margin-right: 56px;
+      }
+    }
+
+    &__title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111111;
+      margin: 0;
+    }
+  }
+}

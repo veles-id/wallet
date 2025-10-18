@@ -1,0 +1,182 @@
+<div class="persona-edit">
+  <div class="persona-edit__container">
+    <div class="persona-edit__description">
+      <p class="persona-edit__description-text">Edit your persona information below</p>
+    </div>
+
+    @if (isLoading()) {
+      <div class="persona-edit__loading">
+        <mat-spinner diameter="60"></mat-spinner>
+      </div>
+    } @else {
+      <form
+        class="persona-edit__form"
+        [formGroup]="personaForm"
+        (ngSubmit)="save()">
+        <div class="persona-edit__fields">
+          <mat-form-field
+            class="persona-edit__field"
+            appearance="fill">
+            <mat-label>Alias</mat-label>
+            <input
+              matInput
+              formControlName="alias"
+              placeholder="Easy to remember alias" />
+            @if (personaForm.get('alias')?.errors && personaForm.get('alias')?.touched) {
+              <mat-error>
+                @if (personaForm.get('alias')?.errors?.['maxlength']) {
+                  Alias must be 50 characters or less
+                }
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field
+            class="persona-edit__field"
+            appearance="fill">
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name" />
+            @if (personaForm.get('name')?.errors && personaForm.get('name')?.touched) {
+              <mat-error>
+                @if (personaForm.get('name')?.errors?.['maxlength']) {
+                  Name must be 100 characters or less
+                }
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field
+            class="persona-edit__field"
+            appearance="fill">
+            <mat-label>Nick</mat-label>
+            <input
+              matInput
+              formControlName="nick" />
+            @if (personaForm.get('nick')?.errors && personaForm.get('nick')?.touched) {
+              <mat-error>
+                @if (personaForm.get('nick')?.errors?.['maxlength']) {
+                  Nick must be 50 characters or less
+                }
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field
+            class="persona-edit__field"
+            appearance="fill">
+            <mat-label>Website</mat-label>
+            <input
+              matInput
+              formControlName="website"
+              type="url" />
+            @if (personaForm.get('website')?.errors && personaForm.get('website')?.touched) {
+              <mat-error>
+                @if (personaForm.get('website')?.errors?.['pattern']) {
+                  Please enter a valid URL (starting with http:// or https://)
+                }
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field
+            class="persona-edit__field"
+            appearance="fill">
+            <mat-label>About</mat-label>
+            <textarea
+              matInput
+              formControlName="about"
+              rows="4"></textarea>
+            @if (personaForm.get('about')?.errors && personaForm.get('about')?.touched) {
+              <mat-error>
+                @if (personaForm.get('about')?.errors?.['maxlength']) {
+                  About must be 500 characters or less
+                }
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field
+            class="persona-edit__field"
+            appearance="fill">
+            <mat-label>Lightning Wallet</mat-label>
+            <input
+              matInput
+              formControlName="lightningWallet" />
+            @if (personaForm.get('lightningWallet')?.errors && personaForm.get('lightningWallet')?.touched) {
+              <mat-error>
+                @if (personaForm.get('lightningWallet')?.errors?.['maxlength']) {
+                  Lightning wallet must be 100 characters or less
+                }
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field
+            class="persona-edit__field"
+            appearance="fill">
+            <mat-label>Location</mat-label>
+            <input
+              matInput
+              formControlName="location" />
+            @if (personaForm.get('location')?.errors && personaForm.get('location')?.touched) {
+              <mat-error>
+                @if (personaForm.get('location')?.errors?.['maxlength']) {
+                  Location must be 100 characters or less
+                }
+              </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="persona-edit__did-field">
+          <label class="persona-edit__did-label">Your Decentralized Identifier</label>
+          <div
+            class="persona-edit__did-container"
+            (click)="copyDID()">
+            <span class="persona-edit__did-value">{{ shortDID() }}</span>
+            <mat-icon class="persona-edit__did-copy">content_copy</mat-icon>
+          </div>
+        </div>
+
+        <div class="persona-edit__actions">
+          <button
+            type="button"
+            class="persona-edit__button persona-edit__button--secondary"
+            mat-flat-button
+            (click)="cancel()">
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="persona-edit__button persona-edit__button--primary"
+            mat-flat-button
+            [disabled]="isSaving() || personaForm.invalid">
+            @if (isSaving()) {
+              <div class="persona-edit__spinner">
+                <mat-spinner diameter="20"></mat-spinner>
+              </div>
+            } @else {
+              <span class="persona-edit__button-text">Save Changes</span>
+            }
+          </button>
+        </div>
+      </form>
+    }
+    @if (error()) {
+      <div class="persona-edit__error">
+        <span class="persona-edit__error-text">{{ error() }}</span>
+      </div>
+    }
+  </div>
+</div>
+
+<ng-template #profileTemplate>
+  <app-profile
+    [initials]="getPersonaInitials(currentDID()!)"
+    [name]="getPersonaName()"
+    [type]="(currentDID()?.didType || 'NOSTR').toUpperCase()"
+    [avatarSize]="AvatarSize.MEDIUM"></app-profile>
+</ng-template>

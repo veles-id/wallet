@@ -1,0 +1,40 @@
+root: true
+ignorePatterns:
+  - dist
+  - node_modules
+  - "*.config.js"
+env:
+  browser: true
+  es2020: true
+extends:
+  - "@angular-eslint/recommended"
+  - "@angular-eslint/template/process-inline-templates"
+  - "plugin:prettier/recommended"
+parserOptions:
+  ecmaVersion: 2020
+  sourceType: module
+  project:
+    - tsconfig.json
+rules:
+  "@angular-eslint/directive-selector":
+    - error
+    - type: attribute
+      prefix: app
+      style: camelCase
+  "@angular-eslint/component-selector":
+    - error
+    - type: element
+      prefix: app
+      style: kebab-case
+overrides:
+  - files:
+      - "*.ts"
+    extends:
+      - "@angular-eslint/recommended"
+      - "@angular-eslint/template/process-inline-templates"
+      - "plugin:prettier/recommended"
+  - files:
+      - "*.html"
+    extends:
+      - "@angular-eslint/template/recommended"
+      - "plugin:prettier/recommended"

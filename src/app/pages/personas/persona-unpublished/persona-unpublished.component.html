@@ -1,0 +1,97 @@
+<div class="personas">
+  <div class="personas__container">
+    <div class="personas__message">
+      <p class="personas__message-text">
+        Your new digital personality
+        <br />
+        called {{ userName() }} was created
+      </p>
+    </div>
+
+    <div class="personas__qr-section">
+      @if (isLoading()) {
+        <div class="personas__loading">
+          <mat-spinner diameter="60"></mat-spinner>
+        </div>
+      } @else {
+        <div class="personas__qr-container">
+          <canvas
+            #qrCanvas
+            class="personas__qr-code"
+            [class.personas__qr-code--hidden]="!qrCodeGenerated()"></canvas>
+          @if (!qrCodeGenerated()) {
+            <div class="personas__qr-placeholder">
+              <mat-icon>qr_code</mat-icon>
+            </div>
+          }
+          @if (qrCodeGenerated()) {
+            <div class="personas__veles-logo">
+              <img
+                src="assets/signet-qr.svg"
+                alt="Veles" />
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="personas__did-section">
+      <div class="personas__did-header">
+        <p class="personas__did-label">Your private decentralized identifier:</p>
+        <div
+          class="personas__did-type-badge"
+          [class]="didTypeBadgeClass()">
+          {{ didTypeBadgeText() }}
+        </div>
+      </div>
+      <div
+        class="personas__did-container"
+        (click)="copyDID()">
+        <span class="personas__did-text">{{ shortDID() }}</span>
+        <mat-icon class="personas__copy-icon">content_copy</mat-icon>
+      </div>
+    </div>
+
+    <div class="personas__actions">
+      @if (canPublish()) {
+        <button
+          class="personas__publish-button"
+          mat-flat-button
+          (click)="publishDID()"
+          [disabled]="isPublishing()">
+          @if (isPublishing()) {
+            <mat-spinner
+              diameter="20"
+              class="personas__spinner"></mat-spinner>
+          } @else {
+            Publish
+          }
+        </button>
+      } @else if (currentDID()?.isPublished) {
+        <div class="personas__published-status">
+          <mat-icon class="personas__published-icon">check_circle</mat-icon>
+          <span>Published</span>
+        </div>
+      } @else {
+        <div class="personas__cannot-publish">
+          <mat-icon class="personas__warning-icon">info</mat-icon>
+          <span class="personas__cannot-publish-text">{{ publishabilityReason() }}</span>
+        </div>
+      }
+    </div>
+
+    @if (error()) {
+      <div class="personas__error">
+        <span class="personas__error-text">{{ error() }}</span>
+      </div>
+    }
+  </div>
+</div>
+
+<ng-template #profileTemplate>
+  <app-profile
+    [initials]="getPersonaInitials(currentDID()!)"
+    [name]="getPublicName()"
+    [type]="(currentDID()?.didType || 'NOSTR').toUpperCase()"
+    [avatarSize]="AvatarSize.MEDIUM"></app-profile>
+</ng-template>

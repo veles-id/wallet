@@ -1,0 +1,265 @@
+.login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: white;
+  padding: 20px;
+  box-sizing: border-box;
+
+  &__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+  }
+
+  &__header {
+    margin-bottom: 60px;
+  }
+
+  &__title {
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--text-secondary, #666);
+    margin: 0 0 12px 0;
+    letter-spacing: 0.5px;
+  }
+
+  &__subtitle {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  &__icon {
+    margin-bottom: 120px;
+    margin-top: 40px;
+    opacity: 0.8;
+  }
+
+  &__fingerprint {
+    width: 120px;
+    height: 120px;
+    filter: opacity(0.9);
+  }
+
+  &__info {
+    margin-bottom: 40px;
+    margin-top: -80px;
+    max-width: 280px;
+    text-align: center;
+  }
+
+  &__info-text {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-secondary, #666);
+    line-height: 1.5;
+    margin: 0;
+    letter-spacing: 0.3px;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+  }
+
+  &__button {
+    width: 280px;
+    height: 56px;
+    transition: all 0.3s ease;
+
+    &.mat-mdc-button,
+    &.mat-mdc-unelevated-button {
+      background-color: var(--primary-color, #b8956a);
+      color: var(--text-on-primary, white);
+      border-radius: 28px;
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.5px;
+      box-shadow: var(--shadow-primary, 0 4px 12px rgba(184, 149, 106, 0.3));
+      border: none;
+
+      .mdc-button__label {
+        color: var(--text-on-primary, white);
+      }
+
+      &:hover:not(:disabled) {
+        background-color: var(--primary-hover-color, #d4af70);
+        box-shadow: var(--shadow-primary-hover, 0 6px 16px rgba(184, 149, 106, 0.4));
+      }
+
+      &:disabled {
+        background-color: var(--primary-disabled-color, #d0d0d0);
+        color: var(--text-disabled, #999);
+        box-shadow: none;
+
+        .mdc-button__label {
+          color: var(--text-disabled, #999);
+        }
+      }
+    }
+  }
+
+  &__button-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__toggle {
+    padding: 8px 16px;
+    min-width: auto;
+    height: auto;
+    font-size: 14px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+
+    &.mat-mdc-button {
+      background: none !important;
+      color: transparent; // Hide default text color
+      border: none;
+      text-transform: none;
+      box-shadow: none !important;
+      outline: none !important;
+
+      .mdc-button__label {
+        color: transparent; // Hide default label color
+      }
+
+      &:hover:not(:disabled) {
+        background: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+      }
+
+      &:focus {
+        background: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+      }
+
+      &:disabled {
+        background: none !important;
+        box-shadow: none !important;
+      }
+    }
+  }
+
+  &__toggle-text {
+    display: inline;
+    text-decoration: none;
+  }
+
+  &__toggle-descriptive {
+    color: var(--text-secondary, #666);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  &__toggle-action {
+    color: var(--primary-color, #b8956a);
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--primary-hover-color, #d4af70);
+    }
+  }
+
+  &__spinner {
+    mat-spinner circle {
+      stroke: var(--text-on-primary, white);
+    }
+
+    ::ng-deep circle {
+      stroke: var(--text-on-primary, white);
+    }
+  }
+
+  &__error {
+    margin-top: 30px;
+    padding: 12px 16px;
+    background-color: var(--error-background, #fee);
+    border: 1px solid var(--error-border, #fcc);
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__error-text {
+    color: var(--error-color, #c33);
+    font-size: 12px;
+    font-weight: 400;
+  }
+}
+
+@media (max-width: 480px) {
+  .login {
+    padding: 16px;
+
+    &__title {
+      font-size: 18px;
+    }
+
+    &__subtitle {
+      font-size: 24px;
+    }
+
+    &__fingerprint {
+      width: 100px;
+      height: 100px;
+    }
+
+    &__info {
+      margin-top: -60px;
+      max-width: 260px;
+    }
+
+    &__info-text {
+      font-size: 13px;
+    }
+
+    &__button {
+      width: 100%;
+      max-width: 280px;
+    }
+
+    &__container {
+      max-width: 320px;
+    }
+  }
+}
+
+.login__button:focus,
+.login__toggle:focus {
+  outline: 2px solid var(--primary-color, #b8956a);
+  outline-offset: 2px;
+}
+
+// Animation for smooth transitions
+.login__container {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

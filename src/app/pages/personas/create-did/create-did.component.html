@@ -1,0 +1,64 @@
+<div class="create-did">
+  <div class="create-did__container">
+    <div class="create-did__icon">
+      <div class="create-did__logo">
+        <img
+          src="assets/signet_bright.svg"
+          alt="Veles Logo" />
+      </div>
+    </div>
+
+    <div class="create-did__content">
+      <p class="create-did__description">
+        Give your digital personality a name
+        <br />
+        for easy identification
+      </p>
+    </div>
+
+    <div class="create-did__form">
+      <div class="create-did__input-container">
+        <input
+          class="create-did__input"
+          placeholder="Name your new DID"
+          [(ngModel)]="didName"
+          [disabled]="isCreating()"
+          (keyup.enter)="createDID()"
+          autocomplete="off" />
+      </div>
+
+      <div class="create-did__type-selection">
+        <p class="create-did__type-label">Choose DID type</p>
+        <mat-radio-group
+          [(ngModel)]="selectedDIDType"
+          class="create-did__radio-group"
+          [disabled]="isCreating()">
+          <mat-radio-button
+            [value]="DIDType.NOSTR"
+            class="create-did__radio-option">
+            <span class="create-did__radio-content">
+              <strong>Nostr</strong>
+              <span class="create-did__radio-description">Create decentralized identity on Nostr</span>
+            </span>
+          </mat-radio-button>
+        </mat-radio-group>
+      </div>
+    </div>
+
+    <div class="create-did__actions">
+      <button
+        class="create-did__button"
+        mat-flat-button
+        (click)="createDID()"
+        [disabled]="isCreating() || !didName().trim()">
+        @if (isCreating()) {
+          <mat-spinner
+            diameter="20"
+            class="create-did__spinner"></mat-spinner>
+        } @else {
+          Create DID
+        }
+      </button>
+    </div>
+  </div>
+</div>

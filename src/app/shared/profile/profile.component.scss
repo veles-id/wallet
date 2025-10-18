@@ -1,0 +1,97 @@
+.profile {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  &__name {
+    font-weight: 600;
+    color: var(--text-primary, #333);
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  &__type {
+    font-weight: 500;
+    color: var(--text-secondary, #666);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &--small {
+    gap: 0.75rem;
+
+    .profile__name {
+      font-size: 16px;
+    }
+
+    .profile__type {
+      font-size: 11px;
+    }
+  }
+
+  &--medium {
+    gap: 1rem;
+
+    .profile__name {
+      font-size: 20px;
+    }
+
+    .profile__type {
+      font-size: 13px;
+    }
+  }
+
+  &--large {
+    gap: 1.25rem;
+
+    .profile__name {
+      font-size: 24px;
+    }
+
+    .profile__type {
+      font-size: 15px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .profile {
+    &--small {
+      .profile__name {
+        font-size: 16px;
+      }
+
+      .profile__type {
+        font-size: 10px;
+      }
+    }
+
+    &--medium {
+      .profile__name {
+        font-size: 18px;
+      }
+
+      .profile__type {
+        font-size: 12px;
+      }
+    }
+
+    &--large {
+      .profile__name {
+        font-size: 20px;
+      }
+
+      .profile__type {
+        font-size: 14px;
+      }
+    }
+  }
+}

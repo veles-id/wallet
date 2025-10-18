@@ -1,0 +1,84 @@
+---
+description: Veles ID Wallet code style guide
+globs: *.ts,*.html,*.scss
+---
+
+# Veles ID Wallet Code Style Guide
+
+This style guide helps ensure code consistency and maintainability of the codebase, follow these best practices:
+
+## Angular
+
+1. Use new flow control for Angular
+2. Use signals to expose data to the template
+3. As signals are synchronous, don't use them for internal application communication, for example in services.
+4. For asynchronous communication use RxJS
+5. When subscribing to Observable, remember to unsubscribe with
+   `.pipe(takeUntilDestroyed(this._destroyRef))`,
+   as there are 4 ways to unsubscribe, so keep the code consistent
+6. Prefer newer patterns with import(), export(), inject(), viewChild()
+7. Use `protected` only in the scope of inheritance
+8. Reactive forms over template-driven forms
+9. Write **unit tests** with Jest, especially for pipes, helpers, and critical front-end business logic
+
+## Consistent code structure
+
+10. Separate Model, View and Controller (MVC)
+11. Keep SCSS and HTML in separate files
+12. Files not longer than 400 lines of code
+13. Use TypeScript and do your best to don’t use `any`
+14. Put TS type definitions in separate files
+15. Use locally scoped styles over global style class names for better performance (reduces view re-renders)
+16. For unified styling use BEM
+17. Names of class memebers that are private prepend with `_`
+18. Use enum over srtring literal;
+19. Enums work like a charm with switches
+20. Use destructuring to make the code cleaner
+21. Don't use emoticons
+
+## Self-explanatory clean code
+
+22. Do not use comments in TypeScript, but write self-explanatory code
+23. Do not use comments neither HTML, nor in SCSS code
+
+## Programming principles
+
+### Follow **Clean Code Principles**
+
+Robert C. Martin provides a good guidance on how to write _'Clean code'_
+
+**DRY**
+
+_Don't Repeat Yourself_
+
+When you implement new component, always seek in the codebase if there is an existing component that already does the same thing and reuse.
+If there already is a piece of code that is not a component, then create a new component and use it in both places.
+
+**KISS**
+
+_Keep It Simple_
+
+Provide simple solutions to complex problems.
+Keep code easily maintainable and easy to understand. Not through comments, but through self-explanatory code.
+
+**YAGNI**
+
+_You Aren't Gonna Need It_
+
+Don't leave unused code in the codebse.
+
+### Follow **SOLID Principles**
+
+1. Single Responsibility Principle
+2. Open/Closed Principle
+3. Liskov’s Substitution Principle
+4. Interface Segregation Principle
+5. Dependency Inversion Principle
+
+### Follow **Composition over Inheritance Principle**
+
+Ideally all reuse can be achieved by assembling existing components, but in practice inheritance is often needed to make new ones.
+
+## Minimize changes
+
+Don't attempt to rewrite whole files, when you face issues, but rather make the smallest changes necessary to achieve the goal described in the prompt.

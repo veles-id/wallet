@@ -1,0 +1,11 @@
+<div
+  class="profile"
+  [ngClass]="profileSizeClass()">
+  <app-avatar
+    [initials]="initials()"
+    [size]="avatarSize()"></app-avatar>
+  <div class="profile__info">
+    <h1 class="profile__name">{{ name() }}</h1>
+    <span class="profile__type">{{ type() }}</span>
+  </div>
+</div>

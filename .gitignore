@@ -45,8 +45,6 @@ testem.log
 Thumbs.db
 
 # Database files
-*.db
 /server/*.db
-/server/webauthn.db
 
 .editorconfig

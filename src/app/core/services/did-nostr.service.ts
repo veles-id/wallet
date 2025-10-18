@@ -7,7 +7,8 @@ import { NostrDIDResult, NostrEvent, NostrRelay, StoredDID } from './did.types';
 })
 export class DidNostrService {
   /**
-   * Recommended 5-10 reliable, diverse relays
+   * Recommended 5-10 reliable, diverse relays for production use
+   * For development, 3 stable relays are enough
    * In decentralized systems, redundancy is resilience, not waste.
    */
   private readonly DEFAULT_RELAYS: NostrRelay[] = [

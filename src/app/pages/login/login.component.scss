@@ -50,7 +50,7 @@
 
   &__info {
     margin-bottom: 40px;
-    margin-top: -80px; // Reduce space between fingerprint and info
+    margin-top: -80px;
     max-width: 280px;
     text-align: center;
   }
@@ -223,7 +223,7 @@
     }
 
     &__info {
-      margin-top: -60px; // Adjust for smaller fingerprint
+      margin-top: -60px;
       max-width: 260px;
     }
 

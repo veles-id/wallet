@@ -1,4 +1,3 @@
-
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,20 +26,14 @@ export class LoginComponent {
 
   isLoading = signal(false);
   error = signal<string | null>(null);
-
   buttonText = computed(() => (this._isRegistering() ? 'Create passkey' : 'Login with passkey'));
-
   titleText = computed(() => (this._isRegistering() ? 'Setup your new' : 'Open your'));
-
+  toggleDescriptiveText = computed(() => (this._isRegistering() ? 'Already have a passkey? ' : 'New user? '));
+  toggleActionText = computed(() => (this._isRegistering() ? 'Login' : 'Create passkey'));
+  showError = computed(() => this.error() !== null);
   infoText = computed(() =>
     this._isRegistering() ? 'Passkey provides biometric protection for your digital identity' : null,
   );
-
-  toggleDescriptiveText = computed(() => (this._isRegistering() ? 'Already have a passkey? ' : 'New user? '));
-
-  toggleActionText = computed(() => (this._isRegistering() ? 'Login' : 'Create passkey'));
-
-  showError = computed(() => this.error() !== null);
 
   async handleAuthentication(): Promise<void> {
     if (this._isRegistering()) {

@@ -7,7 +7,6 @@
   padding: 20px;
   position: relative;
 
-  // Subtle texture overlay
   &::before {
     content: '';
     position: absolute;
@@ -118,7 +117,6 @@
   }
 }
 
-// Responsive design
 @media (max-width: 480px) {
   .onboarding {
     padding: 16px;

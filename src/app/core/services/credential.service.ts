@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { CredentialVerificationService, VerificationResult } from './credential-verification.service';
+import { CredentialVerificationService } from './credential-verification.service';
+import { VerificationResult } from './credential-verification.types';
 import {
   CreateCredentialRequest,
   CredentialCategory,

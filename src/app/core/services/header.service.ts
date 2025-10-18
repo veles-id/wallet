@@ -1,15 +1,8 @@
-import { computed, DestroyRef, inject, Injectable, signal, TemplateRef } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
-
-export interface HeaderConfig {
-  title?: string;
-  showBackButton?: boolean;
-  backButtonHandler?: () => void;
-  contentTemplate?: TemplateRef<any>;
-  contentContext?: any;
-}
+import { HeaderConfig } from './header.types';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +10,7 @@ export interface HeaderConfig {
 export class HeaderService {
   private _router = inject(Router);
   private _destroyRef = inject(DestroyRef);
+  private _showHeader = signal(true);
   private _config = signal<HeaderConfig>({
     title: '',
     showBackButton: false,
@@ -24,8 +18,6 @@ export class HeaderService {
     contentTemplate: undefined,
     contentContext: undefined,
   });
-
-  private _showHeader = signal(true);
 
   config = computed(() => this._config());
   showHeader = computed(() => this._showHeader());

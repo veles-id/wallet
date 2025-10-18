@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import * as ed25519 from '@noble/ed25519';
 import { sha512 } from '@noble/hashes/sha512';
+import { VerificationResult } from './credential-verification.types';
 import { VerifiableCredential } from './credential.types';
 import { DidService } from './did.service';
 
@@ -11,15 +12,6 @@ ed25519.etc.sha512Sync = (...m) => {
   }
   return hash.digest();
 };
-
-export interface VerificationResult {
-  isValid: boolean;
-  details: string;
-  issuerResolved: boolean;
-  verificationMethod?: string;
-  signatureType?: string;
-  errors?: string[];
-}
 
 @Injectable({
   providedIn: 'root',

@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
-import { VerificationResult } from '../../../core/services/credential-verification.service';
+import { VerificationResult } from '../../../core/services/credential-verification.types';
 import { CredentialService } from '../../../core/services/credential.service';
 import { StoredCredential, VerifiableCredential } from '../../../core/services/credential.types';
 import { HeaderService } from '../../../core/services/header.service';

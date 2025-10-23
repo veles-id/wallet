@@ -27,19 +27,22 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
 - **Cost-Efficiency**: Minimize costs while maintaining decentralization.
 
 ### Approach
-1. **Encrypt DIDs/VCs for Confidentiality**  
-   Encrypt VCs and DIDs using **AES-256** or **NIP-04** (Nostr’s ECIES-based encryption) with the holder’s public key before storage or sharing. This ensures only authorized parties (with the private key) can access the data, mitigating privacy risks on untrusted systems like IPFS nodes or Nostr relays.
+1. **Encrypt VCs and DID Extended Data for Confidentiality**  
+   Encrypt VCs fully and DID extended data (service endpoints, metadata) using **AES-256** or **NIP-04** (Nostr's ECIES-based encryption) with the holder's public key before storage or sharing. DIDs maintain a minimal public document (verification keys only) for universal resolution while protecting privacy-sensitive data. This ensures only authorized parties can access sensitive information, mitigating privacy risks on untrusted systems like IPFS nodes or Nostr relays.
 
-2. **Store Encrypted DIDs/VCs on IPFS for Persistence**  
-   Store encrypted DIDs/VCs on **IPFS**, a decentralized file system, to ensure persistent availability. Pin files on a self-hosted IPFS node (free, ~$5-$10/month for hardware) or use low-cost pinning services (~$0.10-$0.15/GB/month, free tiers for small datasets). The resulting content identifier (CID) guarantees data integrity via SHA-256 hashing.
+2. **Store Encrypted Data on IPFS for Persistence**  
+   Store encrypted VCs and DID extended data on **IPFS**, a decentralized file system, to ensure persistent availability. Pin files on a self-hosted IPFS node or use low-cost pinning services. The resulting content identifier (CID) guarantees data integrity via SHA-256 hashing. Minimal DID documents are published to Nostr relays for public resolution.
 
 3. **Publish Minimal Events on Nostr for Discoverability**  
-   Instead of publishing full DIDs/VCs, issuers create **NIP-01** Nostr events containing:
-   - The VC’s SHA-256 hash.
+   Instead of publishing full data, create minimal **NIP-01** Nostr events:
+   
+   **For VCs** - Issuers create pointer events containing:
+   - The VC's SHA-256 hash.
    - The IPFS CID (linking to the encrypted file).
-   - The holder’s public key (via a `p` tag).
+   - The holder's public key (via a `p` tag).
    - A signature (ECDSA/Schnorr) for authenticity.  
-   Example:
+   
+   Example (kind 1):
    ```json
    {
      "kind": 1,
@@ -50,7 +53,19 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
      "sig": "<signature>"
    }
    ```
-   This minimizes data exposure on public relays (e.g., `relay.damus.io`) while enabling verifiability.
+   
+   **For DIDs** - Holders publish minimal DID documents containing only verification keys, with tags linking to encrypted extended data on IPFS (kind 30000):
+   ```json
+   {
+     "kind": 30000,
+     "pubkey": "<holder-pubkey>",
+     "tags": [["d", "did:nostr:..."], ["ipfs_cid", "<cid>"], ["ext_hash", "<sha256>"]],
+     "content": "{minimal DID document with verification methods}",
+     "sig": "<signature>"
+   }
+   ```
+   
+   This minimizes data exposure on public relays while enabling verifiability and discovery.
 
 4. **Use NIP-04 DMs for Secure Sharing**  
    Holders share encrypted DIDs/VCs with verifiers via **NIP-04** encrypted direct messages, ensuring confidentiality. Only the intended verifier, with the shared secret, can decrypt the data, maintaining holder control over access.
@@ -65,7 +80,37 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
    Use **NIP-05** (`nostr.json` hosted on a domain, ~$1-$10/month) for lightweight, cost-efficient public key resolution, or anchor DID hashes to the **Bitcoin Timechain** using OpenTimestamps (free) for immutable verification. This avoids Ethereum’s high costs and partial centralization.
 
 8. **Ensure Availability with Redundancy**  
-   Pin encrypted DIDs/VCs on multiple IPFS nodes or services for resilience. Publish Nostr events to multiple relays to prevent data loss from pruning. Holders store VCs in secure wallets (e.g., encrypted mobile apps) with backups on IPFS or local devices, ensuring access without single points of failure.
+   Pin encrypted VCs and DID extended data on multiple IPFS nodes or services for resilience. Publish Nostr events (VC pointers and minimal DID documents) to multiple relays to prevent data loss from pruning. Holders store VCs and DIDs in secure identity wallets with backups on IPFS or local devices, ensuring access without single points of failure.
+
+9. **DID Document Architecture: Minimal Public + Extended Private**  
+   DIDs require a hybrid approach due to their dual role as public identifiers and privacy-sensitive identity containers. Each DID is split into two parts:
+   
+   **Minimal DID Document (Public)** - Published to Nostr relays in plaintext for universal verification:
+   ```json
+   {
+     "@context": ["https://www.w3.org/ns/did/v1"],
+     "id": "did:nostr:abc123...",
+     "verificationMethod": [{
+       "id": "did:nostr:abc123...#key-1",
+       "type": "Ed25519VerificationKey2020",
+       "controller": "did:nostr:abc123...",
+       "publicKeyMultibase": "z6Mk..."
+     }],
+     "authentication": ["did:nostr:abc123...#key-1"],
+     "assertionMethod": ["did:nostr:abc123...#key-1"]
+   }
+   ```
+   
+   **Extended DID Data (Private)** - Encrypted and stored on IPFS:
+   ```json
+   {
+     "service": [{"id": "...", "type": "NostrRelay", "serviceEndpoint": [...]}],
+     "metadata": {"profile": {...}, "preferences": {...}},
+     "alsoKnownAs": [...]
+   }
+   ```
+   
+   The Nostr event (kind 30000) contains the minimal document in `content` and links to encrypted extended data via tags: `["ipfs_cid", "<cid>"]`, `["ext_hash", "<sha256>"]`. This approach ensures public verifiability (anyone can resolve verification keys) while protecting privacy-sensitive data (service endpoints revealing communication patterns). Holders share decryption keys for extended data selectively via **NIP-04 encrypted DMs**, maintaining full control over who accesses metadata and service information.
 
 ### Why It Works
 - **Security**: Encryption (AES-256, NIP-04) and ZKPs (BBS+) ensure confidentiality and privacy. Signatures and hashes guarantee integrity and authenticity.

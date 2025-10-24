@@ -4,12 +4,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
-import { VerificationResult } from '../../../core/services/credential-verification.types';
-import { CredentialService } from '../../../core/services/credential.service';
-import { StoredCredential, VerifiableCredential } from '../../../core/services/credential.types';
-import { HeaderService } from '../../../core/services/header.service';
-import { AvatarSize } from '../../../shared/avatar/avatar.types';
-import { ProfileComponent } from '../../../shared/profile/profile.component';
+import { VerificationResult } from '@core/services/credential-verification.types';
+import { CredentialService } from '@core/services/credential.service';
+import { StoredCredential, VerifiableCredential } from '@core/services/credential.types';
+import { HeaderService } from '@core/services/header.service';
+import { AvatarSize } from '@shared/avatar/avatar.types';
+import { ProfileComponent } from '@shared/profile/profile.component';
 import { CredentialCardComponent } from '../credential-card/credential-card.component';
 
 @Component({

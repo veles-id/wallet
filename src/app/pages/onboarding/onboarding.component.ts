@@ -1,8 +1,7 @@
-
 import { Component, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
-import { HeaderService } from '../../core/services/header.service';
+import { HeaderService } from '@core/services/header.service';
 
 @Component({
   selector: 'app-onboarding',

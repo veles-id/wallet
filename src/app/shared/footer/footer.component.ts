@@ -1,14 +1,13 @@
-
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NavigationEnd, Router } from '@angular/router';
+import { DidService } from '@core/services/did.service';
+import { StoredDID } from '@core/services/did.types';
+import { FooterService } from '@core/services/footer.service';
 import { filter } from 'rxjs/operators';
-import { DidService } from '../../core/services/did.service';
-import { StoredDID } from '../../core/services/did.types';
-import { FooterService } from '../../core/services/footer.service';
 
 @Component({
   selector: 'app-footer',

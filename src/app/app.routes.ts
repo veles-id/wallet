@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './core/guards/auth.guard';
+import { AuthGuard } from '@core/guards/auth.guard';
 import { CredentialCreateComponent } from './pages/credentials/credential-create/credential-create.component';
 import { CredentialDetailsComponent } from './pages/credentials/credential-details/credential-details.component';
 import { CredentialsComponent } from './pages/credentials/credentials.component';

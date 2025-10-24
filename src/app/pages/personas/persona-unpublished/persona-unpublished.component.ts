@@ -14,13 +14,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '@core/services/auth.service';
+import { DidService } from '@core/services/did.service';
+import { DIDType, StoredDID } from '@core/services/did.types';
+import { HeaderService } from '@core/services/header.service';
+import { AvatarSize } from '@shared/avatar/avatar.types';
+import { ProfileComponent } from '@shared/profile/profile.component';
 import * as QRCode from 'qrcode';
-import { AuthService } from '../../../core/services/auth.service';
-import { DidService } from '../../../core/services/did.service';
-import { DIDType, StoredDID } from '../../../core/services/did.types';
-import { HeaderService } from '../../../core/services/header.service';
-import { AvatarSize } from '../../../shared/avatar/avatar.types';
-import { ProfileComponent } from '../../../shared/profile/profile.component';
 
 @Component({
   selector: 'app-persona-unpublished',

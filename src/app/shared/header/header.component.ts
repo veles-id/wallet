@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { HeaderService } from '../../core/services/header.service';
+import { HeaderService } from '@core/services/header.service';
 
 @Component({
   selector: 'app-header',

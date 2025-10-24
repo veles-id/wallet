@@ -1,4 +1,3 @@
-
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,18 +13,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
-import { CredentialService } from '../../../core/services/credential.service';
+import { AuthService } from '@core/services/auth.service';
+import { CredentialService } from '@core/services/credential.service';
 import {
   CreateCredentialRequest,
   CredentialCategory,
   CredentialPrivacy,
   CredentialTemplate,
   FieldType,
-} from '../../../core/services/credential.types';
-import { DidService } from '../../../core/services/did.service';
-import { StoredDID } from '../../../core/services/did.types';
-import { HeaderService } from '../../../core/services/header.service';
+} from '@core/services/credential.types';
+import { DidService } from '@core/services/did.service';
+import { StoredDID } from '@core/services/did.types';
+import { HeaderService } from '@core/services/header.service';
 
 @Component({
   selector: 'app-credential-create',
@@ -43,8 +42,8 @@ import { HeaderService } from '../../../core/services/header.service';
     MatStepperModule,
     MatCardModule,
     MatChipsModule,
-    ReactiveFormsModule
-],
+    ReactiveFormsModule,
+  ],
   templateUrl: './credential-create.component.html',
   styleUrl: './credential-create.component.scss',
 })

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
+import { environment } from '@environments/environment.dev';
 import { PinataSDK } from 'pinata';
-import { environment } from '../../../environments/environment.dev';
 import { IPFSRetrieveResult, IPFSUploadResult } from './ipfs.types';
 
 @Injectable({

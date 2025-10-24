@@ -6,7 +6,7 @@ import {
   CredentialColorClass,
   CredentialIconType,
   StoredCredential,
-} from '../../../core/services/credential.types';
+} from '@core/services/credential.types';
 
 @Component({
   selector: 'app-credential-card',

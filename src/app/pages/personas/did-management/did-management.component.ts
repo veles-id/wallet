@@ -1,12 +1,11 @@
-
 import { Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { DidService } from '../../../core/services/did.service';
-import { StoredDID } from '../../../core/services/did.types';
+import { DidService } from '@core/services/did.service';
+import { StoredDID } from '@core/services/did.types';
 
 @Component({
   selector: 'app-did-management',

@@ -47,4 +47,7 @@ Thumbs.db
 # Database files
 /server/*.db
 
+# Local environment files with credentials
+/src/environments/environment.dev.ts
+
 .editorconfig

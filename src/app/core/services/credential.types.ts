@@ -50,6 +50,9 @@ export interface CredentialMetadata {
   category?: CredentialCategory;
   privacy?: CredentialPrivacy;
   source?: CredentialSource;
+  ipfsCID?: string;
+  encryptedOnIPFS?: boolean;
+  nostrPointerEventId?: string;
 }
 
 export enum CredentialCategory {

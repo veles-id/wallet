@@ -1,29 +1,13 @@
-import { Injectable } from '@angular/core';
-import { finalizeEvent, generateSecretKey, getPublicKey, verifyEvent } from 'nostr-tools/pure';
+import { Injectable, inject } from '@angular/core';
+import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import { NostrDIDResult, NostrEvent, NostrRelay, StoredDID } from './did.types';
+import { RelayService } from './relay.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DidNostrService {
-  /**
-   * Recommended 5-10 reliable, diverse relays for production use
-   * For development, 3 stable relays are enough
-   * In decentralized systems, redundancy is resilience, not waste.
-   */
-  private readonly DEFAULT_RELAYS: NostrRelay[] = [
-    // Tier 1: Major stable
-    { url: 'wss://relay.damus.io', name: 'Damus' },
-    { url: 'wss://nos.lol', name: 'nos.lol' },
-    { url: 'wss://relay.nostr.band', name: 'Nostr Band' },
-    // Tier 2: Regional
-    // { url: "wss://nostr.wine", name: "Nostr.wine Europe" },
-    // { url: "wss://relay.current.fyi", name: "Current Asia" },
-    // Tier 3: Specialized / Bitcoin-focused
-    // { url: "wss://bitcoiner.guide", name: "Bitcoiner" },
-    // { url: "wss://nostr.bitcoiner.guide", name: "Nostr.bitcoiner.guide" },
-    // { url: "wss://nostr.zebedee.io", name: "Nostr.zebedee.io" },
-  ];
+  private _relayService = inject(RelayService);
 
   async createDID(): Promise<NostrDIDResult> {
     try {
@@ -51,7 +35,7 @@ export class DidNostrService {
           {
             id: `${did}#nostr`,
             type: 'NostrRelay',
-            serviceEndpoint: this.DEFAULT_RELAYS.map((r) => r.url),
+            serviceEndpoint: this._relayService.DEFAULT_RELAYS.map((r) => r.url),
           },
         ],
       };
@@ -93,10 +77,10 @@ export class DidNostrService {
         contentLength: event.content.length,
       });
 
-      const signedEvent = await this.signEvent(event, nostrKeys.privateKey);
+      const signedEvent = await this._relayService.signEvent(event, nostrKeys.privateKey);
       console.log('Signed event - ID:', signedEvent.id?.substring(0, 16) + '...');
 
-      const publishResults = await this.publishToRelays(signedEvent);
+      const publishResults = await this._relayService.publishToRelays(signedEvent);
 
       publishResults.forEach((result) => {
         if (result.success) {
@@ -157,8 +141,8 @@ export class DidNostrService {
         metadata: filteredMetadata,
       });
 
-      const signedEvent = await this.signEvent(event, nostrKeys.privateKey);
-      const publishResults = await this.publishToRelays(signedEvent);
+      const signedEvent = await this._relayService.signEvent(event, nostrKeys.privateKey);
+      const publishResults = await this._relayService.publishToRelays(signedEvent);
 
       publishResults.forEach((result) => {
         if (result.success) {
@@ -357,14 +341,16 @@ export class DidNostrService {
   private async queryRelays(filter: any): Promise<any[]> {
     const allEvents: any[] = [];
 
-    const results = await Promise.allSettled(this.DEFAULT_RELAYS.map((relay) => this.queryRelay(relay, filter)));
+    const results = await Promise.allSettled(
+      this._relayService.DEFAULT_RELAYS.map((relay) => this.queryRelay(relay, filter)),
+    );
 
     results.forEach((result, index) => {
       if (result.status === 'fulfilled' && result.value.length > 0) {
-        console.log(`Retrieved ${result.value.length} events from ${this.DEFAULT_RELAYS[index].name}`);
+        console.log(`Retrieved ${result.value.length} events from ${this._relayService.DEFAULT_RELAYS[index].name}`);
         allEvents.push(...result.value);
       } else if (result.status === 'rejected') {
-        console.warn(`Failed to query ${this.DEFAULT_RELAYS[index].name}:`, result.reason);
+        console.warn(`Failed to query ${this._relayService.DEFAULT_RELAYS[index].name}:`, result.reason);
       }
     });
 
@@ -471,7 +457,7 @@ export class DidNostrService {
       // Fallback: try to derive from JWK if available
       else if (storedDID.privateKeyJwk?.d) {
         const privateKeyBytes = this.base64UrlDecode(storedDID.privateKeyJwk.d);
-        privateKey = this.bytesToHex(privateKeyBytes);
+        privateKey = this._relayService.bytesToHex(privateKeyBytes);
 
         // Also derive the correct public key using nostr-tools
         const correctPublicKey = getPublicKey(privateKeyBytes);
@@ -516,145 +502,6 @@ export class DidNostrService {
     };
   }
 
-  private async signEvent(event: NostrEvent, privateKeyHex: string): Promise<NostrEvent> {
-    try {
-      console.log('Signing Nostr event with proper tools...');
-
-      const secretKey = this.hexToBytes(privateKeyHex);
-
-      // Create unsigned event template
-      const unsignedEvent = {
-        pubkey: event.pubkey,
-        created_at: event.created_at,
-        kind: event.kind,
-        tags: event.tags,
-        content: event.content,
-      };
-
-      console.log('Event to sign:', {
-        pubkey: event.pubkey.substring(0, 16) + '...',
-        created_at: event.created_at,
-        kind: event.kind,
-        tagsCount: event.tags.length,
-        contentLength: event.content.length,
-      });
-
-      const signedEvent = finalizeEvent(unsignedEvent, secretKey);
-
-      console.log('Event signed with nostr-tools:', {
-        id: signedEvent.id.substring(0, 16) + '...',
-        sig: signedEvent.sig.substring(0, 16) + '...',
-        sigLength: signedEvent.sig.length,
-      });
-
-      // Verify the signature
-      const isValid = verifyEvent(signedEvent);
-      console.log('Signature verification:', isValid ? 'VALID' : 'INVALID');
-
-      return signedEvent as NostrEvent;
-    } catch (error) {
-      console.error('Failed to sign event:', error);
-      throw error;
-    }
-  }
-
-  private async publishToRelays(event: NostrEvent): Promise<
-    Array<{
-      relay: string;
-      success: boolean;
-      error?: string;
-    }>
-  > {
-    const results = await Promise.allSettled(this.DEFAULT_RELAYS.map((relay) => this.publishToRelay(event, relay)));
-
-    return results.map((result, index) => ({
-      relay: this.DEFAULT_RELAYS[index].name,
-      success: result.status === 'fulfilled' && result.value,
-      error: result.status === 'rejected' ? result.reason?.message : undefined,
-    }));
-  }
-
-  private async publishToRelay(event: NostrEvent, relay: NostrRelay): Promise<boolean> {
-    return new Promise((resolve) => {
-      try {
-        console.log(`Connecting to ${relay.name} (${relay.url})...`);
-        const ws = new WebSocket(relay.url);
-        let resolved = false;
-
-        const timeout = setTimeout(() => {
-          if (!resolved) {
-            resolved = true;
-            console.log(`${relay.name}: Connection timeout`);
-            ws.close();
-            resolve(false);
-          }
-        }, 10000); // 10 second timeout
-
-        ws.onopen = () => {
-          console.log(`${relay.name}: Connected, sending event...`);
-          const message = JSON.stringify(['EVENT', event]);
-          console.log(`${relay.name}: Sending message:`, {
-            type: 'EVENT',
-            eventId: event.id?.substring(0, 16) + '...',
-            messageLength: message.length,
-          });
-          ws.send(message);
-        };
-
-        ws.onmessage = (msg) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            ws.close();
-
-            try {
-              const response = JSON.parse(msg.data);
-              console.log(`${relay.name}: Received response:`, response);
-
-              // Check if it's an OK response for our event
-              if (response[0] === 'OK' && response[1] === event.id) {
-                const success = response[2] === true;
-                console.log(`${relay.name}: ${success ? 'Accepted' : 'Rejected'} - ${response[3] || 'No message'}`);
-                resolve(success);
-              } else {
-                console.log(`${relay.name}: Unexpected response format`);
-                resolve(false);
-              }
-            } catch (parseError) {
-              console.log(`${relay.name}: Failed to parse response:`, parseError);
-              resolve(false);
-            }
-          }
-        };
-
-        ws.onerror = (error) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            console.log(`${relay.name}: WebSocket error:`, error);
-            resolve(false);
-          }
-        };
-
-        ws.onclose = (event) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            console.log(`${relay.name}: Connection closed:`, {
-              code: event.code,
-              reason: event.reason,
-              wasClean: event.wasClean,
-            });
-            resolve(false);
-          }
-        };
-      } catch (error) {
-        console.log(`${relay.name}: Failed to create WebSocket:`, error);
-        resolve(false);
-      }
-    });
-  }
-
   private async generateNostrKeyPair(): Promise<{
     publicKey: string;
     privateKey: string;
@@ -665,36 +512,19 @@ export class DidNostrService {
 
     console.log('Generated Nostr keys:', {
       publicKeyLength: publicKey.length,
-      secretKeyLength: this.bytesToHex(secretKey).length,
+      secretKeyLength: this._relayService.bytesToHex(secretKey).length,
     });
 
     return {
-      privateKey: this.bytesToHex(secretKey),
+      privateKey: this._relayService.bytesToHex(secretKey),
       publicKey: publicKey,
     };
   }
 
-  /**
-   * Utility functions
-   */
   private base64UrlDecode(base64Url: string): Uint8Array {
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const padding = '='.repeat((4 - (base64.length % 4)) % 4);
     const binaryString = atob(base64 + padding);
     return new Uint8Array(binaryString.split('').map((char) => char.charCodeAt(0)));
-  }
-
-  private bytesToHex(bytes: Uint8Array): string {
-    return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-  }
-
-  private hexToBytes(hex: string): Uint8Array {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
-    }
-    return bytes;
   }
 }

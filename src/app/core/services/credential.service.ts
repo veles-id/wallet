@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { sha256 } from '@noble/hashes/sha2';
 import { CredentialVerificationService } from './credential-verification.service';
 import { VerificationResult } from './credential-verification.types';
 import {
@@ -12,6 +13,10 @@ import {
   VerifiableCredential,
 } from './credential.types';
 import { DidService } from './did.service';
+import { NostrEvent, StoredDID } from './did.types';
+import { EncryptionService } from './encryption.service';
+import { IpfsService } from './ipfs.service';
+import { RelayService } from './relay.service';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +24,9 @@ import { DidService } from './did.service';
 export class CredentialService {
   private _didService = inject(DidService);
   private _verificationService = inject(CredentialVerificationService);
+  private _encryptionService = inject(EncryptionService);
+  private _ipfsService = inject(IpfsService);
+  private _relayService = inject(RelayService);
   private readonly STORAGE_KEY = 'veles_credentials';
   private readonly TEMPLATES_KEY = 'veles_credential_templates';
 
@@ -73,6 +81,118 @@ export class CredentialService {
       return storedCredential;
     } catch (error) {
       console.error('Failed to create credential:', error);
+      throw error;
+    }
+  }
+
+  async createAndStoreEncryptedVC(request: CreateCredentialRequest): Promise<StoredCredential> {
+    try {
+      const credentialId = this._generateCredentialId();
+      const issuanceDate = new Date().toISOString();
+
+      const credential: VerifiableCredential = {
+        '@context': ['https://www.w3.org/2018/credentials/v1', 'https://www.w3.org/ns/credentials/examples/v1'],
+        id: credentialId,
+        type: ['VerifiableCredential'],
+        issuer: request.issuerDID,
+        issuanceDate,
+        ...(request.expirationDate && {
+          expirationDate: request.expirationDate,
+        }),
+        credentialSubject: {
+          id: request.subjectDID,
+          ...request.credentialData,
+        },
+      };
+
+      if (request.templateId) {
+        const template = this.getTemplate(request.templateId);
+        if (template) {
+          credential['@context'] = [...credential['@context'], ...template.context];
+          credential.type = [...credential.type, ...template.type];
+        }
+      }
+
+      const storedCredential: StoredCredential = {
+        credential,
+        createdAt: new Date().toISOString(),
+        alias: request.alias,
+        tags: request.tags || [],
+        isVerified: false,
+        metadata: {
+          templateId: request.templateId,
+          category: request.category || CredentialCategory.OTHER,
+          privacy: request.privacy || CredentialPrivacy.PRIVATE,
+          source: CredentialSource.SELF_ISSUED,
+        },
+      };
+
+      this._storeCredential(storedCredential);
+
+      const holderDID = this._didService.getStoredDID(request.subjectDID);
+      if (!holderDID || !holderDID.nostrPrivateKey || !holderDID.nostrPublicKey) {
+        console.warn('No Nostr keys found for holder DID, skipping encryption');
+        return storedCredential;
+      }
+
+      const credentialJson = JSON.stringify(credential);
+      const encryptedVC = await this._encryptionService.encryptNIP04(
+        credentialJson,
+        holderDID.nostrPrivateKey,
+        holderDID.nostrPublicKey,
+      );
+
+      const fileName = `vc-${credentialId.substring(credentialId.length - 12)}.enc`;
+      const ipfsResult = await this._ipfsService.uploadEncryptedData(encryptedVC, fileName);
+
+      storedCredential.metadata = {
+        ...storedCredential.metadata,
+        ipfsCID: ipfsResult.cid,
+        encryptedOnIPFS: true,
+      };
+
+      this._updateCredentialInStorage(storedCredential);
+
+      console.log(`VC encrypted and stored on IPFS: ${ipfsResult.cid}`);
+      return storedCredential;
+    } catch (error) {
+      console.error('Failed to create and encrypt credential:', error);
+      throw error;
+    }
+  }
+
+  async publishVCPointerToNostr(
+    vc: VerifiableCredential,
+    ipfsCID: string,
+    issuerDID: StoredDID,
+  ): Promise<string | null> {
+    try {
+      if (!issuerDID.nostrPrivateKey || !issuerDID.nostrPublicKey) {
+        console.error('Issuer DID missing Nostr keys');
+        return null;
+      }
+
+      const vcHash = this._hashVC(vc);
+      const holderDID = typeof vc.credentialSubject.id === 'string' ? vc.credentialSubject.id : '';
+
+      const event = await this._createVCPointerEvent(
+        vcHash,
+        ipfsCID,
+        holderDID,
+        issuerDID.nostrPublicKey,
+        issuerDID.did,
+      );
+
+      const signedEvent = await this._relayService.signEvent(event, issuerDID.nostrPrivateKey);
+
+      const results = await this._relayService.publishToRelays(signedEvent);
+      const successCount = results.filter((r) => r.success).length;
+
+      console.log(`Published VC pointer to ${successCount}/${results.length} relays`);
+
+      return signedEvent.id || null;
+    } catch (error) {
+      console.error('Failed to publish VC pointer to Nostr:', error);
       throw error;
     }
   }
@@ -184,8 +304,49 @@ export class CredentialService {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(credentials));
   }
 
+  private _updateCredentialInStorage(updatedCredential: StoredCredential): void {
+    const credentials = this.getStoredCredentials();
+    const index = credentials.findIndex((cred) => cred.credential.id === updatedCredential.credential.id);
+
+    if (index !== -1) {
+      credentials[index] = updatedCredential;
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(credentials));
+    }
+  }
+
   private _generateCredentialId(): string {
     return `urn:uuid:${crypto.randomUUID()}`;
+  }
+
+  private _hashVC(vc: VerifiableCredential): string {
+    const vcJson = JSON.stringify(vc);
+    const hash = sha256(new TextEncoder().encode(vcJson));
+    return Array.from(hash)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  private async _createVCPointerEvent(
+    vcHash: string,
+    ipfsCID: string,
+    holderDID: string,
+    issuerPubkey: string,
+    subjectDID: string,
+  ): Promise<NostrEvent> {
+    const now = Math.floor(Date.now() / 1000);
+
+    return {
+      pubkey: issuerPubkey,
+      created_at: now,
+      kind: 1,
+      tags: [
+        ['p', holderDID],
+        ['vc_hash', vcHash],
+        ['ipfs_cid', ipfsCID],
+        ['subject', subjectDID],
+      ],
+      content: 'VC Pointer',
+    };
   }
 
   private _initializeDefaultTemplates(): void {

@@ -4,6 +4,7 @@ import { sha512 } from '@noble/hashes/sha512';
 import { VerificationResult } from './credential-verification.types';
 import { VerifiableCredential } from './credential.types';
 import { DidService } from './did.service';
+import { EncryptionService } from './encryption.service';
 
 ed25519.etc.sha512Sync = (...m) => {
   const hash = sha512.create();
@@ -18,6 +19,7 @@ ed25519.etc.sha512Sync = (...m) => {
 })
 export class CredentialVerificationService {
   private _didService = inject(DidService);
+  private _encryptionService = inject(EncryptionService);
 
   async verifyCredential(credential: VerifiableCredential): Promise<VerificationResult> {
     try {
@@ -52,6 +54,46 @@ export class CredentialVerificationService {
       return {
         isValid: false,
         details: `Verification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        issuerResolved: false,
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
+      };
+    }
+  }
+
+  async verifyEncryptedVC(
+    encryptedVC: string,
+    recipientPrivateKey: string,
+    senderPublicKey: string,
+  ): Promise<VerificationResult> {
+    try {
+      console.log('Decrypting and verifying encrypted VC...');
+
+      const decryptedVCJson = await this._encryptionService.decryptNIP04(
+        encryptedVC,
+        recipientPrivateKey,
+        senderPublicKey,
+      );
+
+      const credential: VerifiableCredential = JSON.parse(decryptedVCJson);
+
+      console.log('VC decrypted successfully, verifying credential...');
+
+      return await this.verifyCredential(credential);
+    } catch (error) {
+      console.error('Encrypted VC verification failed:', error);
+
+      if (error instanceof SyntaxError) {
+        return {
+          isValid: false,
+          details: 'Failed to parse decrypted VC JSON',
+          issuerResolved: false,
+          errors: ['Invalid JSON structure after decryption'],
+        };
+      }
+
+      return {
+        isValid: false,
+        details: `Encrypted VC verification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         issuerResolved: false,
         errors: [error instanceof Error ? error.message : 'Unknown error'],
       };

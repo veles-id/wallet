@@ -1,14 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { cbc } from '@noble/ciphers/aes.js';
 import { randomBytes } from '@noble/ciphers/utils.js';
 import { sha256 } from '@noble/hashes/sha2';
 import { getSharedSecret } from '@noble/secp256k1';
 import { EncryptedData } from './encryption.types';
+import { RelayService } from './relay.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EncryptionService {
+  private _relayService = inject(RelayService);
   async encryptNIP04(plaintext: string, senderPrivateKey: string, recipientPublicKey: string): Promise<string> {
     const sharedSecret = await this.generateSharedSecret(senderPrivateKey, recipientPublicKey);
     const key = sha256(sharedSecret);
@@ -45,8 +47,8 @@ export class EncryptionService {
   }
 
   async generateSharedSecret(privateKey: string, publicKey: string): Promise<Uint8Array> {
-    const privateKeyBytes = this.hexToBytes(privateKey);
-    const publicKeyBytes = this.hexToBytes(publicKey);
+    const privateKeyBytes = this._relayService.hexToBytes(privateKey);
+    const publicKeyBytes = this._relayService.hexToBytes(publicKey);
 
     const sharedPoint = getSharedSecret(privateKeyBytes, publicKeyBytes);
 
@@ -61,14 +63,6 @@ export class EncryptionService {
     }
 
     return [parts[0], parts[1]];
-  }
-
-  private hexToBytes(hex: string): Uint8Array {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-    }
-    return bytes;
   }
 
   private bytesToBase64(bytes: Uint8Array): string {

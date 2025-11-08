@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { CredentialVerificationService } from './credential-verification.service';
 import { CredentialService } from './credential.service';
 import {

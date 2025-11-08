@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import { getPublicKey as getSecp256k1PublicKey, utils } from '@noble/secp256k1';
 import { EncryptionService } from './encryption.service';
 

@@ -1,6 +1,11 @@
 import { Injectable, inject } from '@angular/core';
+import { sha256 } from '@noble/hashes/sha2';
 import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
+import { DidSplitterService } from './did-splitter.service';
+import { DIDDocument } from './did-splitter.types';
 import { NostrDIDResult, NostrEvent, NostrRelay, StoredDID } from './did.types';
+import { EncryptionService } from './encryption.service';
+import { IpfsService } from './ipfs.service';
 import { RelayService } from './relay.service';
 
 @Injectable({
@@ -8,6 +13,9 @@ import { RelayService } from './relay.service';
 })
 export class DidNostrService {
   private _relayService = inject(RelayService);
+  private _didSplitterService = inject(DidSplitterService);
+  private _encryptionService = inject(EncryptionService);
+  private _ipfsService = inject(IpfsService);
 
   async createDID(): Promise<NostrDIDResult> {
     try {
@@ -56,7 +64,7 @@ export class DidNostrService {
 
   async publishDID(storedDID: StoredDID): Promise<boolean> {
     try {
-      console.log('Publishing DID:Nostr...');
+      console.log('Publishing DID:Nostr with hybrid encryption...');
       console.log('DID to publish:', storedDID.did);
 
       if (!storedDID.did.startsWith('did:nostr:')) {
@@ -69,7 +77,49 @@ export class DidNostrService {
       }
       console.log('Extracted keys - Public:', nostrKeys.publicKey.substring(0, 16) + '...');
 
-      const event = await this.createDIDEvent(storedDID, nostrKeys);
+      const { publicDocument, extendedData } = this._didSplitterService.splitDIDDocument(
+        storedDID.document as DIDDocument,
+      );
+      console.log('Split DID document - Extended data:', this._didSplitterService.hasExtendedData(extendedData));
+
+      let extendedDataCID: string | undefined;
+      let extendedDataHash: string | undefined;
+
+      if (this._didSplitterService.hasExtendedData(extendedData)) {
+        console.log('Processing extended data...');
+
+        const extendedDataJson = JSON.stringify(extendedData);
+        const encryptedExtended = await this._encryptionService.encryptNIP04(
+          extendedDataJson,
+          nostrKeys.privateKey,
+          nostrKeys.publicKey,
+        );
+
+        const fileName = `did-ext-${storedDID.did.split(':')[2].substring(0, 12)}.enc`;
+        const ipfsResult = await this._ipfsService.uploadEncryptedData(encryptedExtended, fileName);
+        extendedDataCID = ipfsResult.cid;
+
+        const hash = sha256(new TextEncoder().encode(extendedDataJson));
+        extendedDataHash = Array.from(hash)
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
+
+        console.log(`Extended data encrypted and uploaded to IPFS: ${extendedDataCID}`);
+        console.log(`Extended data hash: ${extendedDataHash.substring(0, 16)}...`);
+
+        storedDID.extendedDataCID = extendedDataCID;
+        storedDID.publicDocument = publicDocument;
+        storedDID.extendedDocument = extendedData;
+      }
+
+      const event = await this._createDIDEventWithEncryption(
+        storedDID,
+        nostrKeys,
+        publicDocument,
+        extendedDataCID,
+        extendedDataHash,
+      );
+
       console.log('Created event:', {
         kind: event.kind,
         pubkey: event.pubkey.substring(0, 16) + '...',
@@ -162,9 +212,10 @@ export class DidNostrService {
     }
   }
 
-  async retrieveDIDInfo(did: string): Promise<any> {
+  async retrieveDIDInfo(did: string, decryptionKey?: string): Promise<any> {
     try {
       console.log('Retrieving DID:Nostr information from network:', did);
+      console.log('Decryption key provided:', !!decryptionKey);
 
       if (!did.startsWith('did:nostr:')) {
         throw new Error('Not a valid DID:Nostr identifier');
@@ -178,7 +229,7 @@ export class DidNostrService {
       console.log('Extracted public key:', publicKey.substring(0, 16) + '...');
 
       const results = await Promise.allSettled([
-        this.retrieveDIDDocument(publicKey),
+        this.retrieveDIDDocument(publicKey, decryptionKey),
         this.retrieveProfileMetadata(publicKey),
         this.retrieveRelayList(publicKey),
         this.retrieveContactList(publicKey),
@@ -205,9 +256,11 @@ export class DidNostrService {
   }
 
   /**
-   * Retrieves DID document from Nostr relays
+   * Retrieves DID document from Nostr relays with optional decryption of extended data.
+   * Extended data is always encrypted when stored, but decryption during retrieval
+   * requires providing the holder's private key.
    */
-  private async retrieveDIDDocument(publicKey: string): Promise<any> {
+  private async retrieveDIDDocument(publicKey: string, decryptionKey?: string): Promise<any> {
     const filter = {
       kinds: [30000],
       authors: [publicKey],
@@ -220,11 +273,64 @@ export class DidNostrService {
     if (events.length > 0) {
       const event = events[0];
       try {
-        return {
+        const publicDocument = JSON.parse(event.content);
+        const ipfsCIDTag = event.tags.find((tag: string[]) => tag[0] === 'ipfs_cid');
+        const extHashTag = event.tags.find((tag: string[]) => tag[0] === 'ext_hash');
+
+        const result: any = {
           event,
-          document: JSON.parse(event.content),
+          document: publicDocument,
           publishedAt: new Date(event.created_at * 1000).toISOString(),
+          hasExtendedData: !!ipfsCIDTag,
         };
+
+        if (ipfsCIDTag && decryptionKey) {
+          console.log('Extended data found, attempting to retrieve and decrypt...');
+          const ipfsCID = ipfsCIDTag[1];
+          const expectedHash = extHashTag ? extHashTag[1] : undefined;
+
+          try {
+            const ipfsData = await this._ipfsService.retrieveData(ipfsCID);
+            console.log('Retrieved encrypted extended data from IPFS');
+
+            const decryptedExtendedJson = await this._encryptionService.decryptNIP04(
+              ipfsData.data,
+              decryptionKey,
+              publicKey,
+            );
+            console.log('Successfully decrypted extended data');
+
+            if (expectedHash) {
+              const hash = sha256(new TextEncoder().encode(decryptedExtendedJson));
+              const actualHash = Array.from(hash)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+
+              if (actualHash !== expectedHash) {
+                console.warn('Extended data hash mismatch!');
+                result.hashVerificationFailed = true;
+              } else {
+                console.log('Extended data hash verified successfully');
+              }
+            }
+
+            const extendedData = JSON.parse(decryptedExtendedJson);
+            const completeDocument = this._didSplitterService.mergeDIDDocuments(publicDocument, extendedData);
+
+            result.document = completeDocument;
+            result.extendedData = extendedData;
+            result.extendedDataDecrypted = true;
+          } catch (error) {
+            console.error('Failed to retrieve or decrypt extended data:', error);
+            result.extendedDataError = error instanceof Error ? error.message : String(error);
+          }
+        } else if (ipfsCIDTag && !decryptionKey) {
+          console.log('Extended data available but no decryption key provided');
+          result.ipfsCID = ipfsCIDTag[1];
+          result.extendedDataAvailable = true;
+        }
+
+        return result;
       } catch (error) {
         console.warn('Failed to parse DID document:', error);
         return {
@@ -481,24 +587,41 @@ export class DidNostrService {
   }
 
   /**
-   * Creates a Nostr event for DID document
+   * Creates a Nostr event for DID document with encryption support
    */
-  private async createDIDEvent(
+  private async _createDIDEventWithEncryption(
     storedDID: StoredDID,
     keyPair: { publicKey: string; privateKey: string },
+    publicDocument: any,
+    extendedDataCID?: string,
+    extendedDataHash?: string,
   ): Promise<NostrEvent> {
     const now = Math.floor(Date.now() / 1000);
+
+    const tags: string[][] = [
+      ['d', storedDID.did],
+      ['t', 'did'],
+      ['k', '30000'],
+    ];
+
+    if (extendedDataCID) {
+      tags.push(['ipfs_cid', extendedDataCID]);
+    }
+
+    if (extendedDataHash) {
+      tags.push(['ext_hash', extendedDataHash]);
+    }
+
+    if (extendedDataCID) {
+      tags.push(['encryption', 'nip04']);
+    }
 
     return {
       pubkey: keyPair.publicKey,
       created_at: now,
-      kind: 30000, // Parameterized replaceable event for DID documents
-      tags: [
-        ['d', storedDID.did], // DID identifier
-        ['t', 'did'], // Topic tag
-        ['k', '30000'], // Kind tag
-      ],
-      content: JSON.stringify(storedDID.document),
+      kind: 30000,
+      tags,
+      content: JSON.stringify(publicDocument),
     };
   }
 

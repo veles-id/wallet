@@ -549,8 +549,14 @@ export class DidNostrService {
         return null;
       }
 
-      const publicKey = didParts[2];
-      console.log('Public key from DID:', publicKey.substring(0, 16) + '...');
+      let publicKey = didParts[2];
+
+      if (publicKey.length === 66) {
+        console.log('Converting 33-byte compressed key to 32-byte x-only format');
+        publicKey = publicKey.substring(2);
+      }
+
+      console.log('Public key from DID:', publicKey.substring(0, 16) + '... (length:', publicKey.length, ')');
 
       // Try to get private key from stored data
       let privateKey = null;
@@ -566,8 +572,18 @@ export class DidNostrService {
         privateKey = this._relayService.bytesToHex(privateKeyBytes);
 
         // Also derive the correct public key using nostr-tools
-        const correctPublicKey = getPublicKey(privateKeyBytes);
-        console.log('Derived keys from JWK - Public key:', correctPublicKey.substring(0, 16) + '...');
+        let correctPublicKey = getPublicKey(privateKeyBytes);
+
+        if (correctPublicKey.length === 66) {
+          correctPublicKey = correctPublicKey.substring(2);
+        }
+
+        console.log(
+          'Derived keys from JWK - Public key:',
+          correctPublicKey.substring(0, 16) + '... (length:',
+          correctPublicKey.length,
+          ')',
+        );
 
         // Update the public key to match what nostr-tools generates
         return { publicKey: correctPublicKey, privateKey };
@@ -631,7 +647,15 @@ export class DidNostrService {
   }> {
     console.log('Generating proper Nostr keypair...');
     const secretKey = generateSecretKey();
-    const publicKey = getPublicKey(secretKey);
+    let publicKey = getPublicKey(secretKey);
+
+    if (publicKey.length === 66) {
+      publicKey = publicKey.substring(2);
+    }
+
+    if (publicKey.length !== 64) {
+      throw new Error(`Invalid Nostr public key length: ${publicKey.length} (expected 64 hex chars / 32 bytes)`);
+    }
 
     console.log('Generated Nostr keys:', {
       publicKeyLength: publicKey.length,

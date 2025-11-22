@@ -27,6 +27,7 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
 - **Cost-Efficiency**: Minimize costs while maintaining decentralization.
 
 ### Approach
+
 1. **Encrypt VCs and DID Extended Data for Confidentiality**  
    Encrypt VCs fully and DID extended data (service endpoints, metadata) using **AES-256** or **NIP-04** (Nostr's ECIES-based encryption) with the holder's public key before storage or sharing. DIDs maintain a minimal public document (verification keys only) for universal resolution while protecting privacy-sensitive data. This ensures only authorized parties can access sensitive information, mitigating privacy risks on untrusted systems like IPFS nodes or Nostr relays.
 
@@ -70,19 +71,16 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
 4. **Use NIP-04 DMs for Secure Sharing**  
    Holders share encrypted DIDs/VCs with verifiers via **NIP-04** encrypted direct messages, ensuring confidentiality. Only the intended verifier, with the shared secret, can decrypt the data, maintaining holder control over access.
 
-5. **Leverage ZKPs for Selective Disclosure**  
-   Use **Zero-Knowledge Proofs** (e.g., BBS+ signatures) to create verifiable presentations (VPs) that prove specific VC attributes (e.g., “over 18”) without revealing the full credential. This enhances privacy and ensures verifiers only see necessary data, with proofs verifiable against the issuer’s public key.
-
-6. **Revocation via Nostr Events**  
+5. **Revocation via Nostr Events**  
    Issuers publish signed revocation events on Nostr to invalidate VCs, including the VC’s hash and a “revoked” status. Verifiers check these events to confirm validity, ensuring issuer control over the VC lifecycle, even if encrypted files persist on IPFS.
 
-7. **Resolve Identities with NIP-05 or Bitcoin-Anchored DIDs**  
+6. **Resolve Identities with NIP-05 or Bitcoin-Anchored DIDs**  
    Use **NIP-05** (`nostr.json` hosted on a domain, ~$1-$10/month) for lightweight, cost-efficient public key resolution, or anchor DID hashes to the **Bitcoin Timechain** using OpenTimestamps (free) for immutable verification. This avoids Ethereum’s high costs and partial centralization.
 
-8. **Ensure Availability with Redundancy**  
+7. **Ensure Availability with Redundancy**  
    Pin encrypted VCs and DID extended data on multiple IPFS nodes or services for resilience. Publish Nostr events (VC pointers and minimal DID documents) to multiple relays to prevent data loss from pruning. Holders store VCs and DIDs in secure identity wallets with backups on IPFS or local devices, ensuring access without single points of failure.
 
-9. **DID Document Architecture: Minimal Public + Extended Private**  
+8. **DID Document Architecture: Minimal Public + Extended Private**  
    DIDs require a hybrid approach due to their dual role as public identifiers and privacy-sensitive identity containers. Each DID is split into two parts:
    
    **Minimal DID Document (Public)** - Published to Nostr relays in plaintext for universal verification:
@@ -112,14 +110,26 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
    
    The Nostr event (kind 30000) contains the minimal document in `content` and links to encrypted extended data via tags: `["ipfs_cid", "<cid>"]`, `["ext_hash", "<sha256>"]`. This approach ensures public verifiability (anyone can resolve verification keys) while protecting privacy-sensitive data (service endpoints revealing communication patterns). Holders share decryption keys for extended data selectively via **NIP-04 encrypted DMs**, maintaining full control over who accesses metadata and service information.
 
+9. Timestamping with Bitcoin using OpenTimestamps
+
+10. **Verifiable Presentations with BBS+ for Selective Disclosure**  
+   All credentials are shared via **Verifiable Presentations (VPs)** following W3C VC Data Model. VPs are built on-demand with **BBS+ signatures** (W3C Community Group spec) enabling field-level selective disclosure. Holders can prove specific attributes (e.g., "has university degree") without revealing unnecessary data (e.g., GPA, graduation date). Each VP includes:
+   - Challenge-response binding (prevents replay attacks)
+   - Time constraints (validFrom/validUntil for ephemeral sessions)
+   - Holder's signature (proves credential ownership)
+   - Selective disclosure proofs (cryptographically verifiable subset of claims)
+
 ### Why It Works
-- **Security**: Encryption (AES-256, NIP-04) and ZKPs (BBS+) ensure confidentiality and privacy. Signatures and hashes guarantee integrity and authenticity.
-- **Control**: Issuers/holders manage access (via NIP-04 DMs), storage (IPFS pinning), and revocation (Nostr events), aligning with self-sovereign identity.
-- **Verifiability**: Minimal Nostr events and ZKP-based VPs enable universal verification without exposing sensitive data.
-- **Resilience**: IPFS’s distributed storage and Nostr’s relay network ensure availability, with Bitcoin timestamps adding immutability.
+- **Security**: Encryption (AES-256, NIP-04) and BBS+ selective disclosure ensure confidentiality and privacy. Signatures and hashes guarantee integrity and authenticity. Challenge-response binding prevents replay attacks.
+- **Control**: Issuers/holders manage access (via NIP-04 DMs), storage (IPFS pinning), and revocation (Nostr events), aligning with self-sovereign identity. VP templates enable granular control over data sharing.
+- **Verifiability**: Minimal Nostr events and BBS+-based VPs enable universal verification without exposing sensitive data. OpenTimestamps provides Bitcoin-anchored proof of issuance time.
+- **Privacy**: Field-level selective disclosure via BBS+ signatures allows proving specific claims without revealing full credentials. On-demand VP building ensures no stored presentations.
+- **Resilience**: IPFS's distributed storage and Nostr's relay network ensure availability, with Bitcoin timestamps adding immutability.
 - **Cost-Efficiency**: Self-hosted IPFS nodes and Nostr relays are free or low-cost (~$5-$10/month for IPFS, ~$0.10/GB for pinning, free for Nostr events), far cheaper than blockchain alternatives.
 
 ### Flow diagram
+
+The following diagram illustrates the complete credential lifecycle from issuance through verification:
 
 ```mermaid
 graph TD
@@ -146,7 +156,22 @@ graph TD
     class C,E,F,G storage;
   ```
 
+
+## Key Features
+
+- **Decentralized Identity (DIDs)**: did:nostr method with W3C-compatible document structure
+- **W3C Verifiable Credentials**: Full support for standard VC data models
+- **Verifiable Presentations**: W3C-compliant VPs with challenge-response binding
+- **Encrypted Storage**: IPFS-based encrypted credential storage
+- **Share History**: Complete audit trail of credential sharing
+- **VP Template System**: Reusable presentation configurations for common scenarios
+- **Privacy-First Architecture**: On-demand VP building, no stored presentations
+- **BBS+ Selective Disclosure**: Share only necessary credential fields using Zero-Knowledge Proofs
+- **OpenTimestamps Integration**: Bitcoin-anchored proof of credential issuance time
+
+
 ## Conclusion
+
 Combining **IPFS** for persistent, encrypted storage with **Nostr** for secure event publishing and communication creates a decentralized, cost-efficient, and user-controlled system for VCs. Encryption and ZKPs protect privacy, while NIP-05 and **Bitcoin** anchoring ensure robust identity resolution. This approach empowers issuers and holders to manage VCs securely.
 
 ## Running the client application

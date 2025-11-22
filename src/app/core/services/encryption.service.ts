@@ -48,7 +48,14 @@ export class EncryptionService {
 
   async generateSharedSecret(privateKey: string, publicKey: string): Promise<Uint8Array> {
     const privateKeyBytes = this._relayService.hexToBytes(privateKey);
-    const publicKeyBytes = this._relayService.hexToBytes(publicKey);
+    let publicKeyBytes = this._relayService.hexToBytes(publicKey);
+
+    if (publicKeyBytes.length === 32) {
+      const compressed = new Uint8Array(33);
+      compressed[0] = 0x02;
+      compressed.set(publicKeyBytes, 1);
+      publicKeyBytes = compressed;
+    }
 
     const sharedPoint = getSharedSecret(privateKeyBytes, publicKeyBytes);
 

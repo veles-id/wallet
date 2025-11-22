@@ -180,11 +180,13 @@ async shareExtendedDIDData(did: string, verifierPubkey: string, holderKeys: Keys
 
 ### 4.1 Environment Variables
 
-**Create:** `.env.local` (add to `.gitignore`)
-
 ```
-PINATA_JWT=your_jwt_here
-PINATA_GATEWAY=your-gateway.mypinata.cloud
+environment: {
+    pinata: {
+        jwt: your_jwt_here, 
+        gateway: your-gateway.mypinata.cloud
+        }
+    }
 ```
 
 Update `src/app/core/services/ipfs.service.ts` to read from environment.
@@ -206,14 +208,6 @@ Test these workflows in the app:
 3. Resolve DID without key (public only) → with key (full resolution)
 4. Share extended data via DM
 
-### 4.3 Update UI (Minimal Changes)
-
-**Update:** `src/app/pages/credentials/credential-details/credential-details.component.ts`
-
-- Add "Share via Nostr DM" button
-- Input for recipient pubkey
-- Show IPFS CID in metadata section
-
 ## Key Implementation Notes
 
 - **Local Storage:** Keep plaintext for development (no encryption yet)
@@ -225,27 +219,6 @@ Test these workflows in the app:
   - Kind 4 for NIP-04 encrypted DMs
 - **Hash Function:** Use SHA-256 for integrity checks in tags
 - **Backward Compatibility:** Not needed, breaking change accepted
-
-## Files to Create/Modify
-
-**New Files (4):**
-
-- `src/app/core/services/encryption.service.ts`
-- `src/app/core/services/ipfs.service.ts`
-- `src/app/core/services/nostr-messaging.service.ts`
-- `src/app/core/services/did-splitter.service.ts`
-
-**Modified Files (5):**
-
-- `src/app/core/services/credential.service.ts`
-- `src/app/core/services/credential.types.ts`
-- `src/app/core/services/did.types.ts`
-- `src/app/core/services/did-nostr.service.ts`
-- `src/app/pages/credentials/credential-details/credential-details.component.ts`
-
-**Environment:**
-
-- `.env.local` (Pinata credentials)
 
 ### To-dos
 
@@ -265,5 +238,4 @@ Test these workflows in the app:
 - [x] Modify retrieveDIDInfo in did-nostr.service.ts to handle extended data from IPFS
 - [x] Add shareExtendedDIDData method to nostr-messaging.service.ts
 - [x] Setup environment variables for Pinata credentials
-- [ ] Add Share via DM button and IPFS metadata display in credential-details component
-- [ ] Test complete VC and DID encryption flows manually
+- [x] Test complete VC and DID encryption flows manually

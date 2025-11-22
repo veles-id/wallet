@@ -149,6 +149,74 @@ describe('EncryptionService', () => {
     });
   });
 
+  describe('X-only public key handling', () => {
+    it('should handle x-only public keys (32 bytes)', async () => {
+      const secretKey = utils.randomPrivateKey();
+      const privateKeyHex = bytesToHex(secretKey);
+      const compressedPublicKey = getSecp256k1PublicKey(secretKey, true);
+      const xOnlyPublicKeyHex = bytesToHex(compressedPublicKey.slice(1));
+
+      expect(xOnlyPublicKeyHex.length).toBe(64);
+
+      const sharedSecret = await service.generateSharedSecret(privateKeyHex, xOnlyPublicKeyHex);
+
+      expect(sharedSecret).toBeDefined();
+      expect(sharedSecret.length).toBe(32);
+    });
+
+    it('should produce same shared secret for x-only and compressed formats', async () => {
+      const secretKey = utils.randomPrivateKey();
+      const privateKeyHex = bytesToHex(secretKey);
+      const compressedPublicKey = getSecp256k1PublicKey(secretKey, true);
+      const compressedPublicKeyHex = bytesToHex(compressedPublicKey);
+      const xOnlyPublicKeyHex = bytesToHex(compressedPublicKey.slice(1));
+
+      const sharedSecretCompressed = await service.generateSharedSecret(alicePrivateKey, compressedPublicKeyHex);
+      const sharedSecretXOnly = await service.generateSharedSecret(alicePrivateKey, xOnlyPublicKeyHex);
+
+      expect(sharedSecretCompressed).toEqual(sharedSecretXOnly);
+    });
+
+    it('should encrypt and decrypt with x-only public keys (Nostr format)', async () => {
+      const aliceSecretKey = utils.randomPrivateKey();
+      const alicePrivateKeyHex = bytesToHex(aliceSecretKey);
+      const aliceCompressedPubKey = getSecp256k1PublicKey(aliceSecretKey, true);
+      const aliceXOnlyPubKeyHex = bytesToHex(aliceCompressedPubKey.slice(1));
+
+      const bobSecretKey = utils.randomPrivateKey();
+      const bobPrivateKeyHex = bytesToHex(bobSecretKey);
+      const bobCompressedPubKey = getSecp256k1PublicKey(bobSecretKey, true);
+      const bobXOnlyPubKeyHex = bytesToHex(bobCompressedPubKey.slice(1));
+
+      const plaintext = 'Message encrypted with x-only Nostr public keys';
+
+      const encrypted = await service.encryptNIP04(plaintext, alicePrivateKeyHex, bobXOnlyPubKeyHex);
+      const decrypted = await service.decryptNIP04(encrypted, bobPrivateKeyHex, aliceXOnlyPubKeyHex);
+
+      expect(decrypted).toBe(plaintext);
+    });
+
+    it('should handle mixed key formats in encryption/decryption', async () => {
+      const compressedBobPubKey = bobPublicKey;
+      const xOnlyBobPubKey = compressedBobPubKey.substring(2);
+
+      const plaintext = 'Testing mixed key formats';
+
+      const encryptedWithCompressed = await service.encryptNIP04(plaintext, alicePrivateKey, compressedBobPubKey);
+      const encryptedWithXOnly = await service.encryptNIP04(plaintext, alicePrivateKey, xOnlyBobPubKey);
+
+      const decryptedFromCompressed = await service.decryptNIP04(
+        encryptedWithCompressed,
+        bobPrivateKey,
+        alicePublicKey,
+      );
+      const decryptedFromXOnly = await service.decryptNIP04(encryptedWithXOnly, bobPrivateKey, alicePublicKey);
+
+      expect(decryptedFromCompressed).toBe(plaintext);
+      expect(decryptedFromXOnly).toBe(plaintext);
+    });
+  });
+
   describe('Error handling', () => {
     it('should throw error for invalid encrypted content format (missing iv)', async () => {
       const invalidEncrypted = 'invalidciphertext';

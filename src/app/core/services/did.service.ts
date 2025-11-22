@@ -147,6 +147,19 @@ export class DidService {
     return false;
   }
 
+  updateStoredDID(updatedDID: StoredDID): boolean {
+    const storedDIDs = this.getStoredDIDs();
+    const index = storedDIDs.findIndex((stored) => stored.did === updatedDID.did);
+
+    if (index !== -1) {
+      storedDIDs[index] = updatedDID;
+      localStorage.setItem('veles_dids', JSON.stringify(storedDIDs));
+      return true;
+    }
+
+    return false;
+  }
+
   async updateNostrProfile(
     storedDID: StoredDID,
     metadata: {

@@ -29,6 +29,7 @@ export interface CredentialProof {
   verificationMethod: string;
   jws?: string;
   proofValue?: string;
+  nonce?: string;
 }
 
 export interface CredentialStatus {
@@ -53,6 +54,10 @@ export interface CredentialMetadata {
   ipfsCID?: string;
   encryptedOnIPFS?: boolean;
   nostrPointerEventId?: string;
+  signatureType?: 'BbsBlsSignature2020';
+  otsProof?: string;
+  otsTimestamp?: number;
+  bbsPublicKey?: string;
 }
 
 export enum CredentialCategory {

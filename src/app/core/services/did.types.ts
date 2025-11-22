@@ -26,6 +26,8 @@ export interface StoredDID {
   extendedDataCID?: string;
   publicDocument?: any;
   extendedDocument?: any;
+  bbsSecretKey?: string;
+  bbsPublicKey?: string;
 }
 
 // NOSTR

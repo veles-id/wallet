@@ -10,11 +10,9 @@ Replace raw VC sharing with W3C-compliant Verifiable Presentations using BBS+ si
 ### 1.1 Install BBS+ Dependencies
 
 ```bash
-npm install @zkp-ld/bbs-signatures
+npm install @mattrglobal/bbs-signatures
 npm install opentimestamps
 ```
-
-Note: Use `@zkp-ld/bbs-signatures` as it's W3C compliant and TypeScript-friendly.
 
 ### 1.2 Create VP Type Definitions
 
@@ -127,8 +125,8 @@ Implement BBS+ key generation and signing:
 @Injectable({ providedIn: 'root' })
 export class BbsSignatureService {
   async generateBbsKeyPair(): Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }> {
-    // Use @mattrglobal/bls12381-key-pair
-   // Use @zkp-ld/bbs-signatures
+    // Use @mattrglobal/bbs-signatures
+    // Generate BBS+ compatible key pair
   }
 
   async signCredential(
@@ -1058,7 +1056,7 @@ After VP implementation is stable, implement derived credentials for enhanced se
 
 ## Summary
 
-This plan implements W3C-compliant Verifiable Presentations with BBS+ signatures for selective disclosure, replacing raw VC sharing. Key features:
+This plan implements W3C Verifiable Presentations with BBS+ signatures (W3C Data Integrity BBS Cryptosuites draft) for selective disclosure, replacing raw VC sharing. Key features:
 
 - BBS+ signatures on VCs for field-level selective disclosure
 - VP templates for reusable presentation configurations
@@ -1077,13 +1075,13 @@ Storage strategy:
 
 ### To-dos
 
-- [ ] Install BBS+ and OpenTimestamps dependencies
-- [ ] Create presentation.types.ts with VP, template, and history types
-- [ ] Update credential.types.ts for BBS+ and OTS metadata
-- [ ] Create bbs-signature.service.ts for BBS+ operations
-- [ ] Create opentimestamps.service.ts for Bitcoin timestamping
-- [ ] Update credential.service.ts to use BBS+ signatures
-- [ ] Update did.types.ts to include BBS+ keys
+- [x] Install BBS+ and OpenTimestamps dependencies
+- [x] Create presentation.types.ts with VP, template, and history types
+- [x] Update credential.types.ts for BBS+ and OTS metadata
+- [x] Create bbs-signature.service.ts for BBS+ operations
+- [x] Create opentimestamps.service.ts for Bitcoin timestamping
+- [x] Update credential.service.ts to use BBS+ signatures
+- [x] Update did.types.ts to include BBS+ keys
 - [ ] Create presentation.service.ts for VP templates and building
 - [ ] Create presentation-verification.service.ts
 - [ ] Update app.routes.ts to add Presentations routes
@@ -1093,7 +1091,7 @@ Storage strategy:
 - [ ] Update nav-footer to replace Link with Presentations
 - [ ] Add shareVP method to nostr-messaging.service.ts
 - [ ] Remove raw VC export from credential-details component
-- [ ] Write unit tests for bbs-signature.service.ts
+- [x] Write unit tests for bbs-signature.service.ts
 - [ ] Write unit tests for presentation.service.ts
 - [ ] Write unit tests for presentation-verification.service.ts
 - [ ] Update README with VP usage documentation

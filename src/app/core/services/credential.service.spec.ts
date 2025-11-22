@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { BbsSignatureService } from './bbs-signature.service';
 import { CredentialVerificationService } from './credential-verification.service';
 import { CredentialService } from './credential.service';
 import {
@@ -10,6 +11,7 @@ import {
   VerifiableCredential,
 } from './credential.types';
 import { DidService } from './did.service';
+import { StoredDID } from './did.types';
 import { EncryptionService } from './encryption.service';
 import { IpfsService } from './ipfs.service';
 import { RelayService } from './relay.service';
@@ -17,6 +19,8 @@ import { RelayService } from './relay.service';
 describe('CredentialService - Core Business Logic', () => {
   let service: CredentialService;
   let mockLocalStorage: { [key: string]: string };
+  let mockDidService: any;
+  let mockBbsService: any;
 
   beforeEach(() => {
     mockLocalStorage = {};
@@ -39,11 +43,43 @@ describe('CredentialService - Core Business Logic', () => {
       writable: true,
     });
 
+    const mockDID: StoredDID = {
+      did: 'did:nostr:issuer123',
+      document: {},
+      keySet: {},
+      createdAt: '2024-01-01T00:00:00Z',
+      isPublished: true,
+      nostrPublicKey: '0'.repeat(64),
+      nostrPrivateKey: '1'.repeat(64),
+      bbsPublicKey: '2'.repeat(96),
+      bbsSecretKey: '3'.repeat(64),
+    };
+
+    mockDidService = {
+      getStoredDID: jest.fn((did: string) => mockDID),
+      updateStoredDID: jest.fn((did: StoredDID) => true),
+    };
+
+    mockBbsService = {
+      generateBbsKeyPair: jest.fn(async () => ({
+        publicKey: new Uint8Array(48).fill(2),
+        secretKey: new Uint8Array(32).fill(3),
+      })),
+      signCredential: jest.fn(async () => ({
+        type: 'BbsBlsSignature2020',
+        created: new Date().toISOString(),
+        proofPurpose: 'assertionMethod',
+        verificationMethod: 'did:nostr:issuer123#bbs-key-1',
+        proofValue: 'mockProofValue',
+      })),
+    };
+
     TestBed.configureTestingModule({
       providers: [
         CredentialService,
         { provide: CredentialVerificationService, useValue: {} },
-        { provide: DidService, useValue: {} },
+        { provide: DidService, useValue: mockDidService },
+        { provide: BbsSignatureService, useValue: mockBbsService },
         { provide: EncryptionService, useValue: {} },
         { provide: IpfsService, useValue: {} },
         { provide: RelayService, useValue: {} },

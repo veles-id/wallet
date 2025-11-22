@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { sha256 } from '@noble/hashes/sha2';
+import { BbsSignatureService } from './bbs-signature.service';
 import { CredentialVerificationService } from './credential-verification.service';
 import { VerificationResult } from './credential-verification.types';
 import {
@@ -23,6 +24,7 @@ import { RelayService } from './relay.service';
 })
 export class CredentialService {
   private _didService = inject(DidService);
+  private _bbsService = inject(BbsSignatureService);
   private _verificationService = inject(CredentialVerificationService);
   private _encryptionService = inject(EncryptionService);
   private _ipfsService = inject(IpfsService);
@@ -54,7 +56,6 @@ export class CredentialService {
         },
       };
 
-      // Add template-specific context and types if using a template
       if (request.templateId) {
         const template = this.getTemplate(request.templateId);
         if (template) {
@@ -62,6 +63,34 @@ export class CredentialService {
           credential.type = [...credential.type, ...template.type];
         }
       }
+
+      const issuerDID = this._didService.getStoredDID(request.issuerDID);
+      if (!issuerDID) {
+        throw new Error('Issuer DID not found');
+      }
+
+      let bbsPublicKeyHex: string;
+      let bbsSecretKeyHex: string;
+
+      if (!issuerDID.bbsSecretKey || !issuerDID.bbsPublicKey) {
+        const bbsKeys = await this._bbsService.generateBbsKeyPair();
+        bbsSecretKeyHex = this._bytesToHex(bbsKeys.secretKey);
+        bbsPublicKeyHex = this._bytesToHex(bbsKeys.publicKey);
+
+        issuerDID.bbsSecretKey = bbsSecretKeyHex;
+        issuerDID.bbsPublicKey = bbsPublicKeyHex;
+        this._didService.updateStoredDID(issuerDID);
+      } else {
+        bbsSecretKeyHex = issuerDID.bbsSecretKey;
+        bbsPublicKeyHex = issuerDID.bbsPublicKey;
+      }
+
+      const proof = await this._bbsService.signCredential(
+        credential,
+        this._hexToBytes(bbsSecretKeyHex),
+        this._hexToBytes(bbsPublicKeyHex),
+      );
+      credential.proof = proof;
 
       const storedCredential: StoredCredential = {
         credential,
@@ -74,6 +103,8 @@ export class CredentialService {
           category: request.category || CredentialCategory.OTHER,
           privacy: request.privacy || CredentialPrivacy.PRIVATE,
           source: CredentialSource.SELF_ISSUED,
+          signatureType: 'BbsBlsSignature2020',
+          bbsPublicKey: bbsPublicKeyHex,
         },
       };
 
@@ -113,6 +144,34 @@ export class CredentialService {
         }
       }
 
+      const issuerDID = this._didService.getStoredDID(request.issuerDID);
+      if (!issuerDID) {
+        throw new Error('Issuer DID not found');
+      }
+
+      let bbsPublicKeyHex: string;
+      let bbsSecretKeyHex: string;
+
+      if (!issuerDID.bbsSecretKey || !issuerDID.bbsPublicKey) {
+        const bbsKeys = await this._bbsService.generateBbsKeyPair();
+        bbsSecretKeyHex = this._bytesToHex(bbsKeys.secretKey);
+        bbsPublicKeyHex = this._bytesToHex(bbsKeys.publicKey);
+
+        issuerDID.bbsSecretKey = bbsSecretKeyHex;
+        issuerDID.bbsPublicKey = bbsPublicKeyHex;
+        this._didService.updateStoredDID(issuerDID);
+      } else {
+        bbsSecretKeyHex = issuerDID.bbsSecretKey;
+        bbsPublicKeyHex = issuerDID.bbsPublicKey;
+      }
+
+      const proof = await this._bbsService.signCredential(
+        credential,
+        this._hexToBytes(bbsSecretKeyHex),
+        this._hexToBytes(bbsPublicKeyHex),
+      );
+      credential.proof = proof;
+
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
@@ -124,6 +183,8 @@ export class CredentialService {
           category: request.category || CredentialCategory.OTHER,
           privacy: request.privacy || CredentialPrivacy.PRIVATE,
           source: CredentialSource.SELF_ISSUED,
+          signatureType: 'BbsBlsSignature2020',
+          bbsPublicKey: bbsPublicKeyHex,
         },
       };
 
@@ -347,6 +408,20 @@ export class CredentialService {
       ],
       content: 'VC Pointer',
     };
+  }
+
+  private _bytesToHex(bytes: Uint8Array): string {
+    return Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  private _hexToBytes(hex: string): Uint8Array {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+      bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+    }
+    return bytes;
   }
 
   private _initializeDefaultTemplates(): void {

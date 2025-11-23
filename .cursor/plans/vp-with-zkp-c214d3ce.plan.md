@@ -986,7 +986,7 @@ describe('PresentationService', () => {
 **New file:** `src/app/core/services/presentation-verification.service.spec.ts`
 
 ```typescript
-describe('PresentationVerificationService', () => {
+describe('PresentationVerificationService', ()	 => {
   let service: PresentationVerificationService;
 
   beforeEach(() => {
@@ -1082,8 +1082,8 @@ Storage strategy:
 - [x] Create opentimestamps.service.ts for Bitcoin timestamping
 - [x] Update credential.service.ts to use BBS+ signatures
 - [x] Update did.types.ts to include BBS+ keys
-- [ ] Create presentation.service.ts for VP templates and building
-- [ ] Create presentation-verification.service.ts
+- [x] Create presentation.service.ts for VP templates and building
+- [x] Create presentation-verification.service.ts
 - [ ] Update app.routes.ts to add Presentations routes
 - [ ] Create presentations.component with templates and history tabs
 - [ ] Create template-create.component for VP template creation
@@ -1092,6 +1092,6 @@ Storage strategy:
 - [ ] Add shareVP method to nostr-messaging.service.ts
 - [ ] Remove raw VC export from credential-details component
 - [x] Write unit tests for bbs-signature.service.ts
-- [ ] Write unit tests for presentation.service.ts
-- [ ] Write unit tests for presentation-verification.service.ts
+- [x] Write unit tests for presentation.service.ts
+- [x] Write unit tests for presentation-verification.service.ts
 - [ ] Update README with VP usage documentation

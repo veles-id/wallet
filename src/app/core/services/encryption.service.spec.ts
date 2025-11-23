@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { getPublicKey as getSecp256k1PublicKey, utils } from '@noble/secp256k1';
+import { EncodingService } from './encoding.service';
 import { EncryptionService } from './encryption.service';
 
 describe('EncryptionService', () => {
   let service: EncryptionService;
+  let encodingService: EncodingService;
   let alicePrivateKey: string;
   let alicePublicKey: string;
   let bobPrivateKey: string;
@@ -13,14 +15,15 @@ describe('EncryptionService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(EncryptionService);
+    encodingService = TestBed.inject(EncodingService);
 
     const aliceSecretKey = utils.randomPrivateKey();
-    alicePrivateKey = bytesToHex(aliceSecretKey);
-    alicePublicKey = bytesToHex(getSecp256k1PublicKey(aliceSecretKey, true));
+    alicePrivateKey = encodingService.bytesToHex(aliceSecretKey);
+    alicePublicKey = encodingService.bytesToHex(getSecp256k1PublicKey(aliceSecretKey, true));
 
     const bobSecretKey = utils.randomPrivateKey();
-    bobPrivateKey = bytesToHex(bobSecretKey);
-    bobPublicKey = bytesToHex(getSecp256k1PublicKey(bobSecretKey, true));
+    bobPrivateKey = encodingService.bytesToHex(bobSecretKey);
+    bobPublicKey = encodingService.bytesToHex(getSecp256k1PublicKey(bobSecretKey, true));
   });
 
   describe('Round-trip encryption and decryption', () => {
@@ -132,8 +135,8 @@ describe('EncryptionService', () => {
 
     it('should generate different shared secrets for different key pairs', async () => {
       const charlieSecretKey = utils.randomPrivateKey();
-      const charliePrivateKey = bytesToHex(charlieSecretKey);
-      const charliePublicKey = bytesToHex(getSecp256k1PublicKey(charlieSecretKey, true));
+      const charliePrivateKey = encodingService.bytesToHex(charlieSecretKey);
+      const charliePublicKey = encodingService.bytesToHex(getSecp256k1PublicKey(charlieSecretKey, true));
 
       const sharedSecretAliceBob = await service.generateSharedSecret(alicePrivateKey, bobPublicKey);
       const sharedSecretAliceCharlie = await service.generateSharedSecret(alicePrivateKey, charliePublicKey);
@@ -152,9 +155,9 @@ describe('EncryptionService', () => {
   describe('X-only public key handling', () => {
     it('should handle x-only public keys (32 bytes)', async () => {
       const secretKey = utils.randomPrivateKey();
-      const privateKeyHex = bytesToHex(secretKey);
+      const privateKeyHex = encodingService.bytesToHex(secretKey);
       const compressedPublicKey = getSecp256k1PublicKey(secretKey, true);
-      const xOnlyPublicKeyHex = bytesToHex(compressedPublicKey.slice(1));
+      const xOnlyPublicKeyHex = encodingService.bytesToHex(compressedPublicKey.slice(1));
 
       expect(xOnlyPublicKeyHex.length).toBe(64);
 
@@ -166,10 +169,10 @@ describe('EncryptionService', () => {
 
     it('should produce same shared secret for x-only and compressed formats', async () => {
       const secretKey = utils.randomPrivateKey();
-      const privateKeyHex = bytesToHex(secretKey);
+      const privateKeyHex = encodingService.bytesToHex(secretKey);
       const compressedPublicKey = getSecp256k1PublicKey(secretKey, true);
-      const compressedPublicKeyHex = bytesToHex(compressedPublicKey);
-      const xOnlyPublicKeyHex = bytesToHex(compressedPublicKey.slice(1));
+      const compressedPublicKeyHex = encodingService.bytesToHex(compressedPublicKey);
+      const xOnlyPublicKeyHex = encodingService.bytesToHex(compressedPublicKey.slice(1));
 
       const sharedSecretCompressed = await service.generateSharedSecret(alicePrivateKey, compressedPublicKeyHex);
       const sharedSecretXOnly = await service.generateSharedSecret(alicePrivateKey, xOnlyPublicKeyHex);
@@ -179,14 +182,14 @@ describe('EncryptionService', () => {
 
     it('should encrypt and decrypt with x-only public keys (Nostr format)', async () => {
       const aliceSecretKey = utils.randomPrivateKey();
-      const alicePrivateKeyHex = bytesToHex(aliceSecretKey);
+      const alicePrivateKeyHex = encodingService.bytesToHex(aliceSecretKey);
       const aliceCompressedPubKey = getSecp256k1PublicKey(aliceSecretKey, true);
-      const aliceXOnlyPubKeyHex = bytesToHex(aliceCompressedPubKey.slice(1));
+      const aliceXOnlyPubKeyHex = encodingService.bytesToHex(aliceCompressedPubKey.slice(1));
 
       const bobSecretKey = utils.randomPrivateKey();
-      const bobPrivateKeyHex = bytesToHex(bobSecretKey);
+      const bobPrivateKeyHex = encodingService.bytesToHex(bobSecretKey);
       const bobCompressedPubKey = getSecp256k1PublicKey(bobSecretKey, true);
-      const bobXOnlyPubKeyHex = bytesToHex(bobCompressedPubKey.slice(1));
+      const bobXOnlyPubKeyHex = encodingService.bytesToHex(bobCompressedPubKey.slice(1));
 
       const plaintext = 'Message encrypted with x-only Nostr public keys';
 
@@ -237,7 +240,7 @@ describe('EncryptionService', () => {
       const encrypted = await service.encryptNIP04(plaintext, alicePrivateKey, bobPublicKey);
 
       const wrongSecretKey = utils.randomPrivateKey();
-      const wrongPrivateKey = bytesToHex(wrongSecretKey);
+      const wrongPrivateKey = encodingService.bytesToHex(wrongSecretKey);
 
       await expect(service.decryptNIP04(encrypted, wrongPrivateKey, alicePublicKey)).rejects.toThrow();
     });
@@ -255,7 +258,7 @@ describe('EncryptionService', () => {
       const encrypted = await service.encryptNIP04(plaintext, alicePrivateKey, bobPublicKey);
 
       const [, ivBase64] = encrypted.split('?iv=');
-      const ivBytes = base64ToBytes(ivBase64);
+      const ivBytes = encodingService.base64ToBytes(ivBase64);
 
       expect(ivBytes.length).toBe(16);
     });
@@ -300,18 +303,3 @@ describe('EncryptionService', () => {
     });
   });
 });
-
-function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-function base64ToBytes(base64: string): Uint8Array {
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}

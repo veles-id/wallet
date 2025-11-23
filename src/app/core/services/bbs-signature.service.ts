@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { blsCreateProof, blsSign, blsVerify, generateBls12381G2KeyPair } from '@mattrglobal/bbs-signatures';
 import { CredentialProof, VerifiableCredential } from './credential.types';
+import { EncodingService } from './encoding.service';
 
 type BlsVerifyResult = boolean | { verified: boolean };
 
@@ -8,6 +9,7 @@ type BlsVerifyResult = boolean | { verified: boolean };
   providedIn: 'root',
 })
 export class BbsSignatureService {
+  private _encodingService = inject(EncodingService);
   async generateBbsKeyPair(): Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }> {
     const keyPair = await generateBls12381G2KeyPair();
     return {
@@ -37,7 +39,7 @@ export class BbsSignatureService {
       created: new Date().toISOString(),
       proofPurpose: 'assertionMethod',
       verificationMethod: `${credential.issuer}#bbs-key-1`,
-      proofValue: this.uint8ArrayToBase64(signature),
+      proofValue: this._encodingService.bytesToBase64(signature),
     };
   }
 
@@ -52,7 +54,7 @@ export class BbsSignatureService {
     const messages = this.extractMessagesFromCredential(credentialWithoutProof);
     const messageBytes = messages.map((msg) => new TextEncoder().encode(msg));
 
-    const signature = this.base64ToUint8Array(credential.proof.proofValue || '');
+    const signature = this._encodingService.base64ToBytes(credential.proof.proofValue || '');
 
     const result = (await blsVerify({
       publicKey,
@@ -85,7 +87,7 @@ export class BbsSignatureService {
     const revealedIndices = fieldsToReveal.map((field) => allFields.indexOf(field)).filter((index) => index !== -1);
 
     const messageBytes = allMessages.map((msg) => new TextEncoder().encode(msg));
-    const signature = this.base64ToUint8Array(credential.proof.proofValue || '');
+    const signature = this._encodingService.base64ToBytes(credential.proof.proofValue || '');
     const nonceBytes = new TextEncoder().encode(nonce);
 
     const proofBytes = await blsCreateProof({
@@ -114,7 +116,7 @@ export class BbsSignatureService {
       created: new Date().toISOString(),
       proofPurpose: 'assertionMethod',
       verificationMethod: credential.proof.verificationMethod,
-      proofValue: this.uint8ArrayToBase64(proofBytes),
+      proofValue: this._encodingService.bytesToBase64(proofBytes),
       nonce,
     };
 
@@ -187,18 +189,5 @@ export class BbsSignatureService {
     });
 
     return filtered;
-  }
-
-  private uint8ArrayToBase64(bytes: Uint8Array): string {
-    return btoa(String.fromCharCode(...bytes));
-  }
-
-  private base64ToUint8Array(base64: string): Uint8Array {
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
   }
 }

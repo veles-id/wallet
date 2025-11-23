@@ -1,11 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { finalizeEvent, verifyEvent } from 'nostr-tools/pure';
 import { NostrEvent, NostrRelay } from './did.types';
+import { EncodingService } from './encoding.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RelayService {
+  private readonly _encodingService = inject(EncodingService);
   /**
    * Recommended 5-10 reliable, diverse relays for production use
    * For development, 3 stable relays are enough
@@ -27,7 +29,7 @@ export class RelayService {
 
   async signEvent(event: NostrEvent, privateKeyHex: string): Promise<NostrEvent> {
     try {
-      const secretKey = this.hexToBytes(privateKeyHex);
+      const secretKey = this._encodingService.hexToBytes(privateKeyHex);
 
       const unsignedEvent = {
         pubkey: event.pubkey,
@@ -145,19 +147,5 @@ export class RelayService {
         resolve(false);
       }
     });
-  }
-
-  hexToBytes(hex: string): Uint8Array {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-    }
-    return bytes;
-  }
-
-  bytesToHex(bytes: Uint8Array): string {
-    return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
   }
 }

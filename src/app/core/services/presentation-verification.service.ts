@@ -4,6 +4,7 @@ import { BbsSignatureService } from './bbs-signature.service';
 import { CredentialVerificationService } from './credential-verification.service';
 import { VerificationResult } from './credential-verification.types';
 import { DidService } from './did.service';
+import { EncodingService } from './encoding.service';
 import { VerifiablePresentation } from './presentation.types';
 
 @Injectable({
@@ -13,6 +14,7 @@ export class PresentationVerificationService {
   private _credentialVerificationService = inject(CredentialVerificationService);
   private _bbsService = inject(BbsSignatureService);
   private _didService = inject(DidService);
+  private _encodingService = inject(EncodingService);
 
   async verifyPresentation(vp: VerifiablePresentation, expectedChallenge?: string): Promise<VerificationResult> {
     const errors: string[] = [];
@@ -135,14 +137,14 @@ export class PresentationVerificationService {
       const { proof, ...vpWithoutProof } = vp;
 
       const signingInput = new TextEncoder().encode(JSON.stringify(vpWithoutProof));
-      const signatureBytes = this._base64ToBytes(proof.proofValue);
+      const signatureBytes = this._encodingService.base64ToBytes(proof.proofValue);
 
       const holderDID = this._didService.getStoredDID(vp.holder);
       if (!holderDID || !holderDID.nostrPublicKey) {
         return false;
       }
 
-      const publicKeyBytes = this._hexToBytes(holderDID.nostrPublicKey);
+      const publicKeyBytes = this._encodingService.hexToBytes(holderDID.nostrPublicKey);
       return await verify(signatureBytes, signingInput, publicKeyBytes);
     } catch (error) {
       console.error('Error verifying holder signature:', error);
@@ -186,7 +188,7 @@ export class PresentationVerificationService {
         };
       }
 
-      const publicKey = this._hexToBytes(storedDID.bbsPublicKey);
+      const publicKey = this._encodingService.hexToBytes(storedDID.bbsPublicKey);
       const isValid = await this._bbsService.verifyBbsSignature(vc, publicKey);
 
       return {
@@ -211,25 +213,5 @@ export class PresentationVerificationService {
       issuerResolved: true,
       signatureType: 'BbsBlsSignatureProof2020',
     };
-  }
-
-  private _hexToBytes(hex: string): Uint8Array {
-    if (hex.length % 2 !== 0) {
-      throw new Error('Hex string must have an even number of characters');
-    }
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-    }
-    return bytes;
-  }
-
-  private _base64ToBytes(base64: string): Uint8Array {
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
   }
 }

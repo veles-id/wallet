@@ -4,6 +4,7 @@ import { BbsSignatureService } from './bbs-signature.service';
 import { CredentialService } from './credential.service';
 import { DidService } from './did.service';
 import { StoredDID } from './did.types';
+import { EncodingService } from './encoding.service';
 import {
   CreateVPRequest,
   PresentationProof,
@@ -19,6 +20,7 @@ export class PresentationService {
   private _credentialService = inject(CredentialService);
   private _didService = inject(DidService);
   private _bbsService = inject(BbsSignatureService);
+  private _encodingService = inject(EncodingService);
 
   private readonly TEMPLATES_KEY = 'veles_vp_templates';
   private readonly HISTORY_KEY = 'veles_vp_history';
@@ -100,7 +102,7 @@ export class PresentationService {
             throw new Error(`BBS+ public key not found for credential ${vcId}`);
           }
 
-          const publicKey = this._hexToBytes(metadata.bbsPublicKey);
+          const publicKey = this._encodingService.hexToBytes(metadata.bbsPublicKey);
           return await this._bbsService.createSelectiveDisclosureProof(
             vc,
             fieldsToReveal,
@@ -160,7 +162,7 @@ export class PresentationService {
       proofPurpose: 'authentication',
       challenge,
       domain,
-      proofValue: this._bytesToBase64(signature),
+      proofValue: this._encodingService.bytesToBase64(signature),
     };
   }
 
@@ -180,20 +182,5 @@ export class PresentationService {
   getShareHistory(): VPShareRecord[] {
     const stored = localStorage.getItem(this.HISTORY_KEY);
     return stored ? JSON.parse(stored) : [];
-  }
-
-  private _hexToBytes(hex: string): Uint8Array {
-    if (hex.length % 2 !== 0) {
-      throw new Error('Hex string must have an even number of characters');
-    }
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-    }
-    return bytes;
-  }
-
-  private _bytesToBase64(bytes: Uint8Array): string {
-    return btoa(String.fromCharCode(...bytes));
   }
 }

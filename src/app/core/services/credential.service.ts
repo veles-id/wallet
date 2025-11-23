@@ -15,6 +15,7 @@ import {
 } from './credential.types';
 import { DidService } from './did.service';
 import { NostrEvent, StoredDID } from './did.types';
+import { EncodingService } from './encoding.service';
 import { EncryptionService } from './encryption.service';
 import { IpfsService } from './ipfs.service';
 import { RelayService } from './relay.service';
@@ -26,6 +27,7 @@ export class CredentialService {
   private _didService = inject(DidService);
   private _bbsService = inject(BbsSignatureService);
   private _verificationService = inject(CredentialVerificationService);
+  private _encodingService = inject(EncodingService);
   private _encryptionService = inject(EncryptionService);
   private _ipfsService = inject(IpfsService);
   private _relayService = inject(RelayService);
@@ -74,8 +76,8 @@ export class CredentialService {
 
       if (!issuerDID.bbsSecretKey || !issuerDID.bbsPublicKey) {
         const bbsKeys = await this._bbsService.generateBbsKeyPair();
-        bbsSecretKeyHex = this._bytesToHex(bbsKeys.secretKey);
-        bbsPublicKeyHex = this._bytesToHex(bbsKeys.publicKey);
+        bbsSecretKeyHex = this._encodingService.bytesToHex(bbsKeys.secretKey);
+        bbsPublicKeyHex = this._encodingService.bytesToHex(bbsKeys.publicKey);
 
         issuerDID.bbsSecretKey = bbsSecretKeyHex;
         issuerDID.bbsPublicKey = bbsPublicKeyHex;
@@ -87,8 +89,8 @@ export class CredentialService {
 
       const proof = await this._bbsService.signCredential(
         credential,
-        this._hexToBytes(bbsSecretKeyHex),
-        this._hexToBytes(bbsPublicKeyHex),
+        this._encodingService.hexToBytes(bbsSecretKeyHex),
+        this._encodingService.hexToBytes(bbsPublicKeyHex),
       );
       credential.proof = proof;
 
@@ -154,8 +156,8 @@ export class CredentialService {
 
       if (!issuerDID.bbsSecretKey || !issuerDID.bbsPublicKey) {
         const bbsKeys = await this._bbsService.generateBbsKeyPair();
-        bbsSecretKeyHex = this._bytesToHex(bbsKeys.secretKey);
-        bbsPublicKeyHex = this._bytesToHex(bbsKeys.publicKey);
+        bbsSecretKeyHex = this._encodingService.bytesToHex(bbsKeys.secretKey);
+        bbsPublicKeyHex = this._encodingService.bytesToHex(bbsKeys.publicKey);
 
         issuerDID.bbsSecretKey = bbsSecretKeyHex;
         issuerDID.bbsPublicKey = bbsPublicKeyHex;
@@ -167,8 +169,8 @@ export class CredentialService {
 
       const proof = await this._bbsService.signCredential(
         credential,
-        this._hexToBytes(bbsSecretKeyHex),
-        this._hexToBytes(bbsPublicKeyHex),
+        this._encodingService.hexToBytes(bbsSecretKeyHex),
+        this._encodingService.hexToBytes(bbsPublicKeyHex),
       );
       credential.proof = proof;
 
@@ -408,20 +410,6 @@ export class CredentialService {
       ],
       content: 'VC Pointer',
     };
-  }
-
-  private _bytesToHex(bytes: Uint8Array): string {
-    return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-  }
-
-  private _hexToBytes(hex: string): Uint8Array {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-    }
-    return bytes;
   }
 
   private _initializeDefaultTemplates(): void {

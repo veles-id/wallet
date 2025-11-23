@@ -4,6 +4,7 @@ import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import { DidSplitterService } from './did-splitter.service';
 import { DIDDocument } from './did-splitter.types';
 import { NostrDIDResult, NostrEvent, NostrRelay, StoredDID } from './did.types';
+import { EncodingService } from './encoding.service';
 import { EncryptionService } from './encryption.service';
 import { IpfsService } from './ipfs.service';
 import { RelayService } from './relay.service';
@@ -14,6 +15,7 @@ import { RelayService } from './relay.service';
 export class DidNostrService {
   private _relayService = inject(RelayService);
   private _didSplitterService = inject(DidSplitterService);
+  private _encodingService = inject(EncodingService);
   private _encryptionService = inject(EncryptionService);
   private _ipfsService = inject(IpfsService);
 
@@ -568,8 +570,8 @@ export class DidNostrService {
       }
       // Fallback: try to derive from JWK if available
       else if (storedDID.privateKeyJwk?.d) {
-        const privateKeyBytes = this.base64UrlDecode(storedDID.privateKeyJwk.d);
-        privateKey = this._relayService.bytesToHex(privateKeyBytes);
+        const privateKeyBytes = this._encodingService.base64UrlDecodeToBytes(storedDID.privateKeyJwk.d);
+        privateKey = this._encodingService.bytesToHex(privateKeyBytes);
 
         // Also derive the correct public key using nostr-tools
         let correctPublicKey = getPublicKey(privateKeyBytes);
@@ -659,19 +661,12 @@ export class DidNostrService {
 
     console.log('Generated Nostr keys:', {
       publicKeyLength: publicKey.length,
-      secretKeyLength: this._relayService.bytesToHex(secretKey).length,
+      secretKeyLength: this._encodingService.bytesToHex(secretKey).length,
     });
 
     return {
-      privateKey: this._relayService.bytesToHex(secretKey),
+      privateKey: this._encodingService.bytesToHex(secretKey),
       publicKey: publicKey,
     };
-  }
-
-  private base64UrlDecode(base64Url: string): Uint8Array {
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
-    const binaryString = atob(base64 + padding);
-    return new Uint8Array(binaryString.split('').map((char) => char.charCodeAt(0)));
   }
 }

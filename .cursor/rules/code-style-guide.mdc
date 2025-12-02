@@ -86,3 +86,8 @@ Don't attempt to rewrite whole files, when you face issues, but rather make the 
 ## Focus on security
 
 If you are not sure which option to choose, go for the more secure.
+
+## Do not make assumptions
+
+Follow patterns already existing in the codebase.
+Ask before introducing a new pattern, whether in scss, html, or ts.

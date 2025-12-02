@@ -1,0 +1,102 @@
+<div class="presentations">
+  <mat-tab-group
+    class="presentations__tabs"
+    [(selectedIndex)]="selectedTab">
+    <mat-tab label="Templates">
+      <div class="presentations__content">
+        @if (templates().length === 0) {
+          <div class="presentations__empty">
+            <mat-icon class="presentations__empty-icon">description</mat-icon>
+            <h2 class="presentations__empty-title">No Templates Yet</h2>
+            <p class="presentations__empty-description">
+              Create presentation templates to quickly share credentials with selective disclosure.
+            </p>
+          </div>
+        } @else {
+          <div class="presentations__list">
+            @for (template of templates(); track template.id) {
+              <mat-card
+                class="template-card"
+                (click)="viewTemplate(template)">
+                <mat-card-header>
+                  <mat-card-title>{{ template.name }}</mat-card-title>
+                  <mat-card-subtitle>{{ template.credentialIds.length }} credential(s)</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  @if (template.description) {
+                    <p class="template-card__description">{{ template.description }}</p>
+                  }
+                  <p class="template-card__validity">Valid for {{ template.defaultValidityMinutes }} minutes</p>
+                </mat-card-content>
+                <mat-card-actions>
+                  <button
+                    mat-button
+                    (click)="deleteTemplate(template, $event)">
+                    <mat-icon>delete</mat-icon>
+                    Delete
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
+
+        <button
+          mat-flat-button
+          class="presentations__create-button"
+          (click)="createTemplate()">
+          Create Template
+        </button>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="History">
+      <div class="presentations__content">
+        @if (shareHistory().length === 0) {
+          <div class="presentations__empty">
+            <mat-icon class="presentations__empty-icon">history</mat-icon>
+            <h2 class="presentations__empty-title">No Share History</h2>
+            <p class="presentations__empty-description">Your presentation sharing history will appear here.</p>
+          </div>
+        } @else {
+          <div class="presentations__list">
+            @for (record of shareHistory(); track record.id) {
+              <mat-card class="history-card">
+                <mat-card-header>
+                  <mat-card-title>
+                    {{ record.purpose || 'Presentation Shared' }}
+                  </mat-card-title>
+                  <mat-card-subtitle>
+                    {{ record.timestamp | date: 'medium' }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p class="history-card__info">
+                    <strong>To:</strong>
+                    {{ record.recipientDID || record.recipientPubkey.substring(0, 16) + '...' }}
+                  </p>
+                  <p class="history-card__info">
+                    <strong>Credentials:</strong>
+                    {{ record.credentialIds.length }}
+                  </p>
+                  @if (record.validUntil) {
+                    <p class="history-card__info">
+                      <strong>Valid until:</strong>
+                      {{ record.validUntil | date: 'short' }}
+                    </p>
+                  }
+                  @if (record.challenge) {
+                    <p class="history-card__info">
+                      <strong>Challenge:</strong>
+                      {{ record.challenge.substring(0, 16) }}...
+                    </p>
+                  }
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

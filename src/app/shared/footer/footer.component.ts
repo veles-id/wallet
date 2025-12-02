@@ -57,9 +57,8 @@ export class FooterComponent {
     this._router.navigate(['/credentials']);
   }
 
-  navigateToLinked(): void {
-    // @todo: Implement linked accounts page
-    console.log('Linked accounts feature coming soon!');
+  navigateToPresentations(): void {
+    this._router.navigate(['/presentations']);
   }
 
   navigateToSettings(): void {

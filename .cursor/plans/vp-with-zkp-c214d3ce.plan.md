@@ -1084,11 +1084,11 @@ Storage strategy:
 - [x] Update did.types.ts to include BBS+ keys
 - [x] Create presentation.service.ts for VP templates and building
 - [x] Create presentation-verification.service.ts
-- [ ] Update app.routes.ts to add Presentations routes
-- [ ] Create presentations.component with templates and history tabs
-- [ ] Create template-create.component for VP template creation
-- [ ] Create template-details.component for viewing and sharing
-- [ ] Update nav-footer to replace Link with Presentations
+- [x] Update app.routes.ts to add Presentations routes
+- [x] Create presentations.component with templates and history tabs
+- [x] Create template-create.component for VP template creation
+- [x] Create template-details.component for viewing and sharing
+- [x] Update nav-footer to replace Link with Presentations
 - [ ] Add shareVP method to nostr-messaging.service.ts
 - [ ] Remove raw VC export from credential-details component
 - [x] Write unit tests for bbs-signature.service.ts

@@ -3,6 +3,7 @@ import { NostrEvent, StoredDID } from './did.types';
 import { EncryptionService } from './encryption.service';
 import { EncryptionKeys } from './encryption.types';
 import { IpfsService } from './ipfs.service';
+import { VerifiablePresentation } from './presentation.types';
 import { RelayService } from './relay.service';
 
 @Injectable({
@@ -36,6 +37,31 @@ export class NostrMessagingService {
       return signedEvent.id || null;
     } catch (error) {
       console.error('Failed to share VC via DM:', error);
+      throw error;
+    }
+  }
+
+  async shareVP(
+    vp: VerifiablePresentation,
+    recipientPubkey: string,
+    senderKeys: EncryptionKeys,
+  ): Promise<string | null> {
+    try {
+      console.log(`Sharing VP via NIP-04 DM to ${recipientPubkey.substring(0, 16)}...`);
+
+      const vpJson = JSON.stringify(vp);
+      const dmMessage = this._createVPDMMessage(vpJson, vp);
+      const encryptedDM = await this._encryptionService.encryptNIP04(dmMessage, senderKeys.privateKey, recipientPubkey);
+      const event = this._createDMEvent(encryptedDM, senderKeys.publicKey, recipientPubkey);
+      const signedEvent = await this._relayService.signEvent(event, senderKeys.privateKey);
+      const results = await this._relayService.publishToRelays(signedEvent);
+      const successCount = results.filter((r) => r.success).length;
+
+      console.log(`VP shared via DM to ${successCount}/${results.length} relays`);
+
+      return signedEvent.id || null;
+    } catch (error) {
+      console.error('Failed to share VP via DM:', error);
       throw error;
     }
   }
@@ -102,6 +128,19 @@ export class NostrMessagingService {
       ipfsCID,
       instructions:
         'This is a Verifiable Credential shared with you. Verify the issuer DID and check the credential signature before trusting the contents.',
+      sharedAt: new Date().toISOString(),
+    };
+
+    return JSON.stringify(message);
+  }
+
+  private _createVPDMMessage(vpJson: string, vp: VerifiablePresentation): string {
+    const message = {
+      type: 'verifiable-presentation',
+      vpData: vpJson,
+      validUntil: vp.validUntil,
+      instructions:
+        'This is a Verifiable Presentation. Verify the holder signature, check validity period, and verify each credential.',
       sharedAt: new Date().toISOString(),
     };
 

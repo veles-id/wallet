@@ -247,27 +247,8 @@ export class CredentialDetailsComponent implements OnInit {
       .trim();
   }
 
-  exportCredential(): void {
-    const credential = this.credential();
-    if (!credential) return;
-
-    const { credential: credentialData, alias } = credential;
-    const { id } = credentialData;
-
-    const credentialJson = this._credentialService.exportCredential(id);
-    if (!credentialJson) return;
-
-    const blob = new Blob([credentialJson], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `credential-${alias || 'export'}-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    console.log('Credential exported successfully');
+  createPresentation(): void {
+    this._router.navigate(['/presentations/create-template']);
   }
 
   deleteCredential(): void {

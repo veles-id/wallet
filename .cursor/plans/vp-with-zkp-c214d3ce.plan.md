@@ -1,4 +1,69 @@
-<!-- c214d3ce-3cbf-41c6-aa74-243f3d7c2988 1bd92b77-2f46-4a23-b5d6-248f037efc90 -->
+---
+name: Implement Verifiable Presentations with BBS+ Selective Disclosure
+overview: ""
+todos:
+  - id: 185c977a-0a1a-40dd-91d5-91c5562ece58
+    content: Install BBS+ and OpenTimestamps dependencies
+    status: completed
+  - id: eda5db93-68a9-4f88-81db-e7ecf5857106
+    content: Create presentation.types.ts with VP, template, and history types
+    status: completed
+  - id: 0f196704-3e0f-49e6-8c3f-a79384a4c7e2
+    content: Update credential.types.ts for BBS+ and OTS metadata
+    status: completed
+  - id: 254ddf09-f005-45f3-aba1-3a921b6f7f19
+    content: Create bbs-signature.service.ts for BBS+ operations
+    status: completed
+  - id: 747688a7-7f04-4c8c-9134-6c281671ecaa
+    content: Create opentimestamps.service.ts for Bitcoin timestamping
+    status: completed
+  - id: 961cf881-6383-4e12-9098-f4554f3f0c3a
+    content: Update credential.service.ts to use BBS+ signatures
+    status: completed
+  - id: 99242777-af07-4eeb-a2d7-47c5cf1840f2
+    content: Update did.types.ts to include BBS+ keys
+    status: completed
+  - id: 3cb0eab4-9b40-4d68-b994-5e8f0cad5436
+    content: Create presentation.service.ts for VP templates and building
+    status: completed
+  - id: e175e520-509d-4da8-965a-cfc589401e16
+    content: Create presentation-verification.service.ts
+    status: completed
+  - id: 470fe75a-b024-4cf8-9315-8fe9f1aa8bc5
+    content: Update app.routes.ts to add Presentations routes
+    status: completed
+  - id: 55680edb-dd07-4876-bca6-e9167f411c6d
+    content: Create presentations.component with templates and history tabs
+    status: completed
+  - id: 64683fa2-5ec4-4ff6-9451-186517a672a7
+    content: Create template-create.component for VP template creation
+    status: completed
+  - id: 2396755b-0928-4294-90e7-0f8d9cc8e763
+    content: Create template-details.component for viewing and sharing
+    status: completed
+  - id: a790981b-dc30-419d-9509-20337649feb9
+    content: Update nav-footer to replace Link with Presentations
+    status: completed
+  - id: c525b3e7-09ed-4415-994a-43829e52ec1f
+    content: Add shareVP method to nostr-messaging.service.ts
+    status: completed
+  - id: c3378525-7a28-4ae1-82fc-b19c8d578ee9
+    content: Remove raw VC export from credential-details component
+    status: completed
+  - id: 60f25ad4-1fec-46b2-8692-1e9889b57c3b
+    content: Write unit tests for bbs-signature.service.ts
+    status: completed
+  - id: 6b344e7d-9400-48e2-a915-8d4c394033cf
+    content: Write unit tests for presentation.service.ts
+    status: completed
+  - id: b55ec785-8c2d-44d9-939b-cbe3759182a5
+    content: Write unit tests for presentation-verification.service.ts
+    status: completed
+  - id: 8ddcb520-89c7-465f-b26c-21749a67dee3
+    content: Update README with VP usage documentation
+    status: pending
+---
+
 # Implement Verifiable Presentations with BBS+ Selective Disclosure
 
 ## Overview
@@ -14,11 +79,11 @@ npm install @mattrglobal/bbs-signatures
 npm install opentimestamps
 ```
 
+
+
 ### 1.2 Create VP Type Definitions
 
-**New file:** `src/app/core/services/presentation.types.ts`
-
-Define comprehensive types:
+**New file:** `src/app/core/services/presentation.types.ts`Define comprehensive types:
 
 ```typescript
 export interface VerifiablePresentation {
@@ -86,11 +151,11 @@ export interface CreateVPRequest {
 }
 ```
 
+
+
 ### 1.3 Update Credential Types for BBS+
 
-**Update:** `src/app/core/services/credential.types.ts`
-
-Add BBS+ proof types and OTS metadata:
+**Update:** `src/app/core/services/credential.types.ts`Add BBS+ proof types and OTS metadata:
 
 ```typescript
 export interface CredentialProof {
@@ -113,13 +178,13 @@ export interface CredentialMetadata {
 }
 ```
 
+
+
 ## Phase 2: BBS+ VC Issuance
 
 ### 2.1 Create BBS+ Signing Service
 
-**New file:** `src/app/core/services/bbs-signature.service.ts`
-
-Implement BBS+ key generation and signing:
+**New file:** `src/app/core/services/bbs-signature.service.ts`Implement BBS+ key generation and signing:
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -156,11 +221,11 @@ export class BbsSignatureService {
 }
 ```
 
+
+
 ### 2.2 Update Credential Service for BBS+
 
-**Update:** `src/app/core/services/credential.service.ts`
-
-Modify `createCredential()` to use BBS+ signatures:
+**Update:** `src/app/core/services/credential.service.ts`Modify `createCredential()` to use BBS+ signatures:
 
 ```typescript
 async createCredential(request: CreateCredentialRequest): Promise<StoredCredential> {
@@ -206,6 +271,8 @@ async createCredential(request: CreateCredentialRequest): Promise<StoredCredenti
 }
 ```
 
+
+
 ### 2.3 Create OpenTimestamps Service
 
 **New file:** `src/app/core/services/opentimestamps.service.ts`
@@ -225,6 +292,8 @@ export class OpentimestampsService {
 }
 ```
 
+
+
 ### 2.4 Update DID Types for BBS+ Keys
 
 **Update:** `src/app/core/services/did.types.ts`
@@ -237,13 +306,13 @@ export interface StoredDID {
 }
 ```
 
+
+
 ## Phase 3: VP Templates & Building
 
 ### 3.1 Create Presentation Service
 
-**New file:** `src/app/core/services/presentation.service.ts`
-
-Core VP operations:
+**New file:** `src/app/core/services/presentation.service.ts`Core VP operations:
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -376,6 +445,8 @@ export class PresentationService {
 }
 ```
 
+
+
 ### 3.2 Create VP Verification Service
 
 **New file:** `src/app/core/services/presentation-verification.service.ts`
@@ -408,13 +479,13 @@ export class PresentationVerificationService {
 }
 ```
 
+
+
 ## Phase 4: Presentations Page UI
 
 ### 4.1 Update App Routes
 
-**Update:** `src/app/app.routes.ts`
-
-Replace the unused "Link" route:
+**Update:** `src/app/app.routes.ts`Replace the unused "Link" route:
 
 ```typescript
 {
@@ -441,11 +512,11 @@ Replace the unused "Link" route:
 },
 ```
 
+
+
 ### 4.2 Create Presentations Page Component
 
-**New file:** `src/app/pages/presentations/presentations.component.ts`
-
-Main presentations page with tabs:
+**New file:** `src/app/pages/presentations/presentations.component.ts`Main presentations page with tabs:
 
 ```typescript
 @Component({
@@ -578,11 +649,11 @@ export class PresentationsComponent implements OnInit {
 </div>
 ```
 
+
+
 ### 4.3 Create Template Creation Component
 
-**New file:** `src/app/pages/presentations/template-create/template-create.component.ts`
-
-Component for creating/editing VP templates:
+**New file:** `src/app/pages/presentations/template-create/template-create.component.ts`Component for creating/editing VP templates:
 
 ```typescript
 @Component({
@@ -659,11 +730,11 @@ export class TemplateCreateComponent implements OnInit {
 }
 ```
 
+
+
 ### 4.4 Create Template Details Component
 
-**New file:** `src/app/pages/presentations/template-details/template-details.component.ts`
-
-View template and share presentation:
+**New file:** `src/app/pages/presentations/template-details/template-details.component.ts`View template and share presentation:
 
 ```typescript
 @Component({
@@ -752,11 +823,11 @@ export class TemplateDetailsComponent implements OnInit {
 }
 ```
 
+
+
 ### 4.5 Update Nav Footer
 
-**Update:** `src/app/shared/nav-footer/nav-footer.component.ts`
-
-Change "Link" to "Presentations":
+**Update:** `src/app/shared/nav-footer/nav-footer.component.ts`Change "Link" to "Presentations":
 
 ```typescript
 links = [
@@ -766,13 +837,13 @@ links = [
 ];
 ```
 
+
+
 ## Phase 5: VP Sharing Flow
 
 ### 5.1 Update Nostr Messaging Service
 
-**Update:** `src/app/core/services/nostr-messaging.service.ts`
-
-Add VP sharing method:
+**Update:** `src/app/core/services/nostr-messaging.service.ts`Add VP sharing method:
 
 ```typescript
 async shareVP(
@@ -826,20 +897,18 @@ private _createVPDMMessage(vpJson: string, vp: VerifiablePresentation): string {
 }
 ```
 
+
+
 ### 5.2 Remove Raw VC Sharing
 
-**Update:** `src/app/pages/credentials/credential-details/credential-details.component.ts`
-
-Remove or comment out the raw VC export/share functionality:
+**Update:** `src/app/pages/credentials/credential-details/credential-details.component.ts`Remove the raw VC export/share functionality:
 
 ```typescript
 // Remove exportCredential() method
 // Add note that VCs should be shared via Presentations
 ```
 
-**Update:** `src/app/pages/credentials/credential-details/credential-details.component.html`
-
-Replace export button with "Create Presentation" button:
+**Update:** `src/app/pages/credentials/credential-details/credential-details.component.html`Replace export button with "Create Presentation" button:
 
 ```html
 <button
@@ -850,6 +919,8 @@ Replace export button with "Create Presentation" button:
   Create Presentation
 </button>
 ```
+
+
 
 ## Phase 6: Testing
 
@@ -885,6 +956,8 @@ describe('BbsSignatureService', () => {
   });
 });
 ```
+
+
 
 ### 6.2 Presentation Service Tests
 
@@ -981,6 +1054,8 @@ describe('PresentationService', () => {
 });
 ```
 
+
+
 ### 6.3 VP Verification Tests
 
 **New file:** `src/app/core/services/presentation-verification.service.spec.ts`
@@ -1012,19 +1087,17 @@ describe('PresentationVerificationService', ()	 => {
 });
 ```
 
+
+
 ## Phase 7: Documentation & Cleanup
 
 ### 7.1 Update README
 
-**Update:** `README.md`
-
-Add section on VP usage with examples.
+**Update:** `README.md`Add section on VP usage with examples.
 
 ### 7.2 Remove Deprecated Code
 
-Clean up any raw VC sharing code that's been replaced by VP sharing.
-
----
+Clean up any leftover raw VC sharing code that's been replaced by VP sharing.---
 
 ## Further Steps: Derived Credentials (Future)
 
@@ -1070,28 +1143,3 @@ This plan implements W3C Verifiable Presentations with BBS+ signatures (W3C Data
 Storage strategy:
 
 - localStorage: Plaintext (testing/debugging)
-- IPFS: Encrypted (production-ready validation)
-- Memory: Ephemeral VPs (built, sent, discarded)
-
-### To-dos
-
-- [x] Install BBS+ and OpenTimestamps dependencies
-- [x] Create presentation.types.ts with VP, template, and history types
-- [x] Update credential.types.ts for BBS+ and OTS metadata
-- [x] Create bbs-signature.service.ts for BBS+ operations
-- [x] Create opentimestamps.service.ts for Bitcoin timestamping
-- [x] Update credential.service.ts to use BBS+ signatures
-- [x] Update did.types.ts to include BBS+ keys
-- [x] Create presentation.service.ts for VP templates and building
-- [x] Create presentation-verification.service.ts
-- [x] Update app.routes.ts to add Presentations routes
-- [x] Create presentations.component with templates and history tabs
-- [x] Create template-create.component for VP template creation
-- [x] Create template-details.component for viewing and sharing
-- [x] Update nav-footer to replace Link with Presentations
-- [ ] Add shareVP method to nostr-messaging.service.ts
-- [ ] Remove raw VC export from credential-details component
-- [x] Write unit tests for bbs-signature.service.ts
-- [x] Write unit tests for presentation.service.ts
-- [x] Write unit tests for presentation-verification.service.ts
-- [ ] Update README with VP usage documentation

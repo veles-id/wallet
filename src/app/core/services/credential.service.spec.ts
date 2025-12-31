@@ -417,49 +417,6 @@ describe('CredentialService - Core Business Logic', () => {
     });
   });
 
-  describe('exportCredential()', () => {
-    it('should export credential as formatted JSON', async () => {
-      const request: CreateCredentialRequest = {
-        issuerDID: 'did:nostr:issuer',
-        subjectDID: 'did:nostr:subject',
-        credentialData: { name: 'Test' },
-        alias: 'Test',
-      };
-
-      const stored = await service.createCredential(request);
-      const exported = service.exportCredential(stored.credential.id);
-
-      expect(exported).toBeDefined();
-      expect(typeof exported).toBe('string');
-
-      const parsed = JSON.parse(exported!);
-      expect(parsed).toEqual(stored.credential);
-    });
-
-    it('should format JSON with proper indentation', async () => {
-      const request: CreateCredentialRequest = {
-        issuerDID: 'did:nostr:issuer',
-        subjectDID: 'did:nostr:subject',
-        credentialData: { name: 'Test' },
-        alias: 'Test',
-      };
-
-      const stored = await service.createCredential(request);
-      const exported = service.exportCredential(stored.credential.id);
-
-      expect(exported).toContain('\n  ');
-      expect(exported).toContain('"@context"');
-      const parsed = JSON.parse(exported!);
-      expect(parsed).toEqual(stored.credential);
-    });
-
-    it('should return null for non-existent credential', () => {
-      const exported = service.exportCredential('non-existent-id');
-
-      expect(exported).toBeNull();
-    });
-  });
-
   describe('getCredentialsByCategory()', () => {
     beforeEach(async () => {
       await service.createCredential({

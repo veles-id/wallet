@@ -1,4 +1,60 @@
-<!-- 5fecc669-7a57-4250-b6d1-60cc459e6d29 2f92790a-2c09-45bd-a7ca-336badea5773 -->
+---
+name: Implement Encryption for VCs and DIDs with IPFS
+overview: ""
+todos:
+  - id: 85653261-a8a4-4ceb-9f4b-c0c76819c1ba
+    content: Install Pinata SDK and encryption libraries (pinata, @noble/ciphers)
+    status: completed
+  - id: e2d17d1a-2049-4347-9a01-78bb63a7b79f
+    content: Create encryption.service.ts with NIP-04 encrypt/decrypt methods
+    status: completed
+  - id: a50847ed-9ad4-4f68-9646-424bd011971b
+    content: Write comprehensive Jest unit tests for encryption.service.ts
+    status: completed
+  - id: f7284193-528d-4fb4-933b-8ca5313b263f
+    content: Create ipfs.service.ts with Pinata SDK integration for upload/retrieve
+    status: completed
+  - id: 8ac1a758-1507-489d-9e9e-1405dfe0966d
+    content: Update credential.types.ts and did.types.ts with IPFS CID fields
+    status: completed
+  - id: a8e12e18-c82a-4d28-9c71-bc3df51ee0ee
+    content: Implement createAndStoreEncryptedVC in credential.service.ts
+    status: completed
+  - id: 5981efa9-e42b-41e3-8e28-c5783ca1b9b7
+    content: Add publishVCPointerToNostr method to credential.service.ts
+    status: completed
+  - id: 57d37212-f840-44a1-a97e-b0c38180577d
+    content: Create RelayService for shared Nostr relay operations
+    status: completed
+  - id: 642829e3-27b2-4390-93a1-ae17c55cb510
+    content: Create nostr-messaging.service.ts for NIP-04 DM sharing of VCs
+    status: completed
+  - id: 886ea319-9a2a-4241-9025-1041cdbd0dfd
+    content: Update credential-verification.service.ts to handle encrypted VCs
+    status: completed
+  - id: 7beee49e-0c02-4f6f-90b7-611670a2b3c4
+    content: Write Jest unit tests for credential.service.ts core business logic
+    status: completed
+  - id: 44a03f52-aa09-4ecd-b939-16a2cc1aefd7
+    content: Create did-splitter.service.ts to split DID into public/extended parts
+    status: completed
+  - id: fac32541-b06c-470f-af66-c43a93a5976d
+    content: Modify publishDID in did-nostr.service.ts for hybrid encryption approach
+    status: completed
+  - id: 85c13ba6-bd31-43e9-8b48-be87f4b05924
+    content: Modify retrieveDIDInfo in did-nostr.service.ts to handle extended data from IPFS
+    status: completed
+  - id: a559d2b8-921f-477a-86a9-29069a42a2c2
+    content: Add shareExtendedDIDData method to nostr-messaging.service.ts
+    status: completed
+  - id: 6ee4f91f-09f2-4798-abbb-e78464847752
+    content: Setup environment variables for Pinata credentials
+    status: completed
+  - id: 47b418a3-61df-4962-a6e0-5c0dde6e48c0
+    content: Test complete VC and DID encryption flows manually
+    status: completed
+---
+
 # Implement Encryption for VCs and DIDs with IPFS
 
 ## Overview
@@ -12,6 +68,8 @@ Add encryption layer to secure VCs and DIDs on public networks (Nostr/IPFS) whil
 ```bash
 npm install pinata @noble/ciphers
 ```
+
+
 
 ### 1.2 Create Encryption Service
 
@@ -57,13 +115,13 @@ interface StoredDID {
 }
 ```
 
+
+
 ## Phase 2: VC Encryption (Simpler - Validate Encryption Flow)
 
 ### 2.1 Extend Credential Service
 
-**Update:** `src/app/core/services/credential.service.ts`
-
-Add method `createAndStoreEncryptedVC()`:
+**Update:** `src/app/core/services/credential.service.ts`Add method `createAndStoreEncryptedVC()`:
 
 ```typescript
 async createAndStoreEncryptedVC(request: CreateCredentialRequest): Promise<StoredCredential> {
@@ -76,11 +134,11 @@ async createAndStoreEncryptedVC(request: CreateCredentialRequest): Promise<Store
 }
 ```
 
+
+
 ### 2.2 Add Nostr Pointer Events
 
-**Update:** `src/app/core/services/credential.service.ts`
-
-Add method `publishVCPointerToNostr()`:
+**Update:** `src/app/core/services/credential.service.ts`Add method `publishVCPointerToNostr()`:
 
 ```typescript
 async publishVCPointerToNostr(vc: VerifiableCredential, ipfsCID: string, holderDID: StoredDID): Promise<string> {
@@ -92,6 +150,8 @@ async publishVCPointerToNostr(vc: VerifiableCredential, ipfsCID: string, holderD
 }
 ```
 
+
+
 ### 2.3 VC Sharing via NIP-04 DMs
 
 **New file:** `src/app/core/services/nostr-messaging.service.ts`
@@ -102,9 +162,7 @@ async publishVCPointerToNostr(vc: VerifiableCredential, ipfsCID: string, holderD
 
 ### 2.4 VC Verification with Encryption
 
-**Update:** `src/app/core/services/credential-verification.service.ts`
-
-Add method `verifyEncryptedVC()`:
+**Update:** `src/app/core/services/credential-verification.service.ts`Add method `verifyEncryptedVC()`:
 
 ```typescript
 async verifyEncryptedVC(encryptedVC: string, decryptionKey: string): Promise<VerificationResult> {
@@ -115,13 +173,13 @@ async verifyEncryptedVC(encryptedVC: string, decryptionKey: string): Promise<Ver
 }
 ```
 
+
+
 ## Phase 3: DID Hybrid Encryption (Complex - Public + Private Split)
 
 ### 3.1 DID Document Splitter
 
-**New file:** `src/app/core/services/did-splitter.service.ts`
-
-Methods:
+**New file:** `src/app/core/services/did-splitter.service.ts`Methods:
 
 - `splitDIDDocument(fullDoc: DIDDocument): { public: PublicDIDDoc, extended: ExtendedDIDData }`
 - Public: `@context`, `id`, `verificationMethod`, `authentication`, `assertionMethod`
@@ -129,9 +187,7 @@ Methods:
 
 ### 3.2 Update DID Nostr Service
 
-**Update:** `src/app/core/services/did-nostr.service.ts`
-
-Modify `publishDID()`:
+**Update:** `src/app/core/services/did-nostr.service.ts`Modify `publishDID()`:
 
 ```typescript
 async publishDID(storedDID: StoredDID): Promise<boolean> {
@@ -145,11 +201,11 @@ async publishDID(storedDID: StoredDID): Promise<boolean> {
 }
 ```
 
+
+
 ### 3.3 DID Resolution with Extended Data
 
-**Update:** `src/app/core/services/did-nostr.service.ts`
-
-Modify `retrieveDIDInfo()`:
+**Update:** `src/app/core/services/did-nostr.service.ts`Modify `retrieveDIDInfo()`:
 
 ```typescript
 async retrieveDIDInfo(did: string, decryptionKey?: string): Promise<CompleteDIDResolution> {
@@ -161,11 +217,11 @@ async retrieveDIDInfo(did: string, decryptionKey?: string): Promise<CompleteDIDR
 }
 ```
 
+
+
 ### 3.4 Share Extended DID Data
 
-**Update:** `src/app/core/services/nostr-messaging.service.ts`
-
-Add method `shareExtendedDIDData()`:
+**Update:** `src/app/core/services/nostr-messaging.service.ts`Add method `shareExtendedDIDData()`:
 
 ```typescript
 async shareExtendedDIDData(did: string, verifierPubkey: string, holderKeys: Keys): Promise<void> {
@@ -176,11 +232,13 @@ async shareExtendedDIDData(did: string, verifierPubkey: string, holderKeys: Keys
 }
 ```
 
+
+
 ## Phase 4: Environment & Testing
 
 ### 4.1 Environment Variables
 
-```
+```javascript
 environment: {
     pinata: {
         jwt: your_jwt_here, 
@@ -193,9 +251,7 @@ Update `src/app/core/services/ipfs.service.ts` to read from environment.
 
 ### 4.2 Manual Testing Flows
 
-Test these workflows in the app:
-
-**VC Flow:**
+Test these workflows in the app:**VC Flow:**
 
 1. Create VC → Verify plaintext in localStorage → Verify encrypted on IPFS
 2. Check Nostr pointer event published
@@ -214,28 +270,7 @@ Test these workflows in the app:
 - **Error Handling:** Basic try-catch, log errors, show user-friendly messages
 - **Edge Cases:** Defer to later (network failures, IPFS unavailability, DM delivery failures)
 - **Nostr Event Kinds:** 
-  - Kind 30000 for DIDs (parameterized replaceable)
-  - Kind 1 for VC pointers (regular event)
-  - Kind 4 for NIP-04 encrypted DMs
+- Kind 30000 for DIDs (parameterized replaceable)
+- Kind 1 for VC pointers (regular event)
+- Kind 4 for NIP-04 encrypted DMs
 - **Hash Function:** Use SHA-256 for integrity checks in tags
-- **Backward Compatibility:** Not needed, breaking change accepted
-
-### To-dos
-
-- [x] Install Pinata SDK and encryption libraries (pinata, @noble/ciphers)
-- [x] Create encryption.service.ts with NIP-04 encrypt/decrypt methods
-- [x] Write comprehensive Jest unit tests for encryption.service.ts
-- [x] Create ipfs.service.ts with Pinata SDK integration for upload/retrieve
-- [x] Update credential.types.ts and did.types.ts with IPFS CID fields
-- [x] Implement createAndStoreEncryptedVC in credential.service.ts
-- [x] Add publishVCPointerToNostr method to credential.service.ts
-- [x] Create RelayService for shared Nostr relay operations
-- [x] Create nostr-messaging.service.ts for NIP-04 DM sharing of VCs
-- [x] Update credential-verification.service.ts to handle encrypted VCs
-- [x] Write Jest unit tests for credential.service.ts core business logic
-- [x] Create did-splitter.service.ts to split DID into public/extended parts
-- [x] Modify publishDID in did-nostr.service.ts for hybrid encryption approach
-- [x] Modify retrieveDIDInfo in did-nostr.service.ts to handle extended data from IPFS
-- [x] Add shareExtendedDIDData method to nostr-messaging.service.ts
-- [x] Setup environment variables for Pinata credentials
-- [x] Test complete VC and DID encryption flows manually

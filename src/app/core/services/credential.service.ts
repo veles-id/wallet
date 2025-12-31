@@ -309,14 +309,6 @@ export class CredentialService {
     );
   }
 
-  exportCredential(id: string): string | null {
-    const credential = this.getCredentialById(id);
-    if (credential) {
-      return JSON.stringify(credential.credential, null, 2);
-    }
-    return null;
-  }
-
   async importCredential(credentialJson: string, alias?: string): Promise<StoredCredential> {
     try {
       const credential: VerifiableCredential = JSON.parse(credentialJson);

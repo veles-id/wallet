@@ -75,7 +75,7 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
    Issuers publish signed revocation events on Nostr to invalidate VCs, including the VC’s hash and a “revoked” status. Verifiers check these events to confirm validity, ensuring issuer control over the VC lifecycle, even if encrypted files persist on IPFS.
 
 6. **Resolve Identities with NIP-05 or Bitcoin-Anchored DIDs**  
-   Use **NIP-05** (`nostr.json` hosted on a domain, ~$1-$10/month) for lightweight, cost-efficient public key resolution, or anchor DID hashes to the **Bitcoin Timechain** using OpenTimestamps (free) for immutable verification. This avoids Ethereum’s high costs and partial centralization.
+   Use **NIP-05** (`nostr.json` hosted on a domain) for lightweight, cost-efficient public key resolution, or anchor DID hashes to the **Bitcoin Timechain** using OpenTimestamps (free) for immutable verification. This avoids Ethereum’s high costs and partial centralization.
 
 7. **Ensure Availability with Redundancy**  
    Pin encrypted VCs and DID extended data on multiple IPFS nodes or services for resilience. Publish Nostr events (VC pointers and minimal DID documents) to multiple relays to prevent data loss from pruning. Holders store VCs and DIDs in secure identity wallets with backups on IPFS or local devices, ensuring access without single points of failure.
@@ -110,7 +110,7 @@ Self-sovereign identity requires a balance of privacy, control, and accessibilit
    
    The Nostr event (kind 30000) contains the minimal document in `content` and links to encrypted extended data via tags: `["ipfs_cid", "<cid>"]`, `["ext_hash", "<sha256>"]`. This approach ensures public verifiability (anyone can resolve verification keys) while protecting privacy-sensitive data (service endpoints revealing communication patterns). Holders share decryption keys for extended data selectively via **NIP-04 encrypted DMs**, maintaining full control over who accesses metadata and service information.
 
-9. Timestamping with Bitcoin using OpenTimestamps
+9. **Timestamping with Bitcoin using OpenTimestamps**
 
 10. **Verifiable Presentations with BBS+ for Selective Disclosure**  
    All credentials are shared via **Verifiable Presentations (VPs)** following W3C VC Data Model. VPs are built on-demand with **BBS+ signatures** (W3C Community Group spec) enabling field-level selective disclosure. Holders can prove specific attributes (e.g., "has university degree") without revealing unnecessary data (e.g., GPA, graduation date). Each VP includes:
@@ -169,6 +169,68 @@ graph TD
 - **BBS+ Selective Disclosure**: Share only necessary credential fields using Zero-Knowledge Proofs
 - **OpenTimestamps Integration**: Bitcoin-anchored proof of credential issuance time
 
+
+## Security Considerations
+
+### Challenge-Response Protocol
+
+**Challenge Generation**
+- Generate cryptographically secure random challenges using `crypto.getRandomValues()` (minimum 32 bytes)
+- Challenges must be unique per presentation request to prevent replay attacks
+- Never reuse challenges across different verification sessions
+- Store challenge-VP pairs temporarily (max validity period) for verification, then purge
+
+**Why It Matters**: Challenge-response binding ensures that a VP created for one verifier cannot be intercepted and replayed to another verifier, even if the encrypted DM is compromised. Each VP is cryptographically bound to its intended verification context.
+
+### Validity Periods
+
+Choose appropriate time windows based on use case:
+
+- **Quick Verifications (5-15 minutes)**: Age checks, simple attribute proofs where immediate verification is expected
+- **Standard Sessions (30-60 minutes)**: Most credential sharing scenarios with human interaction delays
+- **Extended Sessions (2-24 hours)**: Administrative processes with known longer workflows only
+
+**Why It Matters**: Short validity windows minimize the attack surface if a VP is intercepted. VPs should expire before they could be meaningfully replayed or abused. The default 5-minute window balances usability with security for most scenarios.
+
+### Selective Disclosure 
+
+**Field-Level Privacy**
+- Only disclose fields absolutely necessary for verification (e.g., share "over18: true" instead of birthdate)
+- Use VP templates to pre-configure safe disclosure patterns for common scenarios
+
+**Credential Minimization**
+- Avoid bundling credentials with overlapping data that could enable correlation
+
+**Why It Matters**: BBS+ signatures enable mathematical proof of specific claims without revealing underlying data. Over-disclosure negates this privacy advantage. A university degree credential might contain GPA, graduation date, student ID, and more—but proving "has degree in Computer Science" requires only the degree field.
+
+### Storage Security
+
+**Template Storage**
+- VP templates offer low risk: no credential data, only configuration
+- Templates only reference credential IDs, never contain actual credential data
+- Share history stored for audit (contains metadata only, not VPs or credentials)
+
+**Credential Storage**
+- Credentials themselves stored encrypted on IPFS and locally in secure wallet storage
+- Private keys never leave device memory
+
+**Why It Matters**: Defense in depth. Even if local storage is compromised, actual credentials remain encrypted and selective disclosure proofs prevent full credential exposure.
+
+### Threat Model
+
+**What This Protects Against**
+- Replay attacks (challenge binding)
+- Man-in-the-middle attacks (domain/recipient binding)
+- Over-disclosure (selective disclosure, time limits)
+- Credential theft (encryption, no stored VPs)
+- Unauthorized access (holder signatures)
+- Correlation tracking (minimal disclosure, BBS+)
+
+**What This Does Not Protect Against**
+- Compromised holder device (private keys accessible)
+- Malicious issuer (fake credentials with valid signatures)
+- Social engineering (holder voluntarily over-sharing)
+- Quantum computing attacks (Ed25519 and BLS signatures are vulnerable post-quantum)
 
 ## Conclusion
 

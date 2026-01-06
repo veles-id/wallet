@@ -61,7 +61,7 @@ todos:
     status: completed
   - id: 8ddcb520-89c7-465f-b26c-21749a67dee3
     content: Update README with VP usage documentation
-    status: pending
+    status: completed
 ---
 
 # Implement Verifiable Presentations with BBS+ Selective Disclosure
@@ -1141,5 +1141,3 @@ This plan implements W3C Verifiable Presentations with BBS+ signatures (W3C Data
 - Comprehensive unit tests
 
 Storage strategy:
-
-- localStorage: Plaintext (testing/debugging)

@@ -17,9 +17,9 @@ Available on [GitHub](https://github.com/veles-id/wallet/blob/master/WHITEPAPER.
 
 ## Securely Publishing Verifiable Credentials on Nostr with IPFS: A Decentralized Approach
 
-Self-sovereign identity requires a balance of privacy, control, and accessibility. Combining **Nostr**, a decentralized event protocol, with **IPFS**, a content-addressable storage system, offers a powerful solution for managing VCs with maximum security and user sovereignty. Here’s a high-level strategy, grounded in cryptographic principles and decentralization.
+Self-sovereign identity requires a balance of privacy, control, and accessibility. Combining **Nostr**, a decentralized event protocol, with **IPFS**, a content-addressable storage system, offers a powerful solution for managing VCs with maximum security and user sovereignty. Veles is focused on both decentralization and cryptography.
 
-### Core Principles
+### Principles
 - **Privacy**: Protect sensitive VC/DID data from unauthorized access.
 - **Control**: Empower issuers and holders to manage access and lifecycle (issuance, sharing, revocation).
 - **Verifiability**: Enable third parties to verify credentials without compromising security.

@@ -4,7 +4,7 @@
     [(selectedIndex)]="selectedTab">
     <mat-tab label="Templates">
       <div class="presentations__content">
-        @if (templates().length === 0) {
+        @if (templateDisplayData().length === 0) {
           <div class="presentations__empty">
             <mat-icon class="presentations__empty-icon">description</mat-icon>
             <h2 class="presentations__empty-title">No Templates Yet</h2>
@@ -13,39 +13,88 @@
             </p>
           </div>
         } @else {
-          <div class="presentations__list">
-            @for (template of templates(); track template.id) {
-              <mat-card
-                class="template-card"
-                (click)="viewTemplate(template)">
-                <mat-card-header>
-                  <mat-card-title>{{ template.name }}</mat-card-title>
-                  <mat-card-subtitle>{{ template.credentialIds.length }} credential(s)</mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                  @if (template.description) {
-                    <p class="template-card__description">{{ template.description }}</p>
-                  }
-                  <p class="template-card__validity">Valid for {{ template.defaultValidityMinutes }} minutes</p>
-                </mat-card-content>
-                <mat-card-actions>
-                  <button
-                    mat-button
-                    (click)="deleteTemplate(template, $event)">
-                    <mat-icon>delete</mat-icon>
-                    Delete
-                  </button>
-                </mat-card-actions>
-              </mat-card>
+          <cdk-accordion class="presentations__list">
+            @for (data of templateDisplayData(); track data.template.id) {
+              <cdk-accordion-item
+                #item="cdkAccordionItem"
+                class="template-tile"
+                [class.template-tile--expanded]="item.expanded">
+                <div
+                  class="template-tile__header"
+                  (click)="item.toggle()">
+                  <app-avatar
+                    [initials]="getPersonaInitials(data.persona)"
+                    [size]="AvatarSize.SMALL" />
+                  <div class="template-tile__header-text">
+                    @if (data.credentials.length > 0) {
+                      <span class="template-tile__type">{{ getCredentialType(data.credentials[0]) | credentialType }}</span>
+                    }
+                    <span class="template-tile__name">{{ data.template.name }}</span>
+                  </div>
+                </div>
+
+                @if (item.expanded) {
+                  <div class="template-tile__body">
+                    @if (data.credentials.length > 0) {
+                      <div class="template-tile__credential">
+                        <span class="template-tile__credential-type">
+                          {{ getCredentialType(data.credentials[0]) }}
+                        </span>
+                        <span class="template-tile__credential-name">
+                          {{ data.credentials[0].alias || data.template.name }}
+                        </span>
+                      </div>
+
+                      @for (
+                        field of data.template.selectiveFields[data.credentials[0].credential.id] || [];
+                        track field
+                      ) {
+                        <div class="template-tile__field">
+                          <div class="template-tile__field-icon">
+                            <mat-icon>memory</mat-icon>
+                          </div>
+                          <div class="template-tile__field-text">
+                            <span class="template-tile__field-label">{{ field }}</span>
+                            <span class="template-tile__field-value">
+                              {{ getFieldValue(data.credentials[0], field) }}
+                            </span>
+                          </div>
+                        </div>
+                      }
+                    }
+
+                    <div class="template-tile__footer">
+                      <div class="template-tile__footer-item">
+                        <span class="template-tile__footer-label">Validity</span>
+                        <span class="template-tile__footer-value">
+                          @if (data.latestShare) {
+                            {{ getShareValidity(data.latestShare) }}
+                          } @else {
+                            {{ data.template.defaultValidityMinutes }} minutes
+                          }
+                        </span>
+                      </div>
+                      @if (data.latestShare?.validUntil) {
+                        <div class="template-tile__footer-item">
+                          <span class="template-tile__footer-label">Expires</span>
+                          <span class="template-tile__footer-value">
+                            {{ formatExpiration(data.latestShare!.validUntil!) }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </cdk-accordion-item>
             }
-          </div>
+          </cdk-accordion>
         }
 
         <button
           mat-flat-button
           class="presentations__create-button"
           (click)="createTemplate()">
-          Create Template
+          Create new presentation
         </button>
       </div>
     </mat-tab>
@@ -54,9 +103,9 @@
       <div class="presentations__content">
         @if (shareHistory().length === 0) {
           <div class="presentations__empty">
-            <mat-icon class="presentations__empty-icon">history</mat-icon>
-            <h2 class="presentations__empty-title">No Share History</h2>
-            <p class="presentations__empty-description">Your presentation sharing history will appear here.</p>
+            <mat-icon class="presentations__empty-icon presentations__empty-icon--thin">history</mat-icon>
+            <h2 class="presentations__empty-title">No share history</h2>
+            <p class="presentations__empty-description">Your presentation sharing history will appear here</p>
           </div>
         } @else {
           <div class="presentations__list">

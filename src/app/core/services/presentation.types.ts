@@ -1,4 +1,5 @@
-import { VerifiableCredential } from './credential.types';
+import { StoredCredential, VerifiableCredential } from './credential.types';
+import { StoredDID } from './did.types';
 
 export interface VerifiablePresentation {
   '@context': string[];
@@ -52,6 +53,13 @@ export interface VerificationRequest {
   expiresAt: string;
   requiredFields?: string[];
   purpose?: string;
+}
+
+export interface TemplateDisplayData {
+  template: VPTemplate;
+  credentials: StoredCredential[];
+  persona: StoredDID | null;
+  latestShare: VPShareRecord | null;
 }
 
 export interface CreateVPRequest {

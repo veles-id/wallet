@@ -90,9 +90,7 @@ export class CredentialDetailsComponent implements OnInit {
     if (type.length > 1) {
       return type.find((t) => t !== 'VerifiableCredential') || type[0];
     }
-    const credential = this.credential();
-    const { metadata } = credential || {};
-    return metadata?.category || 'Credential';
+    return 'Credential';
   }
 
   getCredentialDisplayTitle(): string {
@@ -115,10 +113,9 @@ export class CredentialDetailsComponent implements OnInit {
   }
 
   getIssuerCategory(): string {
-    const { metadata } = this.credential() || {};
-    const category = metadata?.category?.toLowerCase();
-
-    if (category?.includes('education') || category?.includes('alumni')) {
+    const type = this.getCredentialType().toLowerCase();
+    
+    if (type.includes('degree') || type.includes('education') || type.includes('alumni')) {
       return 'Alumni Of';
     }
     return 'Issued By';

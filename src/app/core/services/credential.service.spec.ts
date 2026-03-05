@@ -5,8 +5,6 @@ import { CredentialVerificationService } from './credential-verification.service
 import { CredentialService } from './credential.service';
 import {
   CreateCredentialRequest,
-  CredentialCategory,
-  CredentialPrivacy,
   CredentialSource,
   VerifiableCredential,
 } from './credential.types';
@@ -273,32 +271,8 @@ describe('CredentialService - Core Business Logic', () => {
       const result = await service.createCredential(baseRequest);
 
       expect(result.metadata).toBeDefined();
-      expect(result.metadata!.category).toBe(CredentialCategory.OTHER);
-      expect(result.metadata!.privacy).toBe(CredentialPrivacy.PRIVATE);
       expect(result.metadata!.source).toBe(CredentialSource.SELF_ISSUED);
       expect(result.metadata!.templateId).toBeUndefined();
-    });
-
-    it('should use provided category and privacy', async () => {
-      const request = {
-        ...baseRequest,
-        category: CredentialCategory.EDUCATION,
-        privacy: CredentialPrivacy.PUBLIC,
-      };
-
-      const result = await service.createCredential(request);
-
-      expect(result.metadata).toBeDefined();
-      expect(result.metadata!.category).toBe(CredentialCategory.EDUCATION);
-      expect(result.metadata!.privacy).toBe(CredentialPrivacy.PUBLIC);
-    });
-
-    it('should include tags when provided', async () => {
-      const request = { ...baseRequest, tags: ['important', 'verified'] };
-
-      const result = await service.createCredential(request);
-
-      expect(result.tags).toEqual(['important', 'verified']);
     });
 
     it('should set isVerified to false initially', async () => {
@@ -324,7 +298,6 @@ describe('CredentialService - Core Business Logic', () => {
           id: 'test-template',
           name: 'Test Template',
           description: 'Test',
-          category: CredentialCategory.EDUCATION,
           context: ['https://example.com/custom-context'],
           type: ['CustomCredential'],
           fields: [],
@@ -361,7 +334,6 @@ describe('CredentialService - Core Business Logic', () => {
       const result = await service.importCredential(credentialJson);
 
       expect(result.credential).toEqual(validVC);
-      expect(result.tags).toEqual(['imported']);
       expect(result.metadata).toBeDefined();
       expect(result.metadata!.source).toBe(CredentialSource.IMPORTED);
     });
@@ -411,53 +383,8 @@ describe('CredentialService - Core Business Logic', () => {
       const result = await service.importCredential(credentialJson);
 
       expect(result.metadata).toBeDefined();
-      expect(result.metadata!.category).toBe(CredentialCategory.OTHER);
-      expect(result.metadata!.privacy).toBe(CredentialPrivacy.PRIVATE);
       expect(result.metadata!.source).toBe(CredentialSource.IMPORTED);
       expect(result.isVerified).toBe(false);
-    });
-  });
-
-  describe('getCredentialsByCategory()', () => {
-    beforeEach(async () => {
-      await service.createCredential({
-        issuerDID: 'did:nostr:issuer1',
-        subjectDID: 'did:nostr:subject1',
-        credentialData: {},
-        name: 'Education 1',
-        category: CredentialCategory.EDUCATION,
-      });
-
-      await service.createCredential({
-        issuerDID: 'did:nostr:issuer2',
-        subjectDID: 'did:nostr:subject2',
-        credentialData: {},
-        name: 'Certification 1',
-        category: CredentialCategory.CERTIFICATION,
-      });
-
-      await service.createCredential({
-        issuerDID: 'did:nostr:issuer3',
-        subjectDID: 'did:nostr:subject3',
-        credentialData: {},
-        name: 'Education 2',
-        category: CredentialCategory.EDUCATION,
-      });
-    });
-
-    it('should filter credentials by category', () => {
-      const educationCreds = service.getCredentialsByCategory(CredentialCategory.EDUCATION);
-      const certificationCreds = service.getCredentialsByCategory(CredentialCategory.CERTIFICATION);
-
-      expect(educationCreds.length).toBe(2);
-      expect(certificationCreds.length).toBe(1);
-      expect(educationCreds.every((c) => c.metadata?.category === CredentialCategory.EDUCATION)).toBe(true);
-    });
-
-    it('should return empty array for category with no credentials', () => {
-      const achievementCreds = service.getCredentialsByCategory(CredentialCategory.ACHIEVEMENT);
-
-      expect(achievementCreds).toEqual([]);
     });
   });
 

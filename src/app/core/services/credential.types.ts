@@ -41,15 +41,12 @@ export interface CredentialStatus {
 export interface StoredCredential {
   credential: VerifiableCredential;
   createdAt: string;
-  tags?: string[];
   isVerified?: boolean;
   metadata?: CredentialMetadata;
 }
 
 export interface CredentialMetadata {
   templateId?: string;
-  category?: CredentialCategory;
-  privacy?: CredentialPrivacy;
   source?: CredentialSource;
   ipfsCID?: string;
   encryptedOnIPFS?: boolean;
@@ -58,26 +55,6 @@ export interface CredentialMetadata {
   otsProof?: string;
   otsTimestamp?: number;
   bbsPublicKey?: string;
-}
-
-export enum CredentialCategory {
-  EDUCATION = 'education',
-  PROFESSIONAL = 'professional',
-  PERSONAL = 'personal',
-  ACHIEVEMENT = 'achievement',
-  CERTIFICATION = 'certification',
-  MEMBERSHIP = 'membership',
-  EMAIL = 'email',
-  DEVICE = 'device',
-  IDENTITY = 'identity',
-  ALUMNI = 'alumni',
-  OTHER = 'other',
-}
-
-export enum CredentialPrivacy {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  SELECTIVE = 'selective',
 }
 
 export enum CredentialSource {
@@ -90,7 +67,6 @@ export interface CredentialTemplate {
   id: string;
   name: string;
   description: string;
-  category: CredentialCategory;
   fields: CredentialField[];
   context: string[];
   type: string[];
@@ -132,9 +108,6 @@ export interface CreateCredentialRequest {
   credentialData: Record<string, any>;
   expirationDate?: string;
   name: string;
-  tags?: string[];
-  category?: CredentialCategory;
-  privacy?: CredentialPrivacy;
 }
 
 export enum VerificationStatus {

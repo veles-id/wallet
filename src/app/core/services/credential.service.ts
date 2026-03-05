@@ -5,8 +5,6 @@ import { CredentialVerificationService } from './credential-verification.service
 import { VerificationResult } from './credential-verification.types';
 import {
   CreateCredentialRequest,
-  CredentialCategory,
-  CredentialPrivacy,
   CredentialSource,
   CredentialTemplate,
   FieldType,
@@ -98,12 +96,9 @@ export class CredentialService {
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        tags: request.tags || [],
         isVerified: false,
         metadata: {
           templateId: request.templateId,
-          category: request.category || CredentialCategory.OTHER,
-          privacy: request.privacy || CredentialPrivacy.PRIVATE,
           source: CredentialSource.SELF_ISSUED,
           signatureType: 'BbsBlsSignature2020',
           bbsPublicKey: bbsPublicKeyHex,
@@ -178,12 +173,9 @@ export class CredentialService {
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        tags: request.tags || [],
         isVerified: false,
         metadata: {
           templateId: request.templateId,
-          category: request.category || CredentialCategory.OTHER,
-          privacy: request.privacy || CredentialPrivacy.PRIVATE,
           source: CredentialSource.SELF_ISSUED,
           signatureType: 'BbsBlsSignature2020',
           bbsPublicKey: bbsPublicKeyHex,
@@ -286,10 +278,6 @@ export class CredentialService {
     return false;
   }
 
-  getCredentialsByCategory(category: CredentialCategory): StoredCredential[] {
-    return this.getStoredCredentials().filter((cred) => cred.metadata?.category === category);
-  }
-
   getCredentialsByDID(did: string): StoredCredential[] {
     return this.getStoredCredentials().filter(
       (cred) => cred.credential.credentialSubject.id === did || cred.credential.issuer === did,
@@ -307,11 +295,8 @@ export class CredentialService {
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        tags: ['imported'],
         isVerified: false,
         metadata: {
-          category: CredentialCategory.OTHER,
-          privacy: CredentialPrivacy.PRIVATE,
           source: CredentialSource.IMPORTED,
         },
       };
@@ -397,7 +382,6 @@ export class CredentialService {
           id: 'education-degree',
           name: 'Educational Degree',
           description: 'University or college degree credential',
-          category: CredentialCategory.EDUCATION,
           context: ['https://www.w3.org/ns/credentials/examples/v1'],
           type: ['UniversityDegreeCredential'],
           fields: [
@@ -441,7 +425,6 @@ export class CredentialService {
           id: 'professional-certification',
           name: 'Professional Certification',
           description: 'Industry or professional certification',
-          category: CredentialCategory.CERTIFICATION,
           context: ['https://www.w3.org/ns/credentials/examples/v1'],
           type: ['ProfessionalCertificationCredential'],
           fields: [
@@ -484,7 +467,6 @@ export class CredentialService {
           id: 'achievement-badge',
           name: 'Achievement Badge',
           description: 'Personal or professional achievement',
-          category: CredentialCategory.ACHIEVEMENT,
           context: ['https://www.w3.org/ns/credentials/examples/v1'],
           type: ['AchievementCredential'],
           fields: [

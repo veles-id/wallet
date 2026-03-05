@@ -17,8 +17,6 @@ import { AuthService } from '@core/services/auth.service';
 import { CredentialService } from '@core/services/credential.service';
 import {
   CreateCredentialRequest,
-  CredentialCategory,
-  CredentialPrivacy,
   CredentialTemplate,
   FieldType,
 } from '@core/services/credential.types';
@@ -65,8 +63,6 @@ export class CredentialCreateComponent implements OnInit {
   hasTemplates = computed(() => this.availableTemplates().length > 0);
 
   FieldType = FieldType;
-  CredentialCategory = CredentialCategory;
-  CredentialPrivacy = CredentialPrivacy;
   templateForm: FormGroup = this._formBuilder.group({
     templateId: [''],
     useTemplate: [true],
@@ -77,10 +73,7 @@ export class CredentialCreateComponent implements OnInit {
   });
   credentialForm: FormGroup = this._formBuilder.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
-    category: [CredentialCategory.OTHER, Validators.required],
-    privacy: [CredentialPrivacy.PRIVATE, Validators.required],
     expirationDate: [''],
-    tags: [''],
   });
 
   dynamicForm: FormGroup = this._formBuilder.group({});
@@ -94,14 +87,6 @@ export class CredentialCreateComponent implements OnInit {
   getDIDAlias(did: string): string {
     const storedDID = this.availableDIDs().find((d) => d.did === did);
     return storedDID?.alias || this._shortenDID(did);
-  }
-
-  getTagsArray(): string[] {
-    const tagsValue = this.credentialForm.get('tags')?.value || '';
-    return tagsValue
-      .split(',')
-      .map((tag: string) => tag.trim())
-      .filter((tag: string) => tag.length > 0);
   }
 
   async createCredential(): Promise<void> {
@@ -124,9 +109,6 @@ export class CredentialCreateComponent implements OnInit {
         credentialData: dynamicValues,
         expirationDate: credentialValues.expirationDate || undefined,
         name: credentialValues.name,
-        tags: this.getTagsArray(),
-        category: credentialValues.category,
-        privacy: credentialValues.privacy,
       };
 
       const credential = await this._credentialService.createCredential(request);

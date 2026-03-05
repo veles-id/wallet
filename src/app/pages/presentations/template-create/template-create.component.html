@@ -79,7 +79,7 @@
                 (change)="onCredentialSelected(credential.credential.id, $event.checked)"
                 class="credential-selector__checkbox">
                 <div class="credential-selector__info">
-                  <span class="credential-selector__name">{{ credential.alias || 'Untitled Credential' }}</span>
+                  <span class="credential-selector__name">{{ credential.credential.name || 'Untitled Credential' }}</span>
                   <span class="credential-selector__type">{{ credential.credential.type[1] || 'Credential' }}</span>
                 </div>
               </mat-checkbox>

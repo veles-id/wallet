@@ -98,8 +98,8 @@ export class CredentialDetailsComponent implements OnInit {
   getCredentialDisplayTitle(): string {
     const credential = this.credential();
     if (!credential) return 'Credential Details';
-    const { alias } = credential;
-    return alias || this.getCredentialType();
+    const { credential: cred } = credential;
+    return cred.name || this.getCredentialType();
   }
 
   getIssuerDisplayName(): string {
@@ -255,11 +255,11 @@ export class CredentialDetailsComponent implements OnInit {
     const credential = this.credential();
     if (!credential) return;
 
-    const { credential: credentialData, alias } = credential;
-    const { id } = credentialData;
+    const { credential: credentialData } = credential;
+    const { id, name } = credentialData;
 
     const confirmed = confirm(
-      `Are you sure you want to delete "${alias || 'this credential'}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${name || 'this credential'}"? This action cannot be undone.`,
     );
 
     if (confirmed) {

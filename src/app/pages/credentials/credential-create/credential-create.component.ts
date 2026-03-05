@@ -76,7 +76,7 @@ export class CredentialCreateComponent implements OnInit {
     subjectDID: ['', Validators.required],
   });
   credentialForm: FormGroup = this._formBuilder.group({
-    alias: ['', [Validators.required, Validators.maxLength(100)]],
+    name: ['', [Validators.required, Validators.maxLength(100)]],
     category: [CredentialCategory.OTHER, Validators.required],
     privacy: [CredentialPrivacy.PRIVATE, Validators.required],
     expirationDate: [''],
@@ -123,7 +123,7 @@ export class CredentialCreateComponent implements OnInit {
         subjectDID: issuerValues.subjectDID,
         credentialData: dynamicValues,
         expirationDate: credentialValues.expirationDate || undefined,
-        alias: credentialValues.alias,
+        name: credentialValues.name,
         tags: this.getTagsArray(),
         category: credentialValues.category,
         privacy: credentialValues.privacy,

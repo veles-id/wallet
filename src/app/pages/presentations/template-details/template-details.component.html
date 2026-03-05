@@ -34,7 +34,7 @@
           @for (credential of credentials(); track credential.credential.id) {
             <mat-card class="credential-item">
               <mat-card-header>
-                <mat-card-title>{{ credential.alias || 'Untitled Credential' }}</mat-card-title>
+                <mat-card-title>{{ credential.credential.name || 'Untitled Credential' }}</mat-card-title>
                 <mat-card-subtitle>{{ credential.credential.type[1] || 'Credential' }}</mat-card-subtitle>
               </mat-card-header>
               <mat-card-content>

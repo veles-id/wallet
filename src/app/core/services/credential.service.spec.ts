@@ -217,7 +217,7 @@ describe('CredentialService - Core Business Logic', () => {
         name: 'John Doe',
         age: 30,
       },
-      alias: 'Test Credential',
+      name: 'Test Credential',
     };
 
     it('should create valid VC structure', async () => {
@@ -227,6 +227,7 @@ describe('CredentialService - Core Business Logic', () => {
       expect(result.credential['@context']).toContain('https://www.w3.org/2018/credentials/v1');
       expect(result.credential.type).toContain('VerifiableCredential');
       expect(result.credential.issuer).toBe(baseRequest.issuerDID);
+      expect(result.credential.name).toBe('Test Credential');
       expect(result.credential.credentialSubject.id).toBe(baseRequest.subjectDID);
       expect(result.credential.credentialSubject['name']).toBe('John Doe');
       expect(result.credential.credentialSubject['age']).toBe(30);
@@ -357,21 +358,21 @@ describe('CredentialService - Core Business Logic', () => {
     it('should import valid credential JSON', async () => {
       const credentialJson = JSON.stringify(validVC);
 
-      const result = await service.importCredential(credentialJson, 'Imported Cred');
+      const result = await service.importCredential(credentialJson);
 
       expect(result.credential).toEqual(validVC);
-      expect(result.alias).toBe('Imported Cred');
       expect(result.tags).toEqual(['imported']);
       expect(result.metadata).toBeDefined();
       expect(result.metadata!.source).toBe(CredentialSource.IMPORTED);
     });
 
-    it('should use default alias when not provided', async () => {
-      const credentialJson = JSON.stringify(validVC);
+    it('should use credential name from imported VC', async () => {
+      const vcWithName = { ...validVC, name: 'Imported Credential Name' };
+      const credentialJson = JSON.stringify(vcWithName);
 
       const result = await service.importCredential(credentialJson);
 
-      expect(result.alias).toBe('Imported Credential');
+      expect(result.credential.name).toBe('Imported Credential Name');
     });
 
     it('should reject invalid JSON', async () => {
@@ -423,7 +424,7 @@ describe('CredentialService - Core Business Logic', () => {
         issuerDID: 'did:nostr:issuer1',
         subjectDID: 'did:nostr:subject1',
         credentialData: {},
-        alias: 'Education 1',
+        name: 'Education 1',
         category: CredentialCategory.EDUCATION,
       });
 
@@ -431,7 +432,7 @@ describe('CredentialService - Core Business Logic', () => {
         issuerDID: 'did:nostr:issuer2',
         subjectDID: 'did:nostr:subject2',
         credentialData: {},
-        alias: 'Certification 1',
+        name: 'Certification 1',
         category: CredentialCategory.CERTIFICATION,
       });
 
@@ -439,7 +440,7 @@ describe('CredentialService - Core Business Logic', () => {
         issuerDID: 'did:nostr:issuer3',
         subjectDID: 'did:nostr:subject3',
         credentialData: {},
-        alias: 'Education 2',
+        name: 'Education 2',
         category: CredentialCategory.EDUCATION,
       });
     });
@@ -470,21 +471,21 @@ describe('CredentialService - Core Business Logic', () => {
         issuerDID: issuerDID,
         subjectDID: holderDID,
         credentialData: {},
-        alias: 'Alice to Bob',
+        name: 'Alice to Bob',
       });
 
       await service.createCredential({
         issuerDID: holderDID,
         subjectDID: otherDID,
         credentialData: {},
-        alias: 'Bob to Charlie',
+        name: 'Bob to Charlie',
       });
 
       await service.createCredential({
         issuerDID: otherDID,
         subjectDID: holderDID,
         credentialData: {},
-        alias: 'Charlie to Bob',
+        name: 'Charlie to Bob',
       });
     });
 

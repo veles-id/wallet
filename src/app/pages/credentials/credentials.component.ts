@@ -66,10 +66,11 @@ export class CredentialsComponent implements OnInit {
   }
 
   deleteCredential(credential: StoredCredential): void {
-    const { alias, credential: cred } = credential;
-    const { id } = cred;
+    const { credential: cred } = credential;
+    const { id, name } = cred;
+    const displayName = name || 'this credential';
 
-    if (confirm(`Are you sure you want to delete "${alias || 'this credential'}"?`)) {
+    if (confirm(`Are you sure you want to delete "${displayName}"?`)) {
       const success = this._credentialService.deleteCredential(id);
       if (success) {
         this._loadCredentials();

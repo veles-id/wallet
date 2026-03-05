@@ -100,8 +100,8 @@ export class CredentialCardComponent {
   }
 
   getCredentialDisplayName(): string {
-    const { alias } = this.credential();
-    return alias || this.getCredentialType();
+    const { credential } = this.credential();
+    return credential.name || this.getCredentialType();
   }
 
   getCredentialCategory(): string {

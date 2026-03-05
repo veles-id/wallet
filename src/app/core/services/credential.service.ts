@@ -49,6 +49,7 @@ export class CredentialService {
         type: ['VerifiableCredential'],
         issuer: request.issuerDID,
         issuanceDate,
+        name: request.name,
         ...(request.expirationDate && {
           expirationDate: request.expirationDate,
         }),
@@ -97,7 +98,6 @@ export class CredentialService {
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        alias: request.alias,
         tags: request.tags || [],
         isVerified: false,
         metadata: {
@@ -129,6 +129,7 @@ export class CredentialService {
         type: ['VerifiableCredential'],
         issuer: request.issuerDID,
         issuanceDate,
+        name: request.name,
         ...(request.expirationDate && {
           expirationDate: request.expirationDate,
         }),
@@ -177,7 +178,6 @@ export class CredentialService {
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        alias: request.alias,
         tags: request.tags || [],
         isVerified: false,
         metadata: {
@@ -286,19 +286,6 @@ export class CredentialService {
     return false;
   }
 
-  updateCredentialAlias(id: string, alias: string): boolean {
-    const credentials = this.getStoredCredentials();
-    const credential = credentials.find((cred) => cred.credential.id === id);
-
-    if (credential) {
-      credential.alias = alias;
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(credentials));
-      return true;
-    }
-
-    return false;
-  }
-
   getCredentialsByCategory(category: CredentialCategory): StoredCredential[] {
     return this.getStoredCredentials().filter((cred) => cred.metadata?.category === category);
   }
@@ -313,7 +300,6 @@ export class CredentialService {
     try {
       const credential: VerifiableCredential = JSON.parse(credentialJson);
 
-      // Basic validation
       if (!credential.id || !credential.issuer || !credential.credentialSubject) {
         throw new Error('Invalid credential format');
       }
@@ -321,7 +307,6 @@ export class CredentialService {
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        alias: alias || 'Imported Credential',
         tags: ['imported'],
         isVerified: false,
         metadata: {

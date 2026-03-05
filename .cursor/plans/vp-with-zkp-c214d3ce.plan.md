@@ -62,6 +62,7 @@ todos:
   - id: 8ddcb520-89c7-465f-b26c-21749a67dee3
     content: Update README with VP usage documentation
     status: completed
+isProject: false
 ---
 
 # Implement Verifiable Presentations with BBS+ Selective Disclosure

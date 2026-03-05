@@ -5,6 +5,7 @@ export interface VerifiableCredential {
   issuer: string | CredentialIssuer;
   issuanceDate: string;
   expirationDate?: string;
+  name?: string;
   credentialSubject: CredentialSubject;
   proof?: CredentialProof;
   credentialStatus?: CredentialStatus;
@@ -40,7 +41,6 @@ export interface CredentialStatus {
 export interface StoredCredential {
   credential: VerifiableCredential;
   createdAt: string;
-  alias?: string;
   tags?: string[];
   isVerified?: boolean;
   metadata?: CredentialMetadata;
@@ -131,7 +131,7 @@ export interface CreateCredentialRequest {
   subjectDID: string;
   credentialData: Record<string, any>;
   expirationDate?: string;
-  alias?: string;
+  name: string;
   tags?: string[];
   category?: CredentialCategory;
   privacy?: CredentialPrivacy;

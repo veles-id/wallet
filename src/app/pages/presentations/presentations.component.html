@@ -21,7 +21,7 @@
                 [class.template-tile--expanded]="item.expanded">
                 <div
                   class="template-tile__header"
-                  (click)="item.toggle()">
+                  (click)="onTileClick(item, data.template)">
                   <app-avatar
                     [initials]="getPersonaInitials(data.persona)"
                     [size]="AvatarSize.SMALL" />

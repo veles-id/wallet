@@ -1,17 +1,19 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { CredentialService } from '@core/services/credential.service';
 import { StoredCredential } from '@core/services/credential.types';
+import { DidService } from '@core/services/did.service';
+import { StoredDID } from '@core/services/did.types';
 import { HeaderService } from '@core/services/header.service';
 import { PresentationService } from '@core/services/presentation.service';
+import { CredentialTypePipe } from '@shared/pipes/credential-type.pipe';
+import { PresentationCardComponent } from '@shared/presentation-card/presentation-card.component';
 
 @Component({
   selector: 'app-template-create',
@@ -20,11 +22,11 @@ import { PresentationService } from '@core/services/presentation.service';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatCheckboxModule,
     MatButtonModule,
-    MatCardModule,
     MatIconModule,
+    CredentialTypePipe,
+    PresentationCardComponent,
   ],
   templateUrl: './template-create.component.html',
   styleUrl: './template-create.component.scss',
@@ -32,12 +34,13 @@ import { PresentationService } from '@core/services/presentation.service';
 export class TemplateCreateComponent implements OnInit {
   private _presentationService = inject(PresentationService);
   private _credentialService = inject(CredentialService);
+  private _didService = inject(DidService);
   private _router = inject(Router);
   private _formBuilder = inject(FormBuilder);
   private _headerService = inject(HeaderService);
 
   availableCredentials = signal<StoredCredential[]>([]);
-  selectedCredentials = signal<string[]>([]);
+  expandedCredentials = signal<string[]>([]);
   selectiveFields = signal<Record<string, string[]>>({});
 
   templateForm: FormGroup = this._formBuilder.group({
@@ -46,51 +49,55 @@ export class TemplateCreateComponent implements OnInit {
     defaultValidityMinutes: [5, [Validators.required, Validators.min(1), Validators.max(1440)]],
   });
 
+  previewCredential = computed<StoredCredential | null>(() => {
+    const fields = this.selectiveFields();
+    const selectedId = Object.keys(fields).find((id) => (fields[id]?.length ?? 0) > 0);
+    if (!selectedId) {
+      return null;
+    }
+    return this.availableCredentials().find((c) => c.credential.id === selectedId) ?? null;
+  });
+
+  previewPersona = computed<StoredDID | null>(() => {
+    const credential = this.previewCredential();
+    if (!credential) {
+      return null;
+    }
+    const subjectDID = credential.credential.credentialSubject.id;
+    return subjectDID ? this._didService.getStoredDID(subjectDID) : null;
+  });
+
   ngOnInit(): void {
     this._headerService.setHeader({
-      title: 'Create Template',
+      title: 'New presentation',
       showBackButton: true,
     });
-    this._loadCredentials();
+    this.availableCredentials.set(this._credentialService.getStoredCredentials());
   }
 
-  private _loadCredentials(): void {
-    const credentials = this._credentialService.getStoredCredentials();
-    this.availableCredentials.set(credentials);
+  isCredentialExpanded(credentialId: string): boolean {
+    return this.expandedCredentials().includes(credentialId);
   }
 
   isCredentialSelected(credentialId: string): boolean {
-    return this.selectedCredentials().includes(credentialId);
+    return (this.selectiveFields()[credentialId]?.length ?? 0) > 0;
   }
 
-  onCredentialSelected(credentialId: string, selected: boolean): void {
-    const current = this.selectedCredentials();
-    if (selected) {
-      this.selectedCredentials.set([...current, credentialId]);
+  toggleCredentialExpanded(credentialId: string): void {
+    const current = this.expandedCredentials();
+    if (current.includes(credentialId)) {
+      this.expandedCredentials.set(current.filter((id) => id !== credentialId));
     } else {
-      this.selectedCredentials.set(current.filter((id) => id !== credentialId));
-      const fields = { ...this.selectiveFields() };
-      delete fields[credentialId];
-      this.selectiveFields.set(fields);
+      this.expandedCredentials.set([...current, credentialId]);
     }
   }
 
   getCredentialFields(credential: StoredCredential): string[] {
-    const fields: string[] = [];
-    const subject = credential.credential.credentialSubject;
-
-    Object.keys(subject).forEach((key) => {
-      if (key !== 'id') {
-        fields.push(key);
-      }
-    });
-
-    return fields;
+    return Object.keys(credential.credential.credentialSubject).filter((key) => key !== 'id');
   }
 
   isFieldSelected(credentialId: string, field: string): boolean {
-    const fields = this.selectiveFields()[credentialId];
-    return fields ? fields.includes(field) : false;
+    return this.selectiveFields()[credentialId]?.includes(field) ?? false;
   }
 
   onFieldSelected(credentialId: string, field: string, selected: boolean): void {
@@ -102,32 +109,39 @@ export class TemplateCreateComponent implements OnInit {
       fields[credentialId] = [...fields[credentialId], field];
     } else {
       fields[credentialId] = fields[credentialId].filter((f) => f !== field);
+      if (fields[credentialId].length === 0) {
+        delete fields[credentialId];
+      }
     }
     this.selectiveFields.set(fields);
   }
 
-  canCreateTemplate(): boolean {
-    return this.templateForm.valid && this.selectedCredentials().length > 0;
+  getCredentialType(credential: StoredCredential): string {
+    const { type } = credential.credential;
+    return type.find((t) => t !== 'VerifiableCredential') || type[0];
   }
 
-  createTemplate(): void {
-    if (!this.canCreateTemplate()) {
+  canSavePresentation(): boolean {
+    const fields = this.selectiveFields();
+    const hasCredentials = Object.values(fields).some((f) => f.length > 0);
+    return this.templateForm.valid && hasCredentials;
+  }
+
+  savePresentation(): void {
+    if (!this.canSavePresentation()) {
       return;
     }
+    const { name, description, defaultValidityMinutes } = this.templateForm.value;
+    const fields = this.selectiveFields();
+    const credentialIds = Object.keys(fields).filter((id) => fields[id]?.length > 0);
 
-    const formValue = this.templateForm.value;
     this._presentationService.createTemplate({
-      name: formValue.name,
-      description: formValue.description || undefined,
-      credentialIds: this.selectedCredentials(),
-      selectiveFields: this.selectiveFields(),
-      defaultValidityMinutes: formValue.defaultValidityMinutes,
+      name,
+      description: description || undefined,
+      credentialIds,
+      selectiveFields: fields,
+      defaultValidityMinutes,
     });
-
-    this._router.navigate(['/presentations']);
-  }
-
-  cancel(): void {
     this._router.navigate(['/presentations']);
   }
 }

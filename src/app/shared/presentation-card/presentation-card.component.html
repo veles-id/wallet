@@ -1,0 +1,39 @@
+<div class="presentation-card">
+  <div class="presentation-card__persona">
+    <app-avatar
+      [initials]="personaInitials()"
+      [size]="AvatarSize.SMALL" />
+    <div class="presentation-card__persona-meta">
+      <span class="presentation-card__persona-type">{{ personaType() }}</span>
+      <span class="presentation-card__persona-name">{{ personaName() }}</span>
+    </div>
+  </div>
+
+  <div class="presentation-card__credential">
+    <span class="presentation-card__credential-type">{{ credentialRawType() }}</span>
+    <span class="presentation-card__credential-name">{{ credentialDisplayName() }}</span>
+  </div>
+
+  @for (field of selectiveFields(); track field) {
+    <div class="presentation-card__field">
+      <div class="presentation-card__field-icon">
+        <mat-icon>memory</mat-icon>
+      </div>
+      <div class="presentation-card__field-text">
+        <span class="presentation-card__field-label">{{ field }}</span>
+        <span class="presentation-card__field-value">{{ getFieldValue(field) }}</span>
+      </div>
+    </div>
+  }
+
+  <div class="presentation-card__footer">
+    <div class="presentation-card__footer-item">
+      <span class="presentation-card__footer-label">Validity</span>
+      <span class="presentation-card__footer-value">{{ validityMinutes() }} minutes</span>
+    </div>
+    <div class="presentation-card__footer-item">
+      <span class="presentation-card__footer-label">Expires</span>
+      <span class="presentation-card__footer-value">{{ formattedExpiration() }}</span>
+    </div>
+  </div>
+</div>

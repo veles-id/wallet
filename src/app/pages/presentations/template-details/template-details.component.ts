@@ -1,20 +1,21 @@
-import { DatePipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CredentialService } from '@core/services/credential.service';
 import { StoredCredential } from '@core/services/credential.types';
+import { DidService } from '@core/services/did.service';
+import { StoredDID } from '@core/services/did.types';
 import { HeaderService } from '@core/services/header.service';
 import { PresentationService } from '@core/services/presentation.service';
 import { VPTemplate } from '@core/services/presentation.types';
+import { CredentialTypePipe } from '@shared/pipes/credential-type.pipe';
+import { PresentationCardComponent } from '@shared/presentation-card/presentation-card.component';
 
 @Component({
   selector: 'app-template-details',
   standalone: true,
-  imports: [DatePipe, MatButtonModule, MatCardModule, MatIconModule, MatChipsModule],
+  imports: [MatButtonModule, MatIconModule, CredentialTypePipe, PresentationCardComponent],
   templateUrl: './template-details.component.html',
   styleUrl: './template-details.component.scss',
 })
@@ -23,11 +24,12 @@ export class TemplateDetailsComponent implements OnInit {
   private _router = inject(Router);
   private _presentationService = inject(PresentationService);
   private _credentialService = inject(CredentialService);
+  private _didService = inject(DidService);
   private _headerService = inject(HeaderService);
 
   template = signal<VPTemplate | null>(null);
   credentials = signal<StoredCredential[]>([]);
-  hasTemplate = computed(() => this.template() !== null);
+  persona = signal<StoredDID | null>(null);
 
   ngOnInit(): void {
     this._loadTemplate();
@@ -36,23 +38,27 @@ export class TemplateDetailsComponent implements OnInit {
 
   private _setupHeader(): void {
     this._headerService.setHeader({
-      title: this.template()?.name || 'Template Details',
+      title: 'Presentation',
       showBackButton: true,
-      backButtonHandler: () => this.goBack(),
+      backButtonHandler: () => this._goBack(),
     });
   }
 
   private _loadTemplate(): void {
     const id = this._route.snapshot.paramMap.get('id');
     if (!id) {
+      this._router.navigate(['/presentations']);
       return;
     }
 
     const template = this._presentationService.getTemplateById(id);
-    if (template) {
-      this.template.set(template);
-      this._loadCredentials(template);
+    if (!template) {
+      this._router.navigate(['/presentations']);
+      return;
     }
+
+    this.template.set(template);
+    this._loadCredentials(template);
   }
 
   private _loadCredentials(template: VPTemplate): void {
@@ -61,22 +67,27 @@ export class TemplateDetailsComponent implements OnInit {
       .filter((cred): cred is StoredCredential => cred !== null);
 
     this.credentials.set(credentials);
+
+    const subjectDID = credentials[0]?.credential.credentialSubject.id;
+    const persona = subjectDID ? this._didService.getStoredDID(subjectDID) : null;
+    this.persona.set(persona);
   }
 
-  getCredentialFields(credentialId: string): string[] {
-    const template = this.template();
-    if (!template) {
-      return [];
-    }
-    return template.selectiveFields[credentialId] || [];
+  private _goBack(): void {
+    this._router.navigate(['/presentations']);
+  }
+
+  getCredentialType(credential: StoredCredential): string {
+    const { type } = credential.credential;
+    return type.find((t) => t !== 'VerifiableCredential') || type[0];
+  }
+
+  getSelectiveFields(credentialId: string): string[] {
+    return this.template()?.selectiveFields[credentialId] || [];
   }
 
   sharePresentation(): void {
     alert('VP sharing functionality will be implemented');
-  }
-
-  editTemplate(): void {
-    alert('Template editing will be implemented in a future update');
   }
 
   deleteTemplate(): void {
@@ -89,9 +100,5 @@ export class TemplateDetailsComponent implements OnInit {
       this._presentationService.deleteTemplate(template.id);
       this._router.navigate(['/presentations']);
     }
-  }
-
-  goBack(): void {
-    this._router.navigate(['/presentations']);
   }
 }

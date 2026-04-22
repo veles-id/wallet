@@ -1,22 +1,23 @@
 <div class="template-create">
   <div class="template-create__content">
-    <div class="template-create__section">
-      <h2 class="template-create__section-title">Template Information</h2>
-      <p class="template-create__section-description">
-        Create a reusable template for sharing credentials with selective disclosure.
-      </p>
 
+    <section class="template-create__section">
+      <h2 class="template-create__section-title">Template</h2>
+      <p class="template-create__section-description">
+        Create a reusable template for sharing credentials.
+      </p>
       <form
         [formGroup]="templateForm"
         class="template-create__form">
-        <mat-form-field class="template-create__field">
-          <mat-label>Template Name</mat-label>
+        <mat-form-field
+          class="template-create__field"
+          appearance="fill">
+          <mat-label>Template name</mat-label>
           <input
             matInput
             formControlName="name"
-            placeholder="e.g., Basic Identity Check"
-            required />
-          @if (templateForm.get('name')?.hasError('required')) {
+            type="text" />
+          @if (templateForm.get('name')?.hasError('required') && templateForm.get('name')?.touched) {
             <mat-error>Name is required</mat-error>
           }
           @if (templateForm.get('name')?.hasError('maxlength')) {
@@ -24,45 +25,38 @@
           }
         </mat-form-field>
 
-        <mat-form-field class="template-create__field">
+        <mat-form-field
+          class="template-create__field"
+          appearance="fill">
           <mat-label>Description (optional)</mat-label>
-          <textarea
-            matInput
-            formControlName="description"
-            placeholder="Describe what this template is for"
-            rows="3"></textarea>
-          @if (templateForm.get('description')?.hasError('maxlength')) {
-            <mat-error>Description must be less than 500 characters</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field class="template-create__field">
-          <mat-label>Default Validity (minutes)</mat-label>
           <input
             matInput
-            type="number"
+            formControlName="description"
+            type="text" />
+        </mat-form-field>
+
+        <mat-form-field
+          class="template-create__field"
+          appearance="fill">
+          <mat-label>Validity (minutes)</mat-label>
+          <input
+            matInput
             formControlName="defaultValidityMinutes"
+            type="number"
             min="1"
-            max="1440"
-            required />
-          <mat-hint>How long presentations created from this template remain valid</mat-hint>
-          @if (templateForm.get('defaultValidityMinutes')?.hasError('required')) {
-            <mat-error>Validity is required</mat-error>
-          }
-          @if (templateForm.get('defaultValidityMinutes')?.hasError('min')) {
-            <mat-error>Must be at least 1 minute</mat-error>
-          }
-          @if (templateForm.get('defaultValidityMinutes')?.hasError('max')) {
-            <mat-error>Maximum is 1440 minutes (24 hours)</mat-error>
+            max="1440" />
+          <mat-icon matSuffix>calendar_today</mat-icon>
+          @if (templateForm.get('defaultValidityMinutes')?.hasError('min') || templateForm.get('defaultValidityMinutes')?.hasError('max')) {
+            <mat-error>Must be between 1 and 1440 minutes</mat-error>
           }
         </mat-form-field>
       </form>
-    </div>
+    </section>
 
-    <div class="template-create__section">
-      <h2 class="template-create__section-title">Select Credentials</h2>
+    <section class="template-create__section">
+      <h2 class="template-create__section-title">Select credentials</h2>
       <p class="template-create__section-description">
-        Choose which credentials to include in this presentation template.
+        Choose which credential fields to include in this presentation template.
       </p>
 
       @if (availableCredentials().length === 0) {
@@ -72,51 +66,73 @@
         </div>
       } @else {
         <div class="template-create__credentials">
-          @for (credential of availableCredentials(); track credential.credential.id) {
-            <mat-card class="credential-selector">
-              <mat-checkbox
-                [checked]="isCredentialSelected(credential.credential.id)"
-                (change)="onCredentialSelected(credential.credential.id, $event.checked)"
-                class="credential-selector__checkbox">
-                <div class="credential-selector__info">
-                  <span class="credential-selector__name">{{ credential.credential.name || 'Untitled Credential' }}</span>
-                  <span class="credential-selector__type">{{ credential.credential.type[1] || 'Credential' }}</span>
+          @for (credential of availableCredentials(); track credential.credential.id; let last = $last) {
+            <div
+              class="credential-item"
+              [class.credential-item--selected]="isCredentialSelected(credential.credential.id)">
+              <div
+                class="credential-item__header"
+                (click)="toggleCredentialExpanded(credential.credential.id)">
+                <div class="credential-item__info">
+                  <span class="credential-item__name">
+                    {{ credential.credential.name || 'Untitled' }}
+                  </span>
+                  <span class="credential-item__type">
+                    {{ getCredentialType(credential) | credentialType }}
+                  </span>
                 </div>
-              </mat-checkbox>
+                <mat-icon
+                  class="credential-item__chevron"
+                  [class.credential-item__chevron--expanded]="isCredentialExpanded(credential.credential.id)">
+                  expand_more
+                </mat-icon>
+              </div>
 
-              @if (isCredentialSelected(credential.credential.id)) {
-                <div class="credential-selector__fields">
-                  <p class="credential-selector__fields-label">Select fields to disclose:</p>
+              @if (isCredentialExpanded(credential.credential.id)) {
+                <div class="credential-item__fields">
                   @for (field of getCredentialFields(credential); track field) {
-                    <mat-checkbox
-                      [checked]="isFieldSelected(credential.credential.id, field)"
-                      (change)="onFieldSelected(credential.credential.id, field, $event.checked)"
-                      class="field-checkbox">
-                      {{ field }}
-                    </mat-checkbox>
+                    <div class="credential-item__field-row">
+                      <mat-checkbox
+                        class="credential-item__checkbox"
+                        color="primary"
+                        [checked]="isFieldSelected(credential.credential.id, field)"
+                        (change)="onFieldSelected(credential.credential.id, field, $event.checked)">
+                      </mat-checkbox>
+                      <span
+                        class="credential-item__field-label"
+                        [class.credential-item__field-label--checked]="isFieldSelected(credential.credential.id, field)">
+                        {{ field }}
+                      </span>
+                    </div>
                   }
                 </div>
               }
-            </mat-card>
+            </div>
+            @if (!last) {
+              <div class="credential-item__divider"></div>
+            }
           }
         </div>
       }
-    </div>
+    </section>
 
-    <div class="template-create__actions">
-      <button
-        mat-stroked-button
-        (click)="cancel()"
-        class="template-create__button template-create__button--cancel">
-        Cancel
-      </button>
-      <button
-        mat-flat-button
-        (click)="createTemplate()"
-        [disabled]="!canCreateTemplate()"
-        class="template-create__button template-create__button--create">
-        Create Template
-      </button>
-    </div>
+    @if (previewCredential(); as credential) {
+      <app-presentation-card
+        [credential]="credential"
+        [persona]="previewPersona()"
+        [personaType]="templateForm.get('name')?.value || 'Presentation'"
+        [personaName]="previewPersona()?.alias || credential.credential.name || 'Unknown'"
+        [selectiveFields]="selectiveFields()[credential.credential.id] || []"
+        [validityMinutes]="templateForm.get('defaultValidityMinutes')?.value" />
+    }
+
+    <button
+      mat-flat-button
+      class="template-create__save-button"
+      [disabled]="!canSavePresentation()"
+      (click)="savePresentation()">
+      Save presentation
+    </button>
+
   </div>
 </div>

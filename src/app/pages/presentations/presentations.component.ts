@@ -1,4 +1,4 @@
-import { CdkAccordionModule } from '@angular/cdk/accordion';
+import { CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion';
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -41,7 +41,6 @@ export class PresentationsComponent implements OnInit {
   private _headerService = inject(HeaderService);
 
   AvatarSize = AvatarSize;
-
   templates = signal<VPTemplate[]>([]);
   shareHistory = signal<VPShareRecord[]>([]);
   selectedTab = signal(0);
@@ -125,12 +124,16 @@ export class PresentationsComponent implements OnInit {
     return `${minutes} minutes`;
   }
 
-  createTemplate(): void {
-    this._router.navigate(['/presentations/create-template']);
+  onTileClick(item: CdkAccordionItem, template: VPTemplate): void {
+    if (item.expanded) {
+      this._router.navigate(['/presentations/template', template.id]);
+    } else {
+      item.open();
+    }
   }
 
-  viewTemplate(template: VPTemplate): void {
-    this._router.navigate(['/presentations/template', template.id]);
+  createTemplate(): void {
+    this._router.navigate(['/presentations/create-template']);
   }
 
   deleteTemplate(template: VPTemplate, event: Event): void {

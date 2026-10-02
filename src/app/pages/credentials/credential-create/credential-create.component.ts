@@ -1,9 +1,8 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,9 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatStepperModule } from '@angular/material/stepper';
 import { Router } from '@angular/router';
-import { AuthService } from '@core/services/auth.service';
 import { CredentialService } from '@core/services/credential.service';
 import {
   CreateCredentialRequest,
@@ -23,6 +20,8 @@ import {
 import { DidService } from '@core/services/did.service';
 import { StoredDID } from '@core/services/did.types';
 import { HeaderService } from '@core/services/header.service';
+
+const BASIC_TEMPLATE_ID = 'basic';
 
 @Component({
   selector: 'app-credential-create',
@@ -37,9 +36,6 @@ import { HeaderService } from '@core/services/header.service';
     MatDatepickerModule,
     MatNativeDateModule,
     MatCheckboxModule,
-    MatStepperModule,
-    MatCardModule,
-    MatChipsModule,
     ReactiveFormsModule,
   ],
   templateUrl: './credential-create.component.html',
@@ -48,10 +44,10 @@ import { HeaderService } from '@core/services/header.service';
 export class CredentialCreateComponent implements OnInit {
   private _credentialService = inject(CredentialService);
   private _didService = inject(DidService);
-  private _authService = inject(AuthService);
   private _router = inject(Router);
   private _formBuilder = inject(FormBuilder);
   private _headerService = inject(HeaderService);
+  private _destroyRef = inject(DestroyRef);
 
   isLoading = signal(false);
   isCreating = signal(false);
@@ -59,13 +55,11 @@ export class CredentialCreateComponent implements OnInit {
   availableTemplates = signal<CredentialTemplate[]>([]);
   selectedTemplate = signal<CredentialTemplate | null>(null);
   availableDIDs = signal<StoredDID[]>([]);
-  currentUser = computed(() => this._authService.currentUser());
-  hasTemplates = computed(() => this.availableTemplates().length > 0);
 
   FieldType = FieldType;
+
   templateForm: FormGroup = this._formBuilder.group({
-    templateId: [''],
-    useTemplate: [true],
+    templateId: [BASIC_TEMPLATE_ID],
   });
   issuerForm: FormGroup = this._formBuilder.group({
     issuerDID: ['', Validators.required],
@@ -98,21 +92,20 @@ export class CredentialCreateComponent implements OnInit {
       this.isCreating.set(true);
       this.error.set(null);
 
-      const issuerValues = this.issuerForm.value;
-      const credentialValues = this.credentialForm.value;
+      const { issuerDID, subjectDID } = this.issuerForm.value;
+      const { name, expirationDate } = this.credentialForm.value;
       const dynamicValues = this.dynamicForm.value;
 
       const request: CreateCredentialRequest = {
         templateId: this.selectedTemplate()?.id,
-        issuerDID: issuerValues.issuerDID,
-        subjectDID: issuerValues.subjectDID,
+        issuerDID,
+        subjectDID,
         credentialData: dynamicValues,
-        expirationDate: credentialValues.expirationDate || undefined,
-        name: credentialValues.name,
+        expirationDate: expirationDate || undefined,
+        name,
       };
 
-      const credential = await this._credentialService.createCredential(request);
-
+      await this._credentialService.createCredential(request);
       this._router.navigate(['/credentials']);
     } catch (error) {
       console.error('Error creating credential:', error);
@@ -152,11 +145,6 @@ export class CredentialCreateComponent implements OnInit {
       isValid = false;
     }
 
-    if (!this.selectedTemplate() && Object.keys(this.dynamicForm.controls).length === 0) {
-      this.error.set('Please select a template or provide credential data');
-      isValid = false;
-    }
-
     return isValid;
   }
 
@@ -168,24 +156,19 @@ export class CredentialCreateComponent implements OnInit {
   }
 
   private _setupFormWatchers(): void {
-    this.templateForm.get('templateId')?.valueChanges.subscribe((templateId) => {
-      if (templateId) {
-        const template = this.availableTemplates().find((t) => t.id === templateId);
-        this.selectedTemplate.set(template || null);
-        this._buildDynamicForm(template);
-      } else {
-        this.selectedTemplate.set(null);
-        this._clearDynamicForm();
-      }
-    });
-
-    this.templateForm.get('useTemplate')?.valueChanges.subscribe((useTemplate) => {
-      if (!useTemplate) {
-        this.selectedTemplate.set(null);
-        this._clearDynamicForm();
-        this.templateForm.patchValue({ templateId: '' });
-      }
-    });
+    this.templateForm
+      .get('templateId')
+      ?.valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe((templateId) => {
+        if (templateId && templateId !== BASIC_TEMPLATE_ID) {
+          const template = this.availableTemplates().find((t) => t.id === templateId);
+          this.selectedTemplate.set(template || null);
+          this._buildDynamicForm(template);
+        } else {
+          this.selectedTemplate.set(null);
+          this._clearDynamicForm();
+        }
+      });
   }
 
   private async _loadInitialData(): Promise<void> {
@@ -252,7 +235,7 @@ export class CredentialCreateComponent implements OnInit {
 
   private _setupHeader(): void {
     this._headerService.setHeader({
-      title: 'Create Credential',
+      title: 'New credential',
       showBackButton: true,
       backButtonHandler: () => this.cancel(),
     });

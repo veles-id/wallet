@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { AuthGuard } from './core/guards/auth.guard';
+import { AuthGuard } from '@core/guards/auth.guard';
 import { CredentialCreateComponent } from './pages/credentials/credential-create/credential-create.component';
 import { CredentialDetailsComponent } from './pages/credentials/credential-details/credential-details.component';
 import { CredentialsComponent } from './pages/credentials/credentials.component';
@@ -66,6 +66,28 @@ export const routes: Routes = [
   {
     path: 'credentials/:id',
     component: CredentialDetailsComponent,
+    canActivate: [AuthGuard],
+    data: { showFooter: true },
+  },
+  {
+    path: 'presentations',
+    loadComponent: () => import('./pages/presentations/presentations.component').then((m) => m.PresentationsComponent),
+    canActivate: [AuthGuard],
+    data: { showFooter: true },
+  },
+  {
+    path: 'presentations/create-template',
+    loadComponent: () =>
+      import('./pages/presentations/template-create/template-create.component').then((m) => m.TemplateCreateComponent),
+    canActivate: [AuthGuard],
+    data: { showFooter: true },
+  },
+  {
+    path: 'presentations/template/:id',
+    loadComponent: () =>
+      import('./pages/presentations/template-details/template-details.component').then(
+        (m) => m.TemplateDetailsComponent,
+      ),
     canActivate: [AuthGuard],
     data: { showFooter: true },
   },

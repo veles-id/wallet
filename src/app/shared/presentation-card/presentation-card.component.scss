@@ -1,0 +1,120 @@
+.presentation-card {
+  background: rgba(233, 233, 233, 0.65);
+  border-radius: 16px;
+  border: 1px solid #eeeeee;
+  padding: 20px 22px;
+
+  &__persona {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  &__persona-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__persona-type {
+    color: #999999;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+
+  &__persona-name {
+    color: #222222;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  &__credential {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+  }
+
+  &__credential-type {
+    color: #999999;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+
+  &__credential-name {
+    color: #222222;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  &__field {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+
+  &__field-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 47px;
+    height: 47px;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-family: 'Material Symbols Outlined';
+      font-variation-settings: 'wght' 100;
+      color: var(--primary-color, #b69269);
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  &__field-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__field-label {
+    color: #888888;
+    font-size: 12px;
+    font-weight: 400;
+  }
+
+  &__field-value {
+    color: #222222;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 16px;
+  }
+
+  &__footer-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__footer-label {
+    color: #999999;
+    font-size: 11px;
+    font-weight: 400;
+  }
+
+  &__footer-value {
+    color: #222222;
+    font-size: 12px;
+    font-weight: 400;
+  }
+}

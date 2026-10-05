@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
+import { sha256 } from '@noble/hashes/sha2';
+import { BbsSignatureService } from './bbs-signature.service';
 import { CredentialVerificationService } from './credential-verification.service';
 import { VerificationResult } from './credential-verification.types';
 import {
   CreateCredentialRequest,
-  CredentialCategory,
-  CredentialPrivacy,
   CredentialSource,
   CredentialTemplate,
   FieldType,
@@ -12,13 +12,23 @@ import {
   VerifiableCredential,
 } from './credential.types';
 import { DidService } from './did.service';
+import { NostrEvent, StoredDID } from './did.types';
+import { EncodingService } from './encoding.service';
+import { EncryptionService } from './encryption.service';
+import { IpfsService } from './ipfs.service';
+import { RelayService } from './relay.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CredentialService {
   private _didService = inject(DidService);
+  private _bbsService = inject(BbsSignatureService);
   private _verificationService = inject(CredentialVerificationService);
+  private _encodingService = inject(EncodingService);
+  private _encryptionService = inject(EncryptionService);
+  private _ipfsService = inject(IpfsService);
+  private _relayService = inject(RelayService);
   private readonly STORAGE_KEY = 'veles_credentials';
   private readonly TEMPLATES_KEY = 'veles_credential_templates';
 
@@ -37,6 +47,7 @@ export class CredentialService {
         type: ['VerifiableCredential'],
         issuer: request.issuerDID,
         issuanceDate,
+        name: request.name,
         ...(request.expirationDate && {
           expirationDate: request.expirationDate,
         }),
@@ -46,7 +57,6 @@ export class CredentialService {
         },
       };
 
-      // Add template-specific context and types if using a template
       if (request.templateId) {
         const template = this.getTemplate(request.templateId);
         if (template) {
@@ -55,17 +65,43 @@ export class CredentialService {
         }
       }
 
+      const issuerDID = this._didService.getStoredDID(request.issuerDID);
+      if (!issuerDID) {
+        throw new Error('Issuer DID not found');
+      }
+
+      let bbsPublicKeyHex: string;
+      let bbsSecretKeyHex: string;
+
+      if (!issuerDID.bbsSecretKey || !issuerDID.bbsPublicKey) {
+        const bbsKeys = await this._bbsService.generateBbsKeyPair();
+        bbsSecretKeyHex = this._encodingService.bytesToHex(bbsKeys.secretKey);
+        bbsPublicKeyHex = this._encodingService.bytesToHex(bbsKeys.publicKey);
+
+        issuerDID.bbsSecretKey = bbsSecretKeyHex;
+        issuerDID.bbsPublicKey = bbsPublicKeyHex;
+        this._didService.updateStoredDID(issuerDID);
+      } else {
+        bbsSecretKeyHex = issuerDID.bbsSecretKey;
+        bbsPublicKeyHex = issuerDID.bbsPublicKey;
+      }
+
+      const proof = await this._bbsService.signCredential(
+        credential,
+        this._encodingService.hexToBytes(bbsSecretKeyHex),
+        this._encodingService.hexToBytes(bbsPublicKeyHex),
+      );
+      credential.proof = proof;
+
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        alias: request.alias,
-        tags: request.tags || [],
         isVerified: false,
         metadata: {
           templateId: request.templateId,
-          category: request.category || CredentialCategory.OTHER,
-          privacy: request.privacy || CredentialPrivacy.PRIVATE,
           source: CredentialSource.SELF_ISSUED,
+          signatureType: 'BbsBlsSignature2020',
+          bbsPublicKey: bbsPublicKeyHex,
         },
       };
 
@@ -73,6 +109,145 @@ export class CredentialService {
       return storedCredential;
     } catch (error) {
       console.error('Failed to create credential:', error);
+      throw error;
+    }
+  }
+
+  async createAndStoreEncryptedVC(request: CreateCredentialRequest): Promise<StoredCredential> {
+    try {
+      const credentialId = this._generateCredentialId();
+      const issuanceDate = new Date().toISOString();
+
+      const credential: VerifiableCredential = {
+        '@context': ['https://www.w3.org/2018/credentials/v1', 'https://www.w3.org/ns/credentials/examples/v1'],
+        id: credentialId,
+        type: ['VerifiableCredential'],
+        issuer: request.issuerDID,
+        issuanceDate,
+        name: request.name,
+        ...(request.expirationDate && {
+          expirationDate: request.expirationDate,
+        }),
+        credentialSubject: {
+          id: request.subjectDID,
+          ...request.credentialData,
+        },
+      };
+
+      if (request.templateId) {
+        const template = this.getTemplate(request.templateId);
+        if (template) {
+          credential['@context'] = [...credential['@context'], ...template.context];
+          credential.type = [...credential.type, ...template.type];
+        }
+      }
+
+      const issuerDID = this._didService.getStoredDID(request.issuerDID);
+      if (!issuerDID) {
+        throw new Error('Issuer DID not found');
+      }
+
+      let bbsPublicKeyHex: string;
+      let bbsSecretKeyHex: string;
+
+      if (!issuerDID.bbsSecretKey || !issuerDID.bbsPublicKey) {
+        const bbsKeys = await this._bbsService.generateBbsKeyPair();
+        bbsSecretKeyHex = this._encodingService.bytesToHex(bbsKeys.secretKey);
+        bbsPublicKeyHex = this._encodingService.bytesToHex(bbsKeys.publicKey);
+
+        issuerDID.bbsSecretKey = bbsSecretKeyHex;
+        issuerDID.bbsPublicKey = bbsPublicKeyHex;
+        this._didService.updateStoredDID(issuerDID);
+      } else {
+        bbsSecretKeyHex = issuerDID.bbsSecretKey;
+        bbsPublicKeyHex = issuerDID.bbsPublicKey;
+      }
+
+      const proof = await this._bbsService.signCredential(
+        credential,
+        this._encodingService.hexToBytes(bbsSecretKeyHex),
+        this._encodingService.hexToBytes(bbsPublicKeyHex),
+      );
+      credential.proof = proof;
+
+      const storedCredential: StoredCredential = {
+        credential,
+        createdAt: new Date().toISOString(),
+        isVerified: false,
+        metadata: {
+          templateId: request.templateId,
+          source: CredentialSource.SELF_ISSUED,
+          signatureType: 'BbsBlsSignature2020',
+          bbsPublicKey: bbsPublicKeyHex,
+        },
+      };
+
+      this._storeCredential(storedCredential);
+
+      const holderDID = this._didService.getStoredDID(request.subjectDID);
+      if (!holderDID || !holderDID.nostrPrivateKey || !holderDID.nostrPublicKey) {
+        console.warn('No Nostr keys found for holder DID, skipping encryption');
+        return storedCredential;
+      }
+
+      const credentialJson = JSON.stringify(credential);
+      const encryptedVC = await this._encryptionService.encryptNIP04(
+        credentialJson,
+        holderDID.nostrPrivateKey,
+        holderDID.nostrPublicKey,
+      );
+
+      const fileName = `vc-${credentialId.substring(credentialId.length - 12)}.enc`;
+      const ipfsResult = await this._ipfsService.uploadEncryptedData(encryptedVC, fileName);
+
+      storedCredential.metadata = {
+        ...storedCredential.metadata,
+        ipfsCID: ipfsResult.cid,
+        encryptedOnIPFS: true,
+      };
+
+      this._updateCredentialInStorage(storedCredential);
+
+      console.log(`VC encrypted and stored on IPFS: ${ipfsResult.cid}`);
+      return storedCredential;
+    } catch (error) {
+      console.error('Failed to create and encrypt credential:', error);
+      throw error;
+    }
+  }
+
+  async publishVCPointerToNostr(
+    vc: VerifiableCredential,
+    ipfsCID: string,
+    issuerDID: StoredDID,
+  ): Promise<string | null> {
+    try {
+      if (!issuerDID.nostrPrivateKey || !issuerDID.nostrPublicKey) {
+        console.error('Issuer DID missing Nostr keys');
+        return null;
+      }
+
+      const vcHash = this._hashVC(vc);
+      const holderDID = typeof vc.credentialSubject.id === 'string' ? vc.credentialSubject.id : '';
+
+      const event = await this._createVCPointerEvent(
+        vcHash,
+        ipfsCID,
+        holderDID,
+        issuerDID.nostrPublicKey,
+        issuerDID.did,
+      );
+
+      const signedEvent = await this._relayService.signEvent(event, issuerDID.nostrPrivateKey);
+
+      const results = await this._relayService.publishToRelays(signedEvent);
+      const successCount = results.filter((r) => r.success).length;
+
+      console.log(`Published VC pointer to ${successCount}/${results.length} relays`);
+
+      return signedEvent.id || null;
+    } catch (error) {
+      console.error('Failed to publish VC pointer to Nostr:', error);
       throw error;
     }
   }
@@ -103,42 +278,16 @@ export class CredentialService {
     return false;
   }
 
-  updateCredentialAlias(id: string, alias: string): boolean {
-    const credentials = this.getStoredCredentials();
-    const credential = credentials.find((cred) => cred.credential.id === id);
-
-    if (credential) {
-      credential.alias = alias;
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(credentials));
-      return true;
-    }
-
-    return false;
-  }
-
-  getCredentialsByCategory(category: CredentialCategory): StoredCredential[] {
-    return this.getStoredCredentials().filter((cred) => cred.metadata?.category === category);
-  }
-
   getCredentialsByDID(did: string): StoredCredential[] {
     return this.getStoredCredentials().filter(
       (cred) => cred.credential.credentialSubject.id === did || cred.credential.issuer === did,
     );
   }
 
-  exportCredential(id: string): string | null {
-    const credential = this.getCredentialById(id);
-    if (credential) {
-      return JSON.stringify(credential.credential, null, 2);
-    }
-    return null;
-  }
-
   async importCredential(credentialJson: string, alias?: string): Promise<StoredCredential> {
     try {
       const credential: VerifiableCredential = JSON.parse(credentialJson);
 
-      // Basic validation
       if (!credential.id || !credential.issuer || !credential.credentialSubject) {
         throw new Error('Invalid credential format');
       }
@@ -146,12 +295,8 @@ export class CredentialService {
       const storedCredential: StoredCredential = {
         credential,
         createdAt: new Date().toISOString(),
-        alias: alias || 'Imported Credential',
-        tags: ['imported'],
         isVerified: false,
         metadata: {
-          category: CredentialCategory.OTHER,
-          privacy: CredentialPrivacy.PRIVATE,
           source: CredentialSource.IMPORTED,
         },
       };
@@ -184,8 +329,49 @@ export class CredentialService {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(credentials));
   }
 
+  private _updateCredentialInStorage(updatedCredential: StoredCredential): void {
+    const credentials = this.getStoredCredentials();
+    const index = credentials.findIndex((cred) => cred.credential.id === updatedCredential.credential.id);
+
+    if (index !== -1) {
+      credentials[index] = updatedCredential;
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(credentials));
+    }
+  }
+
   private _generateCredentialId(): string {
     return `urn:uuid:${crypto.randomUUID()}`;
+  }
+
+  private _hashVC(vc: VerifiableCredential): string {
+    const vcJson = JSON.stringify(vc);
+    const hash = sha256(new TextEncoder().encode(vcJson));
+    return Array.from(hash)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  private async _createVCPointerEvent(
+    vcHash: string,
+    ipfsCID: string,
+    holderDID: string,
+    issuerPubkey: string,
+    subjectDID: string,
+  ): Promise<NostrEvent> {
+    const now = Math.floor(Date.now() / 1000);
+
+    return {
+      pubkey: issuerPubkey,
+      created_at: now,
+      kind: 1,
+      tags: [
+        ['p', holderDID],
+        ['vc_hash', vcHash],
+        ['ipfs_cid', ipfsCID],
+        ['subject', subjectDID],
+      ],
+      content: 'VC Pointer',
+    };
   }
 
   private _initializeDefaultTemplates(): void {
@@ -196,7 +382,6 @@ export class CredentialService {
           id: 'education-degree',
           name: 'Educational Degree',
           description: 'University or college degree credential',
-          category: CredentialCategory.EDUCATION,
           context: ['https://www.w3.org/ns/credentials/examples/v1'],
           type: ['UniversityDegreeCredential'],
           fields: [
@@ -240,7 +425,6 @@ export class CredentialService {
           id: 'professional-certification',
           name: 'Professional Certification',
           description: 'Industry or professional certification',
-          category: CredentialCategory.CERTIFICATION,
           context: ['https://www.w3.org/ns/credentials/examples/v1'],
           type: ['ProfessionalCertificationCredential'],
           fields: [
@@ -283,7 +467,6 @@ export class CredentialService {
           id: 'achievement-badge',
           name: 'Achievement Badge',
           description: 'Personal or professional achievement',
-          category: CredentialCategory.ACHIEVEMENT,
           context: ['https://www.w3.org/ns/credentials/examples/v1'],
           type: ['AchievementCredential'],
           fields: [

@@ -1,4 +1,3 @@
-
 import { Component, computed, inject, OnInit, signal, TemplateRef, viewChild } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,12 +6,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
-import { DidService } from '../../../core/services/did.service';
-import { DIDType, StoredDID } from '../../../core/services/did.types';
-import { HeaderService } from '../../../core/services/header.service';
-import { AvatarSize } from '../../../shared/avatar/avatar.types';
-import { ProfileComponent } from '../../../shared/profile/profile.component';
+import { AuthService } from '@core/services/auth.service';
+import { DidService } from '@core/services/did.service';
+import { DIDType, StoredDID } from '@core/services/did.types';
+import { HeaderService } from '@core/services/header.service';
+import { AvatarSize } from '@shared/avatar/avatar.types';
+import { ProfileComponent } from '@shared/profile/profile.component';
 
 interface PersonaFormData {
   alias: string;
@@ -34,8 +33,8 @@ interface PersonaFormData {
     MatInputModule,
     MatFormFieldModule,
     ReactiveFormsModule,
-    ProfileComponent
-],
+    ProfileComponent,
+  ],
   templateUrl: './persona-edit.component.html',
   styleUrl: './persona-edit.component.scss',
 })

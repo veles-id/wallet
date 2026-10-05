@@ -1,29 +1,23 @@
-import { Injectable } from '@angular/core';
-import { finalizeEvent, generateSecretKey, getPublicKey, verifyEvent } from 'nostr-tools/pure';
+import { Injectable, inject } from '@angular/core';
+import { sha256 } from '@noble/hashes/sha2';
+import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
+import { DidSplitterService } from './did-splitter.service';
+import { DIDDocument } from './did-splitter.types';
 import { NostrDIDResult, NostrEvent, NostrRelay, StoredDID } from './did.types';
+import { EncodingService } from './encoding.service';
+import { EncryptionService } from './encryption.service';
+import { IpfsService } from './ipfs.service';
+import { RelayService } from './relay.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DidNostrService {
-  /**
-   * Recommended 5-10 reliable, diverse relays for production use
-   * For development, 3 stable relays are enough
-   * In decentralized systems, redundancy is resilience, not waste.
-   */
-  private readonly DEFAULT_RELAYS: NostrRelay[] = [
-    // Tier 1: Major stable
-    { url: 'wss://relay.damus.io', name: 'Damus' },
-    { url: 'wss://nos.lol', name: 'nos.lol' },
-    { url: 'wss://relay.nostr.band', name: 'Nostr Band' },
-    // Tier 2: Regional
-    // { url: "wss://nostr.wine", name: "Nostr.wine Europe" },
-    // { url: "wss://relay.current.fyi", name: "Current Asia" },
-    // Tier 3: Specialized / Bitcoin-focused
-    // { url: "wss://bitcoiner.guide", name: "Bitcoiner" },
-    // { url: "wss://nostr.bitcoiner.guide", name: "Nostr.bitcoiner.guide" },
-    // { url: "wss://nostr.zebedee.io", name: "Nostr.zebedee.io" },
-  ];
+  private _relayService = inject(RelayService);
+  private _didSplitterService = inject(DidSplitterService);
+  private _encodingService = inject(EncodingService);
+  private _encryptionService = inject(EncryptionService);
+  private _ipfsService = inject(IpfsService);
 
   async createDID(): Promise<NostrDIDResult> {
     try {
@@ -51,7 +45,7 @@ export class DidNostrService {
           {
             id: `${did}#nostr`,
             type: 'NostrRelay',
-            serviceEndpoint: this.DEFAULT_RELAYS.map((r) => r.url),
+            serviceEndpoint: this._relayService.DEFAULT_RELAYS.map((r) => r.url),
           },
         ],
       };
@@ -72,7 +66,7 @@ export class DidNostrService {
 
   async publishDID(storedDID: StoredDID): Promise<boolean> {
     try {
-      console.log('Publishing DID:Nostr...');
+      console.log('Publishing DID:Nostr with hybrid encryption...');
       console.log('DID to publish:', storedDID.did);
 
       if (!storedDID.did.startsWith('did:nostr:')) {
@@ -85,7 +79,49 @@ export class DidNostrService {
       }
       console.log('Extracted keys - Public:', nostrKeys.publicKey.substring(0, 16) + '...');
 
-      const event = await this.createDIDEvent(storedDID, nostrKeys);
+      const { publicDocument, extendedData } = this._didSplitterService.splitDIDDocument(
+        storedDID.document as DIDDocument,
+      );
+      console.log('Split DID document - Extended data:', this._didSplitterService.hasExtendedData(extendedData));
+
+      let extendedDataCID: string | undefined;
+      let extendedDataHash: string | undefined;
+
+      if (this._didSplitterService.hasExtendedData(extendedData)) {
+        console.log('Processing extended data...');
+
+        const extendedDataJson = JSON.stringify(extendedData);
+        const encryptedExtended = await this._encryptionService.encryptNIP04(
+          extendedDataJson,
+          nostrKeys.privateKey,
+          nostrKeys.publicKey,
+        );
+
+        const fileName = `did-ext-${storedDID.did.split(':')[2].substring(0, 12)}.enc`;
+        const ipfsResult = await this._ipfsService.uploadEncryptedData(encryptedExtended, fileName);
+        extendedDataCID = ipfsResult.cid;
+
+        const hash = sha256(new TextEncoder().encode(extendedDataJson));
+        extendedDataHash = Array.from(hash)
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
+
+        console.log(`Extended data encrypted and uploaded to IPFS: ${extendedDataCID}`);
+        console.log(`Extended data hash: ${extendedDataHash.substring(0, 16)}...`);
+
+        storedDID.extendedDataCID = extendedDataCID;
+        storedDID.publicDocument = publicDocument;
+        storedDID.extendedDocument = extendedData;
+      }
+
+      const event = await this._createDIDEventWithEncryption(
+        storedDID,
+        nostrKeys,
+        publicDocument,
+        extendedDataCID,
+        extendedDataHash,
+      );
+
       console.log('Created event:', {
         kind: event.kind,
         pubkey: event.pubkey.substring(0, 16) + '...',
@@ -93,10 +129,10 @@ export class DidNostrService {
         contentLength: event.content.length,
       });
 
-      const signedEvent = await this.signEvent(event, nostrKeys.privateKey);
+      const signedEvent = await this._relayService.signEvent(event, nostrKeys.privateKey);
       console.log('Signed event - ID:', signedEvent.id?.substring(0, 16) + '...');
 
-      const publishResults = await this.publishToRelays(signedEvent);
+      const publishResults = await this._relayService.publishToRelays(signedEvent);
 
       publishResults.forEach((result) => {
         if (result.success) {
@@ -157,8 +193,8 @@ export class DidNostrService {
         metadata: filteredMetadata,
       });
 
-      const signedEvent = await this.signEvent(event, nostrKeys.privateKey);
-      const publishResults = await this.publishToRelays(signedEvent);
+      const signedEvent = await this._relayService.signEvent(event, nostrKeys.privateKey);
+      const publishResults = await this._relayService.publishToRelays(signedEvent);
 
       publishResults.forEach((result) => {
         if (result.success) {
@@ -178,9 +214,10 @@ export class DidNostrService {
     }
   }
 
-  async retrieveDIDInfo(did: string): Promise<any> {
+  async retrieveDIDInfo(did: string, decryptionKey?: string): Promise<any> {
     try {
       console.log('Retrieving DID:Nostr information from network:', did);
+      console.log('Decryption key provided:', !!decryptionKey);
 
       if (!did.startsWith('did:nostr:')) {
         throw new Error('Not a valid DID:Nostr identifier');
@@ -194,7 +231,7 @@ export class DidNostrService {
       console.log('Extracted public key:', publicKey.substring(0, 16) + '...');
 
       const results = await Promise.allSettled([
-        this.retrieveDIDDocument(publicKey),
+        this.retrieveDIDDocument(publicKey, decryptionKey),
         this.retrieveProfileMetadata(publicKey),
         this.retrieveRelayList(publicKey),
         this.retrieveContactList(publicKey),
@@ -221,9 +258,11 @@ export class DidNostrService {
   }
 
   /**
-   * Retrieves DID document from Nostr relays
+   * Retrieves DID document from Nostr relays with optional decryption of extended data.
+   * Extended data is always encrypted when stored, but decryption during retrieval
+   * requires providing the holder's private key.
    */
-  private async retrieveDIDDocument(publicKey: string): Promise<any> {
+  private async retrieveDIDDocument(publicKey: string, decryptionKey?: string): Promise<any> {
     const filter = {
       kinds: [30000],
       authors: [publicKey],
@@ -236,11 +275,64 @@ export class DidNostrService {
     if (events.length > 0) {
       const event = events[0];
       try {
-        return {
+        const publicDocument = JSON.parse(event.content);
+        const ipfsCIDTag = event.tags.find((tag: string[]) => tag[0] === 'ipfs_cid');
+        const extHashTag = event.tags.find((tag: string[]) => tag[0] === 'ext_hash');
+
+        const result: any = {
           event,
-          document: JSON.parse(event.content),
+          document: publicDocument,
           publishedAt: new Date(event.created_at * 1000).toISOString(),
+          hasExtendedData: !!ipfsCIDTag,
         };
+
+        if (ipfsCIDTag && decryptionKey) {
+          console.log('Extended data found, attempting to retrieve and decrypt...');
+          const ipfsCID = ipfsCIDTag[1];
+          const expectedHash = extHashTag ? extHashTag[1] : undefined;
+
+          try {
+            const ipfsData = await this._ipfsService.retrieveData(ipfsCID);
+            console.log('Retrieved encrypted extended data from IPFS');
+
+            const decryptedExtendedJson = await this._encryptionService.decryptNIP04(
+              ipfsData.data,
+              decryptionKey,
+              publicKey,
+            );
+            console.log('Successfully decrypted extended data');
+
+            if (expectedHash) {
+              const hash = sha256(new TextEncoder().encode(decryptedExtendedJson));
+              const actualHash = Array.from(hash)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+
+              if (actualHash !== expectedHash) {
+                console.warn('Extended data hash mismatch!');
+                result.hashVerificationFailed = true;
+              } else {
+                console.log('Extended data hash verified successfully');
+              }
+            }
+
+            const extendedData = JSON.parse(decryptedExtendedJson);
+            const completeDocument = this._didSplitterService.mergeDIDDocuments(publicDocument, extendedData);
+
+            result.document = completeDocument;
+            result.extendedData = extendedData;
+            result.extendedDataDecrypted = true;
+          } catch (error) {
+            console.error('Failed to retrieve or decrypt extended data:', error);
+            result.extendedDataError = error instanceof Error ? error.message : String(error);
+          }
+        } else if (ipfsCIDTag && !decryptionKey) {
+          console.log('Extended data available but no decryption key provided');
+          result.ipfsCID = ipfsCIDTag[1];
+          result.extendedDataAvailable = true;
+        }
+
+        return result;
       } catch (error) {
         console.warn('Failed to parse DID document:', error);
         return {
@@ -357,14 +449,16 @@ export class DidNostrService {
   private async queryRelays(filter: any): Promise<any[]> {
     const allEvents: any[] = [];
 
-    const results = await Promise.allSettled(this.DEFAULT_RELAYS.map((relay) => this.queryRelay(relay, filter)));
+    const results = await Promise.allSettled(
+      this._relayService.DEFAULT_RELAYS.map((relay) => this.queryRelay(relay, filter)),
+    );
 
     results.forEach((result, index) => {
       if (result.status === 'fulfilled' && result.value.length > 0) {
-        console.log(`Retrieved ${result.value.length} events from ${this.DEFAULT_RELAYS[index].name}`);
+        console.log(`Retrieved ${result.value.length} events from ${this._relayService.DEFAULT_RELAYS[index].name}`);
         allEvents.push(...result.value);
       } else if (result.status === 'rejected') {
-        console.warn(`Failed to query ${this.DEFAULT_RELAYS[index].name}:`, result.reason);
+        console.warn(`Failed to query ${this._relayService.DEFAULT_RELAYS[index].name}:`, result.reason);
       }
     });
 
@@ -457,8 +551,14 @@ export class DidNostrService {
         return null;
       }
 
-      const publicKey = didParts[2];
-      console.log('Public key from DID:', publicKey.substring(0, 16) + '...');
+      let publicKey = didParts[2];
+
+      if (publicKey.length === 66) {
+        console.log('Converting 33-byte compressed key to 32-byte x-only format');
+        publicKey = publicKey.substring(2);
+      }
+
+      console.log('Public key from DID:', publicKey.substring(0, 16) + '... (length:', publicKey.length, ')');
 
       // Try to get private key from stored data
       let privateKey = null;
@@ -470,12 +570,22 @@ export class DidNostrService {
       }
       // Fallback: try to derive from JWK if available
       else if (storedDID.privateKeyJwk?.d) {
-        const privateKeyBytes = this.base64UrlDecode(storedDID.privateKeyJwk.d);
-        privateKey = this.bytesToHex(privateKeyBytes);
+        const privateKeyBytes = this._encodingService.base64UrlDecodeToBytes(storedDID.privateKeyJwk.d);
+        privateKey = this._encodingService.bytesToHex(privateKeyBytes);
 
         // Also derive the correct public key using nostr-tools
-        const correctPublicKey = getPublicKey(privateKeyBytes);
-        console.log('Derived keys from JWK - Public key:', correctPublicKey.substring(0, 16) + '...');
+        let correctPublicKey = getPublicKey(privateKeyBytes);
+
+        if (correctPublicKey.length === 66) {
+          correctPublicKey = correctPublicKey.substring(2);
+        }
+
+        console.log(
+          'Derived keys from JWK - Public key:',
+          correctPublicKey.substring(0, 16) + '... (length:',
+          correctPublicKey.length,
+          ')',
+        );
 
         // Update the public key to match what nostr-tools generates
         return { publicKey: correctPublicKey, privateKey };
@@ -495,164 +605,42 @@ export class DidNostrService {
   }
 
   /**
-   * Creates a Nostr event for DID document
+   * Creates a Nostr event for DID document with encryption support
    */
-  private async createDIDEvent(
+  private async _createDIDEventWithEncryption(
     storedDID: StoredDID,
     keyPair: { publicKey: string; privateKey: string },
+    publicDocument: any,
+    extendedDataCID?: string,
+    extendedDataHash?: string,
   ): Promise<NostrEvent> {
     const now = Math.floor(Date.now() / 1000);
+
+    const tags: string[][] = [
+      ['d', storedDID.did],
+      ['t', 'did'],
+      ['k', '30000'],
+    ];
+
+    if (extendedDataCID) {
+      tags.push(['ipfs_cid', extendedDataCID]);
+    }
+
+    if (extendedDataHash) {
+      tags.push(['ext_hash', extendedDataHash]);
+    }
+
+    if (extendedDataCID) {
+      tags.push(['encryption', 'nip04']);
+    }
 
     return {
       pubkey: keyPair.publicKey,
       created_at: now,
-      kind: 30000, // Parameterized replaceable event for DID documents
-      tags: [
-        ['d', storedDID.did], // DID identifier
-        ['t', 'did'], // Topic tag
-        ['k', '30000'], // Kind tag
-      ],
-      content: JSON.stringify(storedDID.document),
+      kind: 30000,
+      tags,
+      content: JSON.stringify(publicDocument),
     };
-  }
-
-  private async signEvent(event: NostrEvent, privateKeyHex: string): Promise<NostrEvent> {
-    try {
-      console.log('Signing Nostr event with proper tools...');
-
-      const secretKey = this.hexToBytes(privateKeyHex);
-
-      // Create unsigned event template
-      const unsignedEvent = {
-        pubkey: event.pubkey,
-        created_at: event.created_at,
-        kind: event.kind,
-        tags: event.tags,
-        content: event.content,
-      };
-
-      console.log('Event to sign:', {
-        pubkey: event.pubkey.substring(0, 16) + '...',
-        created_at: event.created_at,
-        kind: event.kind,
-        tagsCount: event.tags.length,
-        contentLength: event.content.length,
-      });
-
-      const signedEvent = finalizeEvent(unsignedEvent, secretKey);
-
-      console.log('Event signed with nostr-tools:', {
-        id: signedEvent.id.substring(0, 16) + '...',
-        sig: signedEvent.sig.substring(0, 16) + '...',
-        sigLength: signedEvent.sig.length,
-      });
-
-      // Verify the signature
-      const isValid = verifyEvent(signedEvent);
-      console.log('Signature verification:', isValid ? 'VALID' : 'INVALID');
-
-      return signedEvent as NostrEvent;
-    } catch (error) {
-      console.error('Failed to sign event:', error);
-      throw error;
-    }
-  }
-
-  private async publishToRelays(event: NostrEvent): Promise<
-    Array<{
-      relay: string;
-      success: boolean;
-      error?: string;
-    }>
-  > {
-    const results = await Promise.allSettled(this.DEFAULT_RELAYS.map((relay) => this.publishToRelay(event, relay)));
-
-    return results.map((result, index) => ({
-      relay: this.DEFAULT_RELAYS[index].name,
-      success: result.status === 'fulfilled' && result.value,
-      error: result.status === 'rejected' ? result.reason?.message : undefined,
-    }));
-  }
-
-  private async publishToRelay(event: NostrEvent, relay: NostrRelay): Promise<boolean> {
-    return new Promise((resolve) => {
-      try {
-        console.log(`Connecting to ${relay.name} (${relay.url})...`);
-        const ws = new WebSocket(relay.url);
-        let resolved = false;
-
-        const timeout = setTimeout(() => {
-          if (!resolved) {
-            resolved = true;
-            console.log(`${relay.name}: Connection timeout`);
-            ws.close();
-            resolve(false);
-          }
-        }, 10000); // 10 second timeout
-
-        ws.onopen = () => {
-          console.log(`${relay.name}: Connected, sending event...`);
-          const message = JSON.stringify(['EVENT', event]);
-          console.log(`${relay.name}: Sending message:`, {
-            type: 'EVENT',
-            eventId: event.id?.substring(0, 16) + '...',
-            messageLength: message.length,
-          });
-          ws.send(message);
-        };
-
-        ws.onmessage = (msg) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            ws.close();
-
-            try {
-              const response = JSON.parse(msg.data);
-              console.log(`${relay.name}: Received response:`, response);
-
-              // Check if it's an OK response for our event
-              if (response[0] === 'OK' && response[1] === event.id) {
-                const success = response[2] === true;
-                console.log(`${relay.name}: ${success ? 'Accepted' : 'Rejected'} - ${response[3] || 'No message'}`);
-                resolve(success);
-              } else {
-                console.log(`${relay.name}: Unexpected response format`);
-                resolve(false);
-              }
-            } catch (parseError) {
-              console.log(`${relay.name}: Failed to parse response:`, parseError);
-              resolve(false);
-            }
-          }
-        };
-
-        ws.onerror = (error) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            console.log(`${relay.name}: WebSocket error:`, error);
-            resolve(false);
-          }
-        };
-
-        ws.onclose = (event) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            console.log(`${relay.name}: Connection closed:`, {
-              code: event.code,
-              reason: event.reason,
-              wasClean: event.wasClean,
-            });
-            resolve(false);
-          }
-        };
-      } catch (error) {
-        console.log(`${relay.name}: Failed to create WebSocket:`, error);
-        resolve(false);
-      }
-    });
   }
 
   private async generateNostrKeyPair(): Promise<{
@@ -661,40 +649,24 @@ export class DidNostrService {
   }> {
     console.log('Generating proper Nostr keypair...');
     const secretKey = generateSecretKey();
-    const publicKey = getPublicKey(secretKey);
+    let publicKey = getPublicKey(secretKey);
+
+    if (publicKey.length === 66) {
+      publicKey = publicKey.substring(2);
+    }
+
+    if (publicKey.length !== 64) {
+      throw new Error(`Invalid Nostr public key length: ${publicKey.length} (expected 64 hex chars / 32 bytes)`);
+    }
 
     console.log('Generated Nostr keys:', {
       publicKeyLength: publicKey.length,
-      secretKeyLength: this.bytesToHex(secretKey).length,
+      secretKeyLength: this._encodingService.bytesToHex(secretKey).length,
     });
 
     return {
-      privateKey: this.bytesToHex(secretKey),
+      privateKey: this._encodingService.bytesToHex(secretKey),
       publicKey: publicKey,
     };
-  }
-
-  /**
-   * Utility functions
-   */
-  private base64UrlDecode(base64Url: string): Uint8Array {
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
-    const binaryString = atob(base64 + padding);
-    return new Uint8Array(binaryString.split('').map((char) => char.charCodeAt(0)));
-  }
-
-  private bytesToHex(bytes: Uint8Array): string {
-    return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-  }
-
-  private hexToBytes(hex: string): Uint8Array {
-    const bytes = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
-    }
-    return bytes;
   }
 }

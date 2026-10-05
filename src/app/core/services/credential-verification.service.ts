@@ -3,7 +3,8 @@ import * as ed25519 from '@noble/ed25519';
 import { sha512 } from '@noble/hashes/sha512';
 import { VerificationResult } from './credential-verification.types';
 import { VerifiableCredential } from './credential.types';
-import { DidService } from './did.service';
+import { EncodingService } from './encoding.service';
+import { EncryptionService } from './encryption.service';
 
 ed25519.etc.sha512Sync = (...m) => {
   const hash = sha512.create();
@@ -17,7 +18,8 @@ ed25519.etc.sha512Sync = (...m) => {
   providedIn: 'root',
 })
 export class CredentialVerificationService {
-  private _didService = inject(DidService);
+  private _encryptionService = inject(EncryptionService);
+  private _encodingService = inject(EncodingService);
 
   async verifyCredential(credential: VerifiableCredential): Promise<VerificationResult> {
     try {
@@ -52,6 +54,46 @@ export class CredentialVerificationService {
       return {
         isValid: false,
         details: `Verification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        issuerResolved: false,
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
+      };
+    }
+  }
+
+  async verifyEncryptedVC(
+    encryptedVC: string,
+    recipientPrivateKey: string,
+    senderPublicKey: string,
+  ): Promise<VerificationResult> {
+    try {
+      console.log('Decrypting and verifying encrypted VC...');
+
+      const decryptedVCJson = await this._encryptionService.decryptNIP04(
+        encryptedVC,
+        recipientPrivateKey,
+        senderPublicKey,
+      );
+
+      const credential: VerifiableCredential = JSON.parse(decryptedVCJson);
+
+      console.log('VC decrypted successfully, verifying credential...');
+
+      return await this.verifyCredential(credential);
+    } catch (error) {
+      console.error('Encrypted VC verification failed:', error);
+
+      if (error instanceof SyntaxError) {
+        return {
+          isValid: false,
+          details: 'Failed to parse decrypted VC JSON',
+          issuerResolved: false,
+          errors: ['Invalid JSON structure after decryption'],
+        };
+      }
+
+      return {
+        isValid: false,
+        details: `Encrypted VC verification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         issuerResolved: false,
         errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
@@ -163,7 +205,7 @@ export class CredentialVerificationService {
 
       try {
         // Decode header to verify algorithm
-        const header = JSON.parse(this._base64UrlDecode(headerB64));
+        const header = JSON.parse(this._encodingService.base64UrlDecodeToString(headerB64));
         if (header.alg !== 'EdDSA') {
           return {
             isValid: false,
@@ -175,12 +217,12 @@ export class CredentialVerificationService {
         }
 
         // Verify payload contains our credential
-        const payload = JSON.parse(this._base64UrlDecode(payloadB64));
+        const payload = JSON.parse(this._encodingService.base64UrlDecodeToString(payloadB64));
 
         // Create signing input (header.payload)
         const signingInput = new TextEncoder().encode(headerB64 + '.' + payloadB64);
-        const signature = this._base64UrlDecodeToUint8Array(signatureB64);
-        const publicKey = this._hexToUint8Array(publicKeyHex);
+        const signature = this._encodingService.base64UrlDecodeToBytes(signatureB64);
+        const publicKey = this._encodingService.hexToBytes(publicKeyHex);
 
         // Verify Ed25519 signature
         const isValid = await ed25519.verify(signature, signingInput, publicKey);
@@ -240,14 +282,12 @@ export class CredentialVerificationService {
       // Decode signature (usually base64 or multibase)
       let signature: Uint8Array;
       if (proofValue.startsWith('z')) {
-        // Multibase encoding
-        signature = this._multibaseToUint8Array(proofValue);
+        signature = this._encodingService.multibaseToBytes(proofValue);
       } else {
-        // Assume base64
-        signature = this._base64DecodeToUint8Array(proofValue);
+        signature = this._encodingService.base64ToBytes(proofValue);
       }
 
-      const publicKey = this._hexToUint8Array(publicKeyHex);
+      const publicKey = this._encodingService.hexToBytes(publicKeyHex);
 
       // Verify Ed25519 signature
       const isValid = await ed25519.verify(signature, signingInput, publicKey);
@@ -295,45 +335,5 @@ export class CredentialVerificationService {
         errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
-  }
-
-  // Utility methods for encoding/decoding
-  private _base64UrlDecode(base64Url: string): string {
-    // Add padding if needed
-    const padding = '='.repeat((4 - (base64Url.length % 4)) % 4);
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/') + padding;
-    return atob(base64);
-  }
-
-  private _base64UrlDecodeToUint8Array(base64Url: string): Uint8Array {
-    const decoded = this._base64UrlDecode(base64Url);
-    return new Uint8Array(decoded.split('').map((char) => char.charCodeAt(0)));
-  }
-
-  private _base64DecodeToUint8Array(base64: string): Uint8Array {
-    const decoded = atob(base64);
-    return new Uint8Array(decoded.split('').map((char) => char.charCodeAt(0)));
-  }
-
-  private _hexToUint8Array(hex: string): Uint8Array {
-    if (hex.length % 2 !== 0) {
-      throw new Error('Invalid hex string length');
-    }
-    const result = new Uint8Array(hex.length / 2);
-    for (let i = 0; i < hex.length; i += 2) {
-      result[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-    }
-    return result;
-  }
-
-  private _multibaseToUint8Array(multibase: string): Uint8Array {
-    // Simple multibase decoder for 'z' (base58btc)
-    // This is a simplified implementation - in production, use a proper multibase library
-    if (!multibase.startsWith('z')) {
-      throw new Error('Only base58btc multibase encoding supported');
-    }
-
-    // For now, throw an error - proper base58 decoding requires additional library
-    throw new Error('Base58 decoding not implemented - use base64 proofValue instead');
   }
 }

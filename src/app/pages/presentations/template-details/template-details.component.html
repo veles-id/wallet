@@ -1,0 +1,32 @@
+<div class="template-details">
+  <div class="template-details__content">
+    @if (template(); as tmpl) {
+      @if (credentials().length > 0) {
+        <app-presentation-card
+          [credential]="credentials()[0]"
+          [persona]="persona()"
+          [personaType]="getCredentialType(credentials()[0]) | credentialType"
+          [personaName]="persona()?.alias || tmpl.name"
+          [selectiveFields]="getSelectiveFields(credentials()[0].credential.id)"
+          [validityMinutes]="tmpl.defaultValidityMinutes" />
+      }
+    }
+
+    <div class="template-details__actions">
+      <button
+        mat-flat-button
+        class="template-details__button template-details__button--share"
+        (click)="sharePresentation()">
+        <mat-icon>share</mat-icon>
+        Share presentation
+      </button>
+      <button
+        mat-stroked-button
+        class="template-details__button template-details__button--delete"
+        (click)="deleteTemplate()">
+        <mat-icon>delete</mat-icon>
+        Delete template
+      </button>
+    </div>
+  </div>
+</div>

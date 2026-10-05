@@ -7,6 +7,6 @@
     "types": []
   },
   "files": ["src/main.ts", "src/polyfills.ts"],
-  "include": ["src/**/*.d.ts", "src/**/*.ts"],
-  "exclude": ["src/setup-jest.ts"]
+  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/types/**/*.d.ts"],
+  "exclude": ["src/setup-jest.ts", "src/**/*.spec.ts", "**/*.spec.ts", "src/test.ts"]
 }

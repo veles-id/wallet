@@ -5,6 +5,7 @@ export interface VerifiableCredential {
   issuer: string | CredentialIssuer;
   issuanceDate: string;
   expirationDate?: string;
+  name?: string;
   credentialSubject: CredentialSubject;
   proof?: CredentialProof;
   credentialStatus?: CredentialStatus;
@@ -29,6 +30,7 @@ export interface CredentialProof {
   verificationMethod: string;
   jws?: string;
   proofValue?: string;
+  nonce?: string;
 }
 
 export interface CredentialStatus {
@@ -39,37 +41,20 @@ export interface CredentialStatus {
 export interface StoredCredential {
   credential: VerifiableCredential;
   createdAt: string;
-  alias?: string;
-  tags?: string[];
   isVerified?: boolean;
   metadata?: CredentialMetadata;
 }
 
 export interface CredentialMetadata {
   templateId?: string;
-  category?: CredentialCategory;
-  privacy?: CredentialPrivacy;
   source?: CredentialSource;
-}
-
-export enum CredentialCategory {
-  EDUCATION = 'education',
-  PROFESSIONAL = 'professional',
-  PERSONAL = 'personal',
-  ACHIEVEMENT = 'achievement',
-  CERTIFICATION = 'certification',
-  MEMBERSHIP = 'membership',
-  EMAIL = 'email',
-  DEVICE = 'device',
-  IDENTITY = 'identity',
-  ALUMNI = 'alumni',
-  OTHER = 'other',
-}
-
-export enum CredentialPrivacy {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  SELECTIVE = 'selective',
+  ipfsCID?: string;
+  encryptedOnIPFS?: boolean;
+  nostrPointerEventId?: string;
+  signatureType?: 'BbsBlsSignature2020';
+  otsProof?: string;
+  otsTimestamp?: number;
+  bbsPublicKey?: string;
 }
 
 export enum CredentialSource {
@@ -82,7 +67,6 @@ export interface CredentialTemplate {
   id: string;
   name: string;
   description: string;
-  category: CredentialCategory;
   fields: CredentialField[];
   context: string[];
   type: string[];
@@ -123,10 +107,7 @@ export interface CreateCredentialRequest {
   subjectDID: string;
   credentialData: Record<string, any>;
   expirationDate?: string;
-  alias?: string;
-  tags?: string[];
-  category?: CredentialCategory;
-  privacy?: CredentialPrivacy;
+  name: string;
 }
 
 export enum VerificationStatus {

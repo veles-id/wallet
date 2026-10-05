@@ -1,4 +1,3 @@
-
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -7,11 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
-import { CredentialService } from '../../core/services/credential.service';
-import { StoredCredential } from '../../core/services/credential.types';
-
-import { HeaderService } from '../../core/services/header.service';
+import { AuthService } from '@core/services/auth.service';
+import { CredentialService } from '@core/services/credential.service';
+import { StoredCredential } from '@core/services/credential.types';
+import { HeaderService } from '@core/services/header.service';
 import { CredentialCardComponent } from './credential-card/credential-card.component';
 
 @Component({
@@ -24,8 +22,8 @@ import { CredentialCardComponent } from './credential-card/credential-card.compo
     MatCardModule,
     MatChipsModule,
     MatTooltipModule,
-    CredentialCardComponent
-],
+    CredentialCardComponent,
+  ],
   templateUrl: './credentials.component.html',
   styleUrl: './credentials.component.scss',
 })
@@ -68,10 +66,11 @@ export class CredentialsComponent implements OnInit {
   }
 
   deleteCredential(credential: StoredCredential): void {
-    const { alias, credential: cred } = credential;
-    const { id } = cred;
+    const { credential: cred } = credential;
+    const { id, name } = cred;
+    const displayName = name || 'this credential';
 
-    if (confirm(`Are you sure you want to delete "${alias || 'this credential'}"?`)) {
+    if (confirm(`Are you sure you want to delete "${displayName}"?`)) {
       const success = this._credentialService.deleteCredential(id);
       if (success) {
         this._loadCredentials();

@@ -4,12 +4,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
-import { VerificationResult } from '../../../core/services/credential-verification.service';
-import { CredentialService } from '../../../core/services/credential.service';
-import { StoredCredential, VerifiableCredential } from '../../../core/services/credential.types';
-import { HeaderService } from '../../../core/services/header.service';
-import { AvatarSize } from '../../../shared/avatar/avatar.types';
-import { ProfileComponent } from '../../../shared/profile/profile.component';
+import { VerificationResult } from '@core/services/credential-verification.types';
+import { CredentialService } from '@core/services/credential.service';
+import { StoredCredential, VerifiableCredential } from '@core/services/credential.types';
+import { HeaderService } from '@core/services/header.service';
+import { AvatarSize } from '@shared/avatar/avatar.types';
+import { ProfileComponent } from '@shared/profile/profile.component';
 import { CredentialCardComponent } from '../credential-card/credential-card.component';
 
 @Component({
@@ -90,16 +90,14 @@ export class CredentialDetailsComponent implements OnInit {
     if (type.length > 1) {
       return type.find((t) => t !== 'VerifiableCredential') || type[0];
     }
-    const credential = this.credential();
-    const { metadata } = credential || {};
-    return metadata?.category || 'Credential';
+    return 'Credential';
   }
 
   getCredentialDisplayTitle(): string {
     const credential = this.credential();
     if (!credential) return 'Credential Details';
-    const { alias } = credential;
-    return alias || this.getCredentialType();
+    const { credential: cred } = credential;
+    return cred.name || this.getCredentialType();
   }
 
   getIssuerDisplayName(): string {
@@ -115,10 +113,9 @@ export class CredentialDetailsComponent implements OnInit {
   }
 
   getIssuerCategory(): string {
-    const { metadata } = this.credential() || {};
-    const category = metadata?.category?.toLowerCase();
-
-    if (category?.includes('education') || category?.includes('alumni')) {
+    const type = this.getCredentialType().toLowerCase();
+    
+    if (type.includes('degree') || type.includes('education') || type.includes('alumni')) {
       return 'Alumni Of';
     }
     return 'Issued By';
@@ -247,38 +244,19 @@ export class CredentialDetailsComponent implements OnInit {
       .trim();
   }
 
-  exportCredential(): void {
-    const credential = this.credential();
-    if (!credential) return;
-
-    const { credential: credentialData, alias } = credential;
-    const { id } = credentialData;
-
-    const credentialJson = this._credentialService.exportCredential(id);
-    if (!credentialJson) return;
-
-    const blob = new Blob([credentialJson], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `credential-${alias || 'export'}-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-
-    console.log('Credential exported successfully');
+  createPresentation(): void {
+    this._router.navigate(['/presentations/create-template']);
   }
 
   deleteCredential(): void {
     const credential = this.credential();
     if (!credential) return;
 
-    const { credential: credentialData, alias } = credential;
-    const { id } = credentialData;
+    const { credential: credentialData } = credential;
+    const { id, name } = credentialData;
 
     const confirmed = confirm(
-      `Are you sure you want to delete "${alias || 'this credential'}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${name || 'this credential'}"? This action cannot be undone.`,
     );
 
     if (confirmed) {

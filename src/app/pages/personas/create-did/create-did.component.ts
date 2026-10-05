@@ -6,9 +6,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { DidService } from '../../../core/services/did.service';
-import { CreateDIDResult, DIDType } from '../../../core/services/did.types';
-import { HeaderService } from '../../../core/services/header.service';
+import { DidService } from '@core/services/did.service';
+import { CreateDIDResult, DIDType } from '@core/services/did.types';
+import { HeaderService } from '@core/services/header.service';
 
 @Component({
   selector: 'app-create-did',

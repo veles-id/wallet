@@ -1,14 +1,13 @@
-
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
-import { DidService } from '../../core/services/did.service';
-import { StoredDID } from '../../core/services/did.types';
+import { AuthService } from '@core/services/auth.service';
+import { DidService } from '@core/services/did.service';
+import { StoredDID } from '@core/services/did.types';
 
-import { HeaderService } from '../../core/services/header.service';
+import { HeaderService } from '@core/services/header.service';
 
 @Component({
   selector: 'app-personas',

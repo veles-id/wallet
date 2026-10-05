@@ -15,3 +15,18 @@ try {
 } catch (error) {
   console.warn('Failed to assign Buffer globally:', error);
 }
+
+// Process polyfill for browser environment
+try {
+  if (typeof (globalThis as any).process === 'undefined') {
+    (globalThis as any).process = {
+      env: {},
+      version: '',
+      versions: {},
+      browser: true,
+    };
+    console.log('Process polyfill loaded successfully');
+  }
+} catch (error) {
+  console.warn('Failed to assign process globally:', error);
+}

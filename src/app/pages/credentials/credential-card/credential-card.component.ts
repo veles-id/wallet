@@ -1,12 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import {
-  CredentialCategory,
-  CredentialColorClass,
-  CredentialIconType,
-  StoredCredential,
-} from '../../../core/services/credential.types';
+import { CredentialColorClass, CredentialIconType, StoredCredential } from '@core/services/credential.types';
+import { CredentialStyleCategory } from './credential-card.types';
 
 @Component({
   selector: 'app-credential-card',
@@ -19,38 +15,41 @@ export class CredentialCardComponent {
   credential = input.required<StoredCredential>();
   cardClick = output<StoredCredential>();
 
-  private _getCategoryFromString(input: string): CredentialCategory | null {
+  private _getCategoryFromString(input: string): CredentialStyleCategory | null {
     const lowerInput = input.toLowerCase();
+    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialStyleCategory;
 
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialCategory;
+    const categoryKeywords: Record<CredentialStyleCategory, string[]> = {
+      [EMAIL]: ['email'],
+      [EDUCATION]: ['education', 'alumni', 'degree', 'university'],
+      [DEVICE]: ['device', 'phone'],
+      [IDENTITY]: ['identity'],
+      [PROFESSIONAL]: ['professional', 'certification', 'certificate'],
+    };
 
-    if (lowerInput.includes('email')) return EMAIL;
-    if (lowerInput.includes('education') || lowerInput.includes('alumni')) return EDUCATION;
-    if (lowerInput.includes('device') || lowerInput.includes('phone')) return DEVICE;
-    if (lowerInput.includes('identity')) return IDENTITY;
-    if (lowerInput.includes('professional')) return PROFESSIONAL;
+    for (const [category, keywords] of Object.entries(categoryKeywords)) {
+      if (keywords.some((keyword) => lowerInput.includes(keyword))) {
+        return category as CredentialStyleCategory;
+      }
+    }
 
     return null;
   }
 
   getCredentialType(): string {
-    const { credential: cred, metadata } = this.credential();
+    const { credential: cred } = this.credential();
     const { type } = cred;
 
     if (type.length > 1) {
       return type.find((t) => t !== 'VerifiableCredential') || type[0];
     }
-    return metadata?.category || 'Credential';
+    return 'Credential';
   }
 
   getCredentialIcon(): string {
-    const { metadata } = this.credential();
-    const category = metadata?.category?.toLowerCase();
     const type = this.getCredentialType().toLowerCase();
-
-    const detectedCategory = this._getCategoryFromString(category || '') || this._getCategoryFromString(type || '');
-
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialCategory;
+    const detectedCategory = this._getCategoryFromString(type);
+    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialStyleCategory;
     const { EMAIL_OUTLINED, SCHOOL_OUTLINED, PHONE_IPHONE_OUTLINED, BADGE_OUTLINED, WORK_OUTLINE } = CredentialIconType;
 
     switch (detectedCategory) {
@@ -70,14 +69,10 @@ export class CredentialCardComponent {
   }
 
   getCredentialColorClass(): string {
-    const { metadata } = this.credential();
-    const category = metadata?.category?.toLowerCase();
     const type = this.getCredentialType().toLowerCase();
-
-    const detectedCategory = this._getCategoryFromString(category || '') || this._getCategoryFromString(type || '');
-
+    const detectedCategory = this._getCategoryFromString(type);
+    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialStyleCategory;
     const { BROWN, DARK, BLACK, BLUE, GREEN } = CredentialColorClass;
-    const { EMAIL, EDUCATION, DEVICE, IDENTITY, PROFESSIONAL } = CredentialCategory;
 
     switch (detectedCategory) {
       case EMAIL:
@@ -94,19 +89,19 @@ export class CredentialCardComponent {
         const colors = [BROWN, DARK, BLACK, BLUE, GREEN];
         const { credential: cred } = this.credential();
         const { id } = cred;
-        const index = Math.abs(id.length) % colors.length;
+        const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const index = hash % colors.length;
         return colors[index];
     }
   }
 
   getCredentialDisplayName(): string {
-    const { alias } = this.credential();
-    return alias || this.getCredentialType();
+    const { credential } = this.credential();
+    return credential.name || this.getCredentialType();
   }
 
   getCredentialCategory(): string {
-    const { metadata } = this.credential();
-    return metadata?.category || this.getCredentialType();
+    return this.getCredentialType();
   }
 
   onCardClick(): void {

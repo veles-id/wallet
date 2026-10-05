@@ -23,6 +23,11 @@ export interface StoredDID {
   didType?: DIDType;
   nostrPrivateKey?: string;
   nostrPublicKey?: string;
+  extendedDataCID?: string;
+  publicDocument?: any;
+  extendedDocument?: any;
+  bbsSecretKey?: string;
+  bbsPublicKey?: string;
 }
 
 // NOSTR

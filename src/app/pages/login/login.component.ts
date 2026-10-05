@@ -3,10 +3,10 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
+import { AuthService } from '@core/services/auth.service';
+import { DidService } from '@core/services/did.service';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import { firstValueFrom } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
-import { DidService } from '../../core/services/did.service';
 import { VerificationResponse } from './login.types';
 
 @Component({

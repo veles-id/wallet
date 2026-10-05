@@ -24,11 +24,11 @@
     </div>
 
     <button
-      [class]="'nav-footer__nav-item' + (isRouteActive('/linked') ? ' nav-footer__nav-item--active' : '')"
+      [class]="'nav-footer__nav-item' + (isRouteActive('/presentations') ? ' nav-footer__nav-item--active' : '')"
       mat-button
-      (click)="navigateToLinked()">
-      <mat-icon>link</mat-icon>
-      <span>Linked</span>
+      (click)="navigateToPresentations()">
+      <mat-icon>present_to_all</mat-icon>
+      <span>Presentations</span>
     </button>
 
     <button
